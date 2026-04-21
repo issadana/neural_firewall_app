@@ -4,14 +4,13 @@ import 'package:neural_firewall_app/core/injection/injection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 
+import 'app.dart';
 import 'blocs/acl/acl_cubit.dart';
 import 'blocs/blacklist/blacklist_cubit.dart';
 import 'blocs/dashboard/dashboard_cubit.dart';
 import 'blocs/settings/settings_cubit.dart';
 import 'blocs/traffic/traffic_bloc.dart';
 import 'blocs/vpn/vpn_cubit.dart';
-import 'core/theme/app_theme.dart';
-import 'models/app_models.dart';
 import 'services/list_services.dart';
 import 'services/ml_services.dart';
 import 'services/packet_processor_service.dart';
@@ -77,25 +76,5 @@ void main() async {
   );
 }
 
-class NeuralFirewallApp extends StatelessWidget {
-  const NeuralFirewallApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppConstants.appName,
-      theme: AppTheme.darkTheme(),
-      home: const Scaffold(
-        body: Center(
-          child: Text(
-            'Neural Firewall\nInitializing...',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 20, color: Colors.white),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 

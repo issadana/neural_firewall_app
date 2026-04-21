@@ -6,8 +6,7 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:neural_firewall_app/main.dart';
+import 'package:neural_firewall_app/app.dart';
 
 void main() {
   testWidgets('App boots and shows initialization text', (WidgetTester tester) async {
