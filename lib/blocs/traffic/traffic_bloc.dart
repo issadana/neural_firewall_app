@@ -58,6 +58,9 @@ class TrafficBloc extends Bloc<TrafficEvent, TrafficState> {
     Emitter<TrafficState> emit,
   ) async {
     try {
+      // Drop packets originating from the TUN interface itself (own-device outbound traffic)
+      if (event.rawPacket['srcIp'] == AppConstants.tunAddress) return;
+
       final record = await _processor.process(event.rawPacket);
 
       final newQueue = ListQueue<PacketRecord>.from(state.records);

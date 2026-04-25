@@ -7,7 +7,10 @@ import 'blocs/blacklist/blacklist_state.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'models/app_models.dart';
+import 'screens/acl/acl_screen.dart';
+import 'screens/blacklist/blacklist_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/settings/settings_screen.dart';
 
 class NeuralFirewallApp extends StatelessWidget {
   const NeuralFirewallApp({super.key});
@@ -35,9 +38,9 @@ class _AppShellState extends State<_AppShell> {
 
   static const _screens = <Widget>[
     HomeScreen(),
-    _PlaceholderScreen(label: 'Blacklist', icon: Icons.block),
-    _PlaceholderScreen(label: 'ACL', icon: Icons.shield_outlined),
-    _PlaceholderScreen(label: 'Settings', icon: Icons.settings_outlined),
+    BlacklistScreen(),
+    AclScreen(),
+    SettingsScreen(),
   ];
 
   @override
@@ -112,40 +115,3 @@ class _AppShellState extends State<_AppShell> {
   }
 }
 
-class _PlaceholderScreen extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  const _PlaceholderScreen({required this.label, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.primaryBlack,
-      appBar: AppBar(
-        backgroundColor: AppColors.surfaceDark,
-        title: Text(
-          label.toUpperCase(),
-          style: const TextStyle(
-            fontSize: 19,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.5,
-            color: AppColors.accentBlue,
-          ),
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 48, color: AppColors.textDisabled),
-            const SizedBox(height: 12),
-            Text(
-              '$label — coming in Phase 7',
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 19),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

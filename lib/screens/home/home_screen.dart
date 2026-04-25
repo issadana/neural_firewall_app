@@ -34,10 +34,18 @@ class HomeScreen extends StatelessWidget {
       body: const Column(
         children: [
           ControlBar(),
-          StatsRow(),
-          ThreatSparkline(),
-          Divider(height: 1, color: AppColors.borderColor),
-          Expanded(child: TrafficTable()),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  StatsRow(),
+                  ThreatSparkline(),
+                  Divider(height: 1, color: AppColors.borderColor),
+                  TrafficTable(),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

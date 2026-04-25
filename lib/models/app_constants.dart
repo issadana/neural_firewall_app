@@ -7,6 +7,7 @@ class AppConstants {
   static const int maxSparklineEntries = 60;
   static const int defaultFloodPktPerSec = 1000;
   static const int defaultSynFloodPerSec = 100;
+  static const String tunAddress = '10.0.0.2';
   static const String appName = 'Neural Firewall';
   static const String appVersion = '1.0.0';
 }
