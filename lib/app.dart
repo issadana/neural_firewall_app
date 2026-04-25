@@ -19,7 +19,7 @@ class NeuralFirewallApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: AppConstants.appName,
-      theme: AppTheme.darkTheme(),
+      theme: AppTheme.lightTheme(),
       debugShowCheckedModeBanner: false,
       home: const _AppShell(),
     );
