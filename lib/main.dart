@@ -6,6 +6,7 @@ import 'package:logger/logger.dart';
 
 import 'app.dart';
 import 'blocs/acl/acl_cubit.dart';
+import 'blocs/auth/auth_cubit.dart';
 import 'blocs/blacklist/blacklist_cubit.dart';
 import 'blocs/dashboard/dashboard_cubit.dart';
 import 'blocs/settings/settings_cubit.dart';
@@ -64,6 +65,7 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
+        BlocProvider(create: (_) => AuthCubit(prefs)),
         BlocProvider.value(value: vpnCubit),
         BlocProvider.value(value: trafficBloc),
         BlocProvider.value(value: dashboardCubit),

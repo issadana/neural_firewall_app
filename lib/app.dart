@@ -2,12 +2,14 @@ import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'blocs/auth/auth_cubit.dart';
 import 'blocs/blacklist/blacklist_cubit.dart';
 import 'blocs/blacklist/blacklist_state.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'models/app_models.dart';
 import 'screens/acl/acl_screen.dart';
+import 'screens/auth/sign_in_screen.dart';
 import 'screens/blacklist/blacklist_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/settings/settings_screen.dart';
@@ -21,7 +23,19 @@ class NeuralFirewallApp extends StatelessWidget {
       title: AppConstants.appName,
       theme: AppTheme.lightTheme(),
       debugShowCheckedModeBanner: false,
-      home: const _AppShell(),
+      home: BlocBuilder<AuthCubit, AuthState>(
+        builder: (context, state) {
+          if (state.status == AuthStatus.authenticated) {
+            return const _AppShell();
+          }
+          if (state.status == AuthStatus.initial) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          return const SignInScreen();
+        },
+      ),
     );
   }
 }
