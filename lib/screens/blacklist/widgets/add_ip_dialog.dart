@@ -47,16 +47,15 @@ class _AddIpDialogState extends State<AddIpDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: AppColors.surfaceLight,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: AppColors.borderColor),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(24)),
       ),
       title: Text(
         widget.title,
         style: const TextStyle(
-          color: AppColors.accentBlue,
+          color: AppColors.textPrimary,
           fontWeight: FontWeight.bold,
-          letterSpacing: 1,
+          fontSize: 18,
         ),
       ),
       content: Column(
@@ -74,23 +73,23 @@ class _AddIpDialogState extends State<AddIpDialog> {
               filled: true,
               fillColor: AppColors.surfaceDark,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: AppColors.borderColor),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: AppColors.borderColor),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
-                borderSide: const BorderSide(color: AppColors.accentBlue),
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
               ),
               prefixIcon: const Icon(Icons.dns_outlined, color: AppColors.textDisabled, size: 18),
             ),
             onSubmitted: (_) => widget.notesHint == null ? _submit() : null,
           ),
           if (widget.notesHint != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             TextField(
               controller: _notesController,
               style: const TextStyle(color: AppColors.textPrimary),
@@ -100,16 +99,16 @@ class _AddIpDialogState extends State<AddIpDialog> {
                 filled: true,
                 fillColor: AppColors.surfaceDark,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: AppColors.borderColor),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: AppColors.borderColor),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: const BorderSide(color: AppColors.accentBlue),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
                 ),
                 prefixIcon: const Icon(Icons.notes_outlined, color: AppColors.textDisabled, size: 18),
               ),
@@ -121,16 +120,18 @@ class _AddIpDialogState extends State<AddIpDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('CANCEL', style: TextStyle(color: AppColors.textSecondary)),
+          child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
         ),
         ElevatedButton(
           onPressed: _submit,
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.accentBlue,
-            foregroundColor: Colors.black,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            minimumSize: const Size(72, 40),
+            shape: const StadiumBorder(),
+            elevation: 0,
           ),
-          child: const Text('ADD', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: const Text('Add', style: TextStyle(fontWeight: FontWeight.w600)),
         ),
       ],
     );

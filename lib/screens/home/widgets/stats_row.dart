@@ -14,25 +14,22 @@ class StatsRow extends StatelessWidget {
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, stats) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _StatCard(
-                    label: 'PACKETS',
+                    label: 'Packets',
                     value: stats.packetsAnalyzed.toString(),
                     subtitle: 'Analyzed',
                     icon: Icons.analytics_outlined,
-                    color: AppColors.accentBlue,
+                    color: AppColors.primary,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   _StatCard(
-                    label: 'BLACKLISTED',
+                    label: 'Blacklisted',
                     value: stats.ipsBlacklisted.toString(),
                     subtitle: 'Auto-blocked',
                     icon: Icons.block_outlined,
@@ -40,7 +37,7 @@ class StatsRow extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 12),
               _ThreatGaugeCard(threatPercent: stats.maxThreatPercent),
             ],
           ),
@@ -69,45 +66,49 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.surfaceLight,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.borderColor),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: AppColors.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, size: 14, color: color),
-                const SizedBox(width: 4),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, size: 16, color: color),
+                ),
+                const SizedBox(width: 8),
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                     color: color,
-                    letterSpacing: 0.8,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 10),
             Text(
               value,
               style: const TextStyle(
-                fontSize: 25,
+                fontSize: 26,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
               ),
             ),
             Text(
               subtitle,
-              style: const TextStyle(
-                fontSize: 15,
-                color: AppColors.textSecondary,
-              ),
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -128,61 +129,61 @@ class _ThreatGaugeCard extends StatelessWidget {
         ? AppColors.statusDanger
         : pct >= 0.10
             ? AppColors.statusWarning
-            : AppColors.statusNormal;
+            : AppColors.accent;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.borderColor),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppColors.cardShadow,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
+          CircularPercentIndicator(
+            radius: 32,
+            lineWidth: 5,
+            percent: pct,
+            center: Text(
+              '${threatPercent.toStringAsFixed(1)}%',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            progressColor: color,
+            backgroundColor: AppColors.borderColor,
+            circularStrokeCap: CircularStrokeCap.round,
+          ),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.security_outlined, size: 14, color: color),
-                const SizedBox(width: 4),
-                Text(
-                  'MAX THREAT',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                    letterSpacing: 0.8,
+              Row(
+                children: [
+                  Icon(Icons.security_outlined, size: 14, color: color),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Max Threat',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Center(
-              child: CircularPercentIndicator(
-                radius: 28,
-                lineWidth: 4,
-                percent: pct,
-                center: Text(
-                  '${threatPercent.toStringAsFixed(1)}%',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-                progressColor: color,
-                backgroundColor: AppColors.borderColor,
-                circularStrokeCap: CircularStrokeCap.round,
+                ],
               ),
-            ),
-            const Center(
-              child: Text(
+              const SizedBox(height: 4),
+              const Text(
                 'Highest detected',
-                style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

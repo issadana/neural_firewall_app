@@ -46,7 +46,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 content: Text(state.errorMessage!),
                 backgroundColor: AppColors.statusDanger,
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
             );
           }
@@ -78,20 +78,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget _buildHeader() {
     return Column(
       children: [
-        Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-            color: AppColors.accentBlue,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Icon(Icons.shield_outlined, color: Colors.white, size: 36),
-        ),
+        Image.asset('assets/images/Sentri_logo.png', width: 120),
         const SizedBox(height: 20),
         const Text(
-          'Neural Firewall',
+          'Sentri',
           style: TextStyle(
-            fontSize: 26,
+            fontSize: 28,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
             letterSpacing: -0.5,
@@ -111,15 +103,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderColor),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: AppColors.cardShadow,
       ),
       child: Form(
         key: _formKey,
@@ -186,7 +171,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           style: TextButton.styleFrom(
-            foregroundColor: AppColors.accentBlue,
+            foregroundColor: AppColors.primary,
             padding: const EdgeInsets.symmetric(horizontal: 8),
           ),
           child: const Text(

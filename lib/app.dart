@@ -14,8 +14,8 @@ import 'screens/blacklist/blacklist_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/settings/settings_screen.dart';
 
-class NeuralFirewallApp extends StatelessWidget {
-  const NeuralFirewallApp({super.key});
+class SentriApp extends StatelessWidget {
+  const SentriApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -70,62 +70,68 @@ class _AppShellState extends State<_AppShell> {
       builder: (context, blacklist) {
         final blockedCount = blacklist.entries.length;
 
-        return BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (i) => setState(() => _currentIndex = i),
-          backgroundColor: AppColors.surfaceDark,
-          selectedItemColor: AppColors.accentBlue,
-          unselectedItemColor: AppColors.textDisabled,
-          type: BottomNavigationBarType.fixed,
-          selectedLabelStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-          unselectedLabelStyle: const TextStyle(fontSize: 15),
-          items: [
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Dashboard',
-            ),
-            BottomNavigationBarItem(
-              icon: badges.Badge(
-                showBadge: blockedCount > 0,
-                badgeContent: Text(
-                  blockedCount > 99 ? '99+' : '$blockedCount',
-                  style: const TextStyle(fontSize: 13, color: Colors.white),
-                ),
-                badgeStyle: const badges.BadgeStyle(
-                  badgeColor: AppColors.statusDanger,
-                  padding: EdgeInsets.all(3),
-                ),
-                child: const Icon(Icons.block_outlined),
+        return Container(
+          decoration: const BoxDecoration(
+            color: AppColors.surfaceLight,
+            border: Border(top: BorderSide(color: AppColors.borderColor, width: 1)),
+          ),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (i) => setState(() => _currentIndex = i),
+            backgroundColor: AppColors.surfaceLight,
+            selectedItemColor: AppColors.primary,
+            unselectedItemColor: AppColors.textSecondary,
+            type: BottomNavigationBarType.fixed,
+            elevation: 0,
+            selectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            unselectedLabelStyle: const TextStyle(fontSize: 12),
+            items: [
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home),
+                label: 'Dashboard',
               ),
-              activeIcon: badges.Badge(
-                showBadge: blockedCount > 0,
-                badgeContent: Text(
-                  blockedCount > 99 ? '99+' : '$blockedCount',
-                  style: const TextStyle(fontSize: 13, color: Colors.white),
+              BottomNavigationBarItem(
+                icon: badges.Badge(
+                  showBadge: blockedCount > 0,
+                  badgeContent: Text(
+                    blockedCount > 99 ? '99+' : '$blockedCount',
+                    style: const TextStyle(fontSize: 10, color: Colors.white),
+                  ),
+                  badgeStyle: const badges.BadgeStyle(
+                    badgeColor: AppColors.statusDanger,
+                    padding: EdgeInsets.all(4),
+                  ),
+                  child: const Icon(Icons.block_outlined),
                 ),
-                badgeStyle: const badges.BadgeStyle(
-                  badgeColor: AppColors.statusDanger,
-                  padding: EdgeInsets.all(3),
+                activeIcon: badges.Badge(
+                  showBadge: blockedCount > 0,
+                  badgeContent: Text(
+                    blockedCount > 99 ? '99+' : '$blockedCount',
+                    style: const TextStyle(fontSize: 10, color: Colors.white),
+                  ),
+                  badgeStyle: const badges.BadgeStyle(
+                    badgeColor: AppColors.statusDanger,
+                    padding: EdgeInsets.all(4),
+                  ),
+                  child: const Icon(Icons.block),
                 ),
-                child: const Icon(Icons.block),
+                label: 'Blacklist',
               ),
-              label: 'Blacklist',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.shield_outlined),
-              activeIcon: Icon(Icons.shield),
-              label: 'ACL',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.settings_outlined),
-              activeIcon: Icon(Icons.settings),
-              label: 'Settings',
-            ),
-          ],
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.shield_outlined),
+                activeIcon: Icon(Icons.shield),
+                label: 'ACL',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.settings_outlined),
+                activeIcon: Icon(Icons.settings),
+                label: 'Settings',
+              ),
+            ],
+          ),
         );
       },
     );
   }
 }
-

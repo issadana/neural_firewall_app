@@ -17,28 +17,25 @@ class AclTile extends StatelessWidget {
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        color: AppColors.statusDanger.withValues(alpha: 0.15),
+        padding: const EdgeInsets.only(right: 24),
+        color: AppColors.statusDanger.withValues(alpha: 0.1),
         child: const Icon(Icons.delete_outline, color: AppColors.statusDanger),
       ),
       confirmDismiss: (_) async {
         return await showDialog<bool>(
           context: context,
           builder: (_) => AlertDialog(
-            backgroundColor: AppColors.surfaceLight,
-            title: const Text('Remove ACL Entry', style: TextStyle(color: AppColors.textPrimary)),
-            content: Text(
-              'Remove ${entry.ip} from ACL?',
-              style: const TextStyle(color: AppColors.textSecondary),
-            ),
+            title: const Text('Remove ACL Entry'),
+            content: Text('Remove ${entry.ip} from ACL?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('CANCEL', style: TextStyle(color: AppColors.textSecondary)),
+                child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('REMOVE', style: TextStyle(color: AppColors.statusDanger)),
+                style: TextButton.styleFrom(foregroundColor: AppColors.statusDanger),
+                child: const Text('Remove'),
               ),
             ],
           ),
@@ -47,18 +44,26 @@ class AclTile extends StatelessWidget {
       },
       onDismissed: (_) => onDelete(),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
         decoration: BoxDecoration(
           color: AppColors.surfaceLight,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.borderColor),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: AppColors.cardShadow,
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              const Icon(Icons.shield, color: AppColors.accentBlue, size: 20),
-              const SizedBox(width: 10),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.shield_outlined, color: AppColors.primary, size: 18),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,43 +77,36 @@ class AclTile extends StatelessWidget {
                         fontFamily: 'monospace',
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                           decoration: BoxDecoration(
-                            color: AppColors.accentBlue.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: AppColors.accentBlue, width: 0.5),
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           child: const Text(
-                            'ACL RULE',
+                            'ACL Rule',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.accentBlue,
-                              letterSpacing: 0.5,
+                              color: AppColors.primary,
+                              letterSpacing: 0.3,
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           DateFormat('MM/dd HH:mm').format(entry.addedAt),
-                          style: const TextStyle(
-                            color: AppColors.textDisabled,
-                            fontSize: 12,
-                          ),
+                          style: const TextStyle(color: AppColors.textDisabled, fontSize: 12),
                         ),
                         if (entry.notes != null && entry.notes!.isNotEmpty) ...[
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               entry.notes!,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 12,
-                              ),
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),

@@ -5,13 +5,13 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'package:Sentri/app.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:neural_firewall_app/app.dart';
 
 void main() {
   testWidgets('App boots and shows initialization text', (WidgetTester tester) async {
-    await tester.pumpWidget(const NeuralFirewallApp());
+    await tester.pumpWidget(const SentriApp());
 
-    expect(find.textContaining('Neural Firewall'), findsOneWidget);
+    expect(find.textContaining('Sentri'), findsOneWidget);
   });
 }

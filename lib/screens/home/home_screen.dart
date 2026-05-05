@@ -13,22 +13,13 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.primaryBlack,
       appBar: AppBar(
-        backgroundColor: AppColors.surfaceDark,
+        backgroundColor: AppColors.surfaceLight,
         elevation: 0,
-        title: const Row(
-          children: [
-            Icon(Icons.shield, color: AppColors.accentBlue, size: 20),
-            SizedBox(width: 8),
-            Text(
-              'NEURAL FIREWALL',
-              style: TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-                color: AppColors.accentBlue,
-              ),
-            ),
-          ],
+        centerTitle: true,
+        title: Image.asset('assets/images/Sentri_logo.png', height: 32),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(height: 1, color: AppColors.borderColor),
         ),
       ),
       body: const Column(

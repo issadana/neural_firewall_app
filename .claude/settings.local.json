@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\PC\\\\OneDrive\\\\Desktop\\\\FYP\\\\neural_firewall_app\" -Force)",
+      "Bash(Select-Object Name, FullName)"
+    ]
+  }
+}

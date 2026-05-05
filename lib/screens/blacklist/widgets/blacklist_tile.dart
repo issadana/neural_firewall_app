@@ -17,28 +17,25 @@ class BlacklistTile extends StatelessWidget {
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        color: AppColors.statusDanger.withValues(alpha: 0.15),
+        padding: const EdgeInsets.only(right: 24),
+        color: AppColors.statusDanger.withValues(alpha: 0.1),
         child: const Icon(Icons.delete_outline, color: AppColors.statusDanger),
       ),
       confirmDismiss: (_) async {
         return await showDialog<bool>(
           context: context,
           builder: (_) => AlertDialog(
-            backgroundColor: AppColors.surfaceLight,
-            title: const Text('Remove IP', style: TextStyle(color: AppColors.textPrimary)),
-            content: Text(
-              'Remove ${entry.ip} from blacklist?',
-              style: const TextStyle(color: AppColors.textSecondary),
-            ),
+            title: const Text('Remove IP'),
+            content: Text('Remove ${entry.ip} from blacklist?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('CANCEL', style: TextStyle(color: AppColors.textSecondary)),
+                child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('REMOVE', style: TextStyle(color: AppColors.statusDanger)),
+                style: TextButton.styleFrom(foregroundColor: AppColors.statusDanger),
+                child: const Text('Remove'),
               ),
             ],
           ),
@@ -47,18 +44,26 @@ class BlacklistTile extends StatelessWidget {
       },
       onDismissed: (_) => onDelete(),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
         decoration: BoxDecoration(
           color: AppColors.surfaceLight,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.borderColor),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: AppColors.cardShadow,
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              const Icon(Icons.block, color: AppColors.statusDanger, size: 20),
-              const SizedBox(width: 10),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.statusDanger.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.block, color: AppColors.statusDanger, size: 18),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,17 +77,14 @@ class BlacklistTile extends StatelessWidget {
                         fontFamily: 'monospace',
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
                         _ReasonBadge(reason: entry.reason),
                         const SizedBox(width: 8),
                         Text(
                           DateFormat('MM/dd HH:mm').format(entry.addedAt),
-                          style: const TextStyle(
-                            color: AppColors.textDisabled,
-                            fontSize: 12,
-                          ),
+                          style: const TextStyle(color: AppColors.textDisabled, fontSize: 12),
                         ),
                       ],
                     ),
@@ -116,24 +118,20 @@ class _ReasonBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final isManual = reason == 'manual';
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
         color: isManual
-            ? AppColors.accentBlue.withValues(alpha: 0.15)
-            : AppColors.statusDanger.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: isManual ? AppColors.accentBlue : AppColors.statusDanger,
-          width: 0.5,
-        ),
+            ? AppColors.primary.withValues(alpha: 0.1)
+            : AppColors.statusDanger.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        isManual ? 'MANUAL' : 'AI BLOCK',
+        isManual ? 'Manual' : 'AI Block',
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.bold,
-          color: isManual ? AppColors.accentBlue : AppColors.statusDanger,
-          letterSpacing: 0.5,
+          color: isManual ? AppColors.primary : AppColors.statusDanger,
+          letterSpacing: 0.3,
         ),
       ),
     );

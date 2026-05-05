@@ -20,37 +20,33 @@ class ControlBar extends StatelessWidget {
         final isStarting = vpn.status == VpnStatus.starting;
 
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: const BoxDecoration(
-            color: AppColors.surfaceDark,
-            border: Border(
-              bottom: BorderSide(color: AppColors.borderColor, width: 1),
-            ),
+            color: AppColors.surfaceLight,
+            border: Border(bottom: BorderSide(color: AppColors.borderColor, width: 1)),
           ),
           child: Row(
             children: [
               _VpnStatusDot(status: vpn.status),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   _statusLabel(vpn.status),
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: _statusColor(vpn.status),
-                    letterSpacing: 0.5,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ),
               TextButton.icon(
-                onPressed: () =>
-                    context.read<TrafficBloc>().add(const ClearLogsEvent()),
+                onPressed: () => context.read<TrafficBloc>().add(const ClearLogsEvent()),
                 icon: const Icon(Icons.clear_all, size: 16),
-                label: const Text('CLEAR', style: TextStyle(fontSize: 16)),
+                label: const Text('Clear', style: TextStyle(fontSize: 13)),
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.textSecondary,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 ),
               ),
               const SizedBox(width: 4),
@@ -63,10 +59,10 @@ class ControlBar extends StatelessWidget {
   }
 
   String _statusLabel(VpnStatus status) => switch (status) {
-        VpnStatus.stopped => 'VPN STOPPED',
-        VpnStatus.starting => 'STARTING...',
-        VpnStatus.running => 'VPN ACTIVE — CAPTURING',
-        VpnStatus.error => 'VPN ERROR',
+        VpnStatus.stopped => 'Protection stopped',
+        VpnStatus.starting => 'Starting…',
+        VpnStatus.running => 'Active — Capturing',
+        VpnStatus.error => 'VPN error',
       };
 
   Color _statusColor(VpnStatus status) => switch (status) {
@@ -146,15 +142,16 @@ class _StartStopButton extends StatelessWidget {
         }
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: isRunning ? AppColors.statusDanger : AppColors.accentGreen,
-        foregroundColor: Colors.black,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        minimumSize: const Size(80, 34),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        backgroundColor: isRunning ? AppColors.statusDanger : AppColors.accent,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        minimumSize: const Size(80, 36),
+        shape: const StadiumBorder(),
+        elevation: 0,
       ),
       child: Text(
-        isRunning ? 'STOP' : 'START',
-        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+        isRunning ? 'Stop' : 'Start',
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
       ),
     );
   }
