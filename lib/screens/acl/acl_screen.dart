@@ -86,6 +86,7 @@ class AclScreen extends StatelessWidget {
             ],
           ),
           floatingActionButton: FloatingActionButton(
+            heroTag: 'acl_fab',
             onPressed: () => _showAddDialog(context),
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,

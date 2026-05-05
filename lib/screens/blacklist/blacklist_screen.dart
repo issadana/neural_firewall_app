@@ -79,6 +79,7 @@ class BlacklistScreen extends StatelessWidget {
                   },
                 ),
           floatingActionButton: FloatingActionButton(
+            heroTag: 'blacklist_fab',
             onPressed: () => _showAddDialog(context),
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,

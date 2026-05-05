@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Sentri/core/injection/injection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
-
 import 'app.dart';
 import 'blocs/acl/acl_cubit.dart';
 import 'blocs/auth/auth_cubit.dart';
