@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../blocs/auth/auth_cubit.dart';
 import '../../blocs/settings/settings_cubit.dart';
 import '../../blocs/settings/settings_state.dart';
 import '../../core/theme/app_colors.dart';
@@ -100,6 +101,9 @@ class SettingsScreen extends StatelessWidget {
               const _Divider(),
               _SectionHeader(label: 'ABOUT'),
               _AboutTile(state: state),
+              const _Divider(),
+              _SectionHeader(label: 'ACCOUNT'),
+              _LogoutTile(),
               const SizedBox(height: 24),
             ],
           ),
@@ -418,6 +422,53 @@ class _AboutTile extends StatelessWidget {
           ),
           _AboutRow(label: 'Max log entries', value: '${state.maxLogEntries}'),
         ],
+      ),
+    );
+  }
+}
+
+class _LogoutTile extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.statusDanger.withValues(alpha: 0.4)),
+      ),
+      child: ListTile(
+        leading: const Icon(Icons.logout, color: AppColors.statusDanger, size: 20),
+        title: const Text(
+          'Sign Out',
+          style: TextStyle(color: AppColors.statusDanger, fontWeight: FontWeight.w600),
+        ),
+        onTap: () async {
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: AppColors.surfaceDark,
+              title: const Text('Sign Out', style: TextStyle(color: AppColors.textPrimary)),
+              content: const Text(
+                'Are you sure you want to sign out?',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Sign Out', style: TextStyle(color: AppColors.statusDanger)),
+                ),
+              ],
+            ),
+          );
+          if (confirmed == true && context.mounted) {
+            context.read<AuthCubit>().signOut();
+          }
+        },
       ),
     );
   }
