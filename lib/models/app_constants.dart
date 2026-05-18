@@ -1,8 +1,8 @@
 class AppConstants {
   static const String blacklistBox = 'blacklist_box';
   static const String aclBox = 'acl_box';
-  static const double defaultBlockThreshold = 0.20;
-  static const double defaultWarnThreshold = 0.10;
+  static const double defaultBlockThreshold = 0.80;
+  static const double defaultWarnThreshold = 0.60;
   static const int maxTrafficEntries = 200;
   static const int maxSparklineEntries = 60;
   static const int defaultFloodPktPerSec = 1000;

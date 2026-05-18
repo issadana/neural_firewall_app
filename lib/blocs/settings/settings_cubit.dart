@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../models/app_models.dart';
 import 'settings_state.dart';
 
 @injectable
@@ -14,8 +15,8 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   void _loadFromPrefs() {
     emit(SettingsState(
-      blockThreshold: _prefs.getDouble('blockThreshold') ?? 0.20,
-      warnThreshold: _prefs.getDouble('warnThreshold') ?? 0.10,
+      blockThreshold: _prefs.getDouble('blockThreshold') ?? AppConstants.defaultBlockThreshold,
+      warnThreshold: _prefs.getDouble('warnThreshold') ?? AppConstants.defaultWarnThreshold,
       floodDetection: _prefs.getBool('floodDetection') ?? true,
       synFloodDetection: _prefs.getBool('synFloodDetection') ?? true,
       floodPktPerSec: _prefs.getInt('floodPktPerSec') ?? 1000,

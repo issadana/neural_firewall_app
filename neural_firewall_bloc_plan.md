@@ -30,11 +30,13 @@ dependencies:
   tflite_flutter_helper: ^0.4.2     # Tensor pre/post processing
 
   # ── Persistence ──────────────────────────────────────────────────
-  hive_flutter: ^1.1.0              # Fast local NoSQL for blacklist/logs
-  hive: ^2.2.3
-  shared_preferences: ^2.2.2        # Simple key-value (settings, thresholds)
+  shared_preferences: ^2.2.2        # Simple key-value (UI prefs, thresholds)
+  flutter_secure_storage: ^9.0.0    # Encrypted JWT token storage
 
-  # ── Networking / Utilities ────────────────────────────────────────
+  # ── Networking / HTTP Client ──────────────────────────────────────
+  dio: ^5.4.0                       # HTTP client for backend API calls
+
+  # ── Utilities ────────────────────────────────────────────────────
   intl: ^0.19.0                     # Date/time formatting
   collection: ^1.18.0               # ListQueue, sorted collections
 
@@ -58,7 +60,6 @@ dev_dependencies:
     sdk: flutter
   build_runner: ^2.4.8
   freezed: ^2.4.6
-  hive_generator: ^2.0.1
   bloc_test: ^9.1.5                 # Unit testing for Blocs/Cubits
   json_serializable: ^6.7.1
   flutter_lints: ^3.0.1
@@ -96,12 +97,11 @@ neural_firewall/
 │       └── shield.png
 │
 ├── lib/
-│   ├── main.dart                                ← App entry, Hive init, BlocProviders
+│   ├── main.dart                                ← App entry, BlocProviders
 │   │
 │   ├── core/
 │   │   ├── constants/
-│   │   │   ├── app_constants.dart
-│   │   │   └── hive_boxes.dart
+│   │   │   └── app_constants.dart
 │   │   ├── theme/
 │   │   │   ├── app_theme.dart
 │   │   │   └── app_colors.dart
@@ -109,25 +109,37 @@ neural_firewall/
 │   │       ├── protocol_helper.dart
 │   │       └── format_utils.dart
 │   │
+│   ├── api/                                     ← Backend API layer
+│   │   ├── api_client.dart                      ← Dio singleton + interceptors (auth header, refresh)
+│   │   ├── auth_api.dart                        ← /auth endpoints
+│   │   ├── blacklist_api.dart                   ← /blacklist CRUD endpoints
+│   │   ├── acl_api.dart                         ← /acl CRUD endpoints
+│   │   ├── settings_api.dart                    ← /settings endpoints
+│   │   └── predict_api.dart                     ← /predict endpoint
+│   │
 │   ├── models/
 │   │   ├── packet_record.dart                   ← Freezed: live table row
 │   │   ├── packet_record.freezed.dart
 │   │   ├── flow_features.dart
-│   │   ├── blacklist_entry.dart                 ← Hive model
-│   │   ├── blacklist_entry.g.dart
+│   │   ├── blacklist_entry.dart                 ← Plain Dart model (no Hive)
 │   │   ├── acl_entry.dart
 │   │   ├── detection_result.dart
+│   │   ├── auth_token.dart                      ← JWT access + refresh tokens
 │   │   └── dashboard_stats.dart
 │   │
 │   ├── services/
 │   │   ├── vpn_bridge_service.dart
 │   │   ├── ml_inference_service.dart
-│   │   ├── blacklist_service.dart
-│   │   ├── acl_service.dart
+│   │   ├── blacklist_service.dart               ← Calls blacklist_api.dart
+│   │   ├── acl_service.dart                     ← Calls acl_api.dart
+│   │   ├── auth_service.dart                    ← Token storage (flutter_secure_storage)
 │   │   ├── heuristic_service.dart
 │   │   └── packet_processor_service.dart
 │   │
-│   ├── blocs/                                   ← Replaces providers/
+│   ├── blocs/
+│   │   ├── auth/
+│   │   │   ├── auth_cubit.dart                  ← login / register / logout
+│   │   │   └── auth_state.dart
 │   │   ├── vpn/
 │   │   │   ├── vpn_cubit.dart                   ← VPN start/stop state
 │   │   │   └── vpn_state.dart
@@ -139,16 +151,19 @@ neural_firewall/
 │   │   │   ├── dashboard_cubit.dart             ← Derived stats (listens to traffic)
 │   │   │   └── dashboard_state.dart
 │   │   ├── blacklist/
-│   │   │   ├── blacklist_cubit.dart             ← CRUD + Hive
+│   │   │   ├── blacklist_cubit.dart             ← CRUD via backend API
 │   │   │   └── blacklist_state.dart
 │   │   ├── acl/
 │   │   │   ├── acl_cubit.dart
 │   │   │   └── acl_state.dart
 │   │   └── settings/
-│   │       ├── settings_cubit.dart              ← SharedPreferences persistence
+│   │       ├── settings_cubit.dart              ← SharedPreferences + backend sync
 │   │       └── settings_state.dart
 │   │
 │   ├── screens/
+│   │   ├── auth/
+│   │   │   ├── login_screen.dart
+│   │   │   └── register_screen.dart
 │   │   ├── home/
 │   │   │   ├── home_screen.dart
 │   │   │   └── widgets/
@@ -581,34 +596,36 @@ class BlacklistState extends Equatable {
 
 ```dart
 // blocs/blacklist/blacklist_cubit.dart
+// BlacklistService maintains an in-memory Set<String> cache and syncs to backend.
 class BlacklistCubit extends Cubit<BlacklistState> {
   final BlacklistService _service;
 
-  BlacklistCubit(this._service) : super(const BlacklistState(entries: []));
+  BlacklistCubit(this._service) : super(const BlacklistState(entries: [], isLoading: false));
 
   Future<void> load() async {
-    final entries = await _service.getAll();
-    emit(BlacklistState(entries: entries));
+    emit(state.copyWith(isLoading: true));
+    final entries = await _service.getAll(); // GET /blacklist
+    emit(BlacklistState(entries: entries, isLoading: false));
   }
 
   Future<void> addAutoMl(String ip, {required double bfScore, required double dosScore}) async {
-    await _service.add(ip, BlacklistReason.autoMl, bfScore: bfScore, dosScore: dosScore);
+    await _service.add(ip, BlacklistReason.autoMl, bfScore: bfScore, dosScore: dosScore); // POST /blacklist
     await load();
   }
 
   Future<void> addManual(String ip) async {
-    await _service.add(ip, BlacklistReason.manual);
+    await _service.add(ip, BlacklistReason.manual); // POST /blacklist
     await load();
   }
 
   Future<void> remove(String ip) async {
-    await _service.remove(ip);
+    await _service.remove(ip); // DELETE /blacklist/{ip}
     await load();
   }
 
   Future<void> clearAll() async {
-    await _service.clearAll();
-    emit(const BlacklistState(entries: []));
+    await _service.clearAll(); // DELETE /blacklist
+    emit(const BlacklistState(entries: [], isLoading: false));
   }
 }
 ```
@@ -723,23 +740,22 @@ class SettingsCubit extends Cubit<SettingsState> {
 ```dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
-  Hive.registerAdapter(BlacklistEntryAdapter());
-  await Hive.openBox<BlacklistEntry>(AppConstants.blacklistBox);
-  await Hive.openBox<AclEntry>(AppConstants.aclBox);
 
-  final prefs = await SharedPreferences.getInstance();
-  final mlService = MlInferenceService();
+  final prefs        = await SharedPreferences.getInstance();
+  final authService  = AuthService();          // flutter_secure_storage wrapper
+  final apiClient    = ApiClient(authService); // Dio + interceptors
+  final mlService    = MlInferenceService();
   await mlService.init();
 
-  final blacklistService = BlacklistService();
-  final aclService = AclService();
+  final blacklistService = BlacklistService(BlacklistApi(apiClient));
+  final aclService       = AclService(AclApi(apiClient));
   final heuristicService = HeuristicService();
   final vpnBridgeService = VpnBridgeService();
 
-  final blacklistCubit = BlacklistCubit(blacklistService)..load();
-  final aclCubit = AclCubit(aclService)..load();
-  final settingsCubit = SettingsCubit(prefs);
+  final authCubit      = AuthCubit(AuthApi(apiClient), authService);
+  final settingsCubit  = SettingsCubit(prefs, SettingsApi(apiClient));
+  final blacklistCubit = BlacklistCubit(blacklistService);
+  final aclCubit       = AclCubit(aclService);
 
   final packetProcessor = PacketProcessorService(
     blacklist: blacklistService,
@@ -750,8 +766,8 @@ void main() async {
     warnThreshold: settingsCubit.state.warnThreshold,
   );
 
-  final trafficBloc = TrafficBloc(vpnBridgeService, packetProcessor);
-  final vpnCubit = VpnCubit(vpnBridgeService);
+  final trafficBloc   = TrafficBloc(vpnBridgeService, packetProcessor);
+  final vpnCubit      = VpnCubit(vpnBridgeService);
   final dashboardCubit = DashboardCubit(
     trafficBloc: trafficBloc,
     blacklistCubit: blacklistCubit,
@@ -760,6 +776,7 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
+        BlocProvider.value(value: authCubit),
         BlocProvider.value(value: vpnCubit),
         BlocProvider.value(value: trafficBloc),
         BlocProvider.value(value: dashboardCubit),
@@ -1035,9 +1052,10 @@ class DashboardStats with _$DashboardStats {
 *(Unchanged from original plan — services are pure business logic with no Riverpod dependencies)*
 
 - `VpnBridgeService` — `MethodChannel` + `EventChannel` wrapper
-- `MlInferenceService` — TFLite dual-model inference
-- `BlacklistService` — Hive CRUD + in-memory `Set<String>`
-- `AclService` — Pre-blocked IP management
+- `MlInferenceService` — TFLite dual-model inference (on-device) or delegates to `PredictApi`
+- `BlacklistService` — in-memory `Set<String>` cache + calls `BlacklistApi` for persistence
+- `AclService` — in-memory pre-blocked IP set + calls `AclApi` for persistence
+- `AuthService` — wraps `FlutterSecureStorage`; stores/retrieves JWT access & refresh tokens
 - `HeuristicService` — Flood + SYN flood detection (rate windows)
 - `PacketProcessorService` — Orchestrates all services per packet
 
@@ -1182,9 +1200,578 @@ class AppConstants {
 | Bloc state leaks across screens | Use `BlocProvider.value` in `MultiBlocProvider` at root; never create Blocs inside `build()` |
 | `DashboardCubit` stream subscription leaks | Always cancel `StreamSubscription` in `close()` override |
 | Android 12+ foreground service restrictions | Declare `foregroundServiceType="specialUse"` + user-visible notification |
-| iOS out of scope for PoC | Add `// TODO: iOS NetworkExtension stub`; deliver Android only |
+| iOS out of scope for PoC | Deliver Android only |
 | `.pkl` ONNX conversion edge cases | Use fallback JSON decision tree reconstruction if ONNX fails |
+| JWT access token expired mid-session | Dio interceptor auto-refreshes on 401 before retrying; `AuthCubit` emits `unauthenticated` if refresh also fails |
+| Refresh token stolen from device | Stored in `flutter_secure_storage` (Android Keystore-backed); rotate on every use |
+| Backend API unreachable (WireGuard down) | All `BlacklistCubit` / `AclCubit` calls wrapped in try/catch; emit error state and keep in-memory cache valid |
+| Settings sync conflict (local vs server) | Server is source of truth; local `SharedPreferences` acts as cache, overwritten on every `/settings` GET |
+| Blacklist auto-add floods backend | Debounce: batch `addAutoMl` calls, send at most one POST per unique IP per session |
 
 ---
 
 *This plan covers every component needed to exactly replicate the Python Neural Firewall as a Flutter Android app using Bloc/Cubit state management. Total estimated code: ~2,600 lines Dart + ~600 lines Kotlin + conversion scripts. Start Phase 2 (model conversion) in parallel with Phase 3 (VPN native layer) — these are the two highest-risk components.*
+
+---
+
+## 12. BACKEND API PLAN
+
+### 12.1 API Overview
+
+All endpoints require a JWT `Authorization: Bearer <token>` header except `/auth/register` and `/auth/login`.
+
+Base URL (inside WireGuard tunnel): `https://10.0.0.1:5000`
+
+---
+
+### 12.2 Authentication Endpoints
+
+| Method | Endpoint | Body | Response | Description |
+|---|---|---|---|---|
+| POST | `/auth/register` | `{email, password}` | `{user}` | Create account |
+| POST | `/auth/login` | `{email, password}` | `{access_token, refresh_token}` | Sign in |
+| POST | `/auth/refresh` | `{refresh_token}` | `{access_token}` | Rotate access token |
+| POST | `/auth/logout` | — | `204` | Invalidate refresh token |
+
+**Token strategy:**
+- Access token: short-lived (15 min), sent in `Authorization` header on every request
+- Refresh token: long-lived (30 days), stored in `flutter_secure_storage`, sent only to `/auth/refresh`
+- Dio interceptor automatically calls `/auth/refresh` on 401, then retries the original request
+
+---
+
+### 12.3 Blacklist CRUD Endpoints
+
+| Method | Endpoint | Body | Response | Description |
+|---|---|---|---|---|
+| GET | `/blacklist` | — | `[{ip, reason, bf_score, dos_score, added_at}]` | Fetch all entries |
+| POST | `/blacklist` | `{ip, reason, bf_score?, dos_score?}` | `{entry}` | Add entry |
+| DELETE | `/blacklist/{ip}` | — | `204` | Remove single entry |
+| DELETE | `/blacklist` | — | `204` | Clear all entries |
+
+---
+
+### 12.4 ACL CRUD Endpoints
+
+| Method | Endpoint | Body | Response | Description |
+|---|---|---|---|---|
+| GET | `/acl` | — | `[{ip, notes, added_at}]` | Fetch all rules |
+| POST | `/acl` | `{ip, notes?}` | `{entry}` | Add rule |
+| DELETE | `/acl/{ip}` | — | `204` | Remove rule |
+| DELETE | `/acl` | — | `204` | Clear all rules |
+
+---
+
+### 12.5 Settings Endpoints
+
+| Method | Endpoint | Body | Response | Description |
+|---|---|---|---|---|
+| GET | `/settings` | — | `{block_threshold, warn_threshold, flood_detection, syn_flood_detection, flood_pkt_per_sec, syn_flood_per_sec, bf_model_enabled, dos_model_enabled, max_log_entries}` | Fetch user settings |
+| PUT | `/settings` | same fields (partial OK) | `{settings}` | Update settings |
+
+Settings are per-user and synced on login. The app reads from `SharedPreferences` for instant local access and pushes changes to `/settings` in the background.
+
+---
+
+### 12.6 Prediction Endpoint
+
+| Method | Endpoint | Body | Response |
+|---|---|---|---|
+| POST | `/predict` | `{protocol, flow_iat_mean, tot_fwd_pkts, pkt_size_avg, flow_duration}` | `{label, bf_score, dos_score}` |
+
+---
+
+### 12.7 Flutter API Layer (`lib/api/`)
+
+**`api_client.dart`** — Dio singleton with auth interceptor:
+
+```dart
+class ApiClient {
+  late final Dio _dio;
+  final AuthService _auth;
+
+  ApiClient(this._auth) {
+    _dio = Dio(BaseOptions(baseUrl: AppConstants.apiBaseUrl));
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        final token = await _auth.getAccessToken();
+        if (token != null) options.headers['Authorization'] = 'Bearer $token';
+        handler.next(options);
+      },
+      onError: (error, handler) async {
+        if (error.response?.statusCode == 401) {
+          final refreshed = await _auth.refreshAccessToken(_dio);
+          if (refreshed) {
+            // retry original request with new token
+            return handler.resolve(await _dio.fetch(error.requestOptions));
+          }
+        }
+        handler.next(error);
+      },
+    ));
+  }
+
+  Dio get dio => _dio;
+}
+```
+
+**`auth_api.dart`**:
+
+```dart
+class AuthApi {
+  final ApiClient _client;
+  AuthApi(this._client);
+
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final res = await _client.dio.post('/auth/login',
+        data: {'email': email, 'password': password});
+    return res.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> register(String email, String password) async {
+    final res = await _client.dio.post('/auth/register',
+        data: {'email': email, 'password': password});
+    return res.data as Map<String, dynamic>;
+  }
+
+  Future<String> refresh(String refreshToken) async {
+    final res = await _client.dio.post('/auth/refresh',
+        data: {'refresh_token': refreshToken});
+    return (res.data as Map<String, dynamic>)['access_token'] as String;
+  }
+
+  Future<void> logout() => _client.dio.post('/auth/logout');
+}
+```
+
+---
+
+### 12.8 AuthCubit
+
+```dart
+// blocs/auth/auth_state.dart
+enum AuthStatus { unknown, authenticated, unauthenticated, loading, error }
+
+class AuthState extends Equatable {
+  final AuthStatus status;
+  final String? errorMessage;
+  const AuthState({required this.status, this.errorMessage});
+  @override List<Object?> get props => [status, errorMessage];
+}
+```
+
+```dart
+// blocs/auth/auth_cubit.dart
+class AuthCubit extends Cubit<AuthState> {
+  final AuthApi _authApi;
+  final AuthService _authService;
+
+  AuthCubit(this._authApi, this._authService)
+      : super(const AuthState(status: AuthStatus.unknown)) {
+    _checkExistingSession();
+  }
+
+  Future<void> _checkExistingSession() async {
+    final token = await _authService.getAccessToken();
+    emit(AuthState(
+      status: token != null ? AuthStatus.authenticated : AuthStatus.unauthenticated,
+    ));
+  }
+
+  Future<void> login(String email, String password) async {
+    emit(const AuthState(status: AuthStatus.loading));
+    try {
+      final data = await _authApi.login(email, password);
+      await _authService.saveTokens(
+        accessToken: data['access_token'] as String,
+        refreshToken: data['refresh_token'] as String,
+      );
+      emit(const AuthState(status: AuthStatus.authenticated));
+    } catch (e) {
+      emit(AuthState(status: AuthStatus.error, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> register(String email, String password) async {
+    emit(const AuthState(status: AuthStatus.loading));
+    try {
+      await _authApi.register(email, password);
+      await login(email, password); // auto-login after register
+    } catch (e) {
+      emit(AuthState(status: AuthStatus.error, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> logout() async {
+    await _authApi.logout();
+    await _authService.clearTokens();
+    emit(const AuthState(status: AuthStatus.unauthenticated));
+  }
+}
+```
+
+---
+
+### 12.9 AuthService (Token Storage)
+
+```dart
+// services/auth_service.dart
+class AuthService {
+  static const _storage = FlutterSecureStorage();
+  static const _accessKey  = 'access_token';
+  static const _refreshKey = 'refresh_token';
+
+  Future<String?> getAccessToken()  => _storage.read(key: _accessKey);
+  Future<String?> getRefreshToken() => _storage.read(key: _refreshKey);
+
+  Future<void> saveTokens({required String accessToken, required String refreshToken}) async {
+    await _storage.write(key: _accessKey,  value: accessToken);
+    await _storage.write(key: _refreshKey, value: refreshToken);
+  }
+
+  Future<bool> refreshAccessToken(Dio dio) async {
+    final refresh = await getRefreshToken();
+    if (refresh == null) return false;
+    try {
+      final res = await dio.post('/auth/refresh', data: {'refresh_token': refresh});
+      final newToken = (res.data as Map<String, dynamic>)['access_token'] as String;
+      await _storage.write(key: _accessKey, value: newToken);
+      return true;
+    } catch (_) {
+      await clearTokens();
+      return false;
+    }
+  }
+
+  Future<void> clearTokens() async {
+    await _storage.deleteAll();
+  }
+}
+```
+
+---
+
+### 12.10 App Routing with AuthCubit Guard
+
+```dart
+// app.dart — route guard based on AuthState
+class NeuralFirewallApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      theme: AppTheme.dark,
+      home: BlocBuilder<AuthCubit, AuthState>(
+        builder: (context, state) => switch (state.status) {
+          AuthStatus.unknown        => const SplashScreen(),
+          AuthStatus.authenticated  => const HomeScreen(),
+          _                         => const LoginScreen(),
+        },
+      ),
+    );
+  }
+}
+```
+
+---
+
+### 12.11 Updated AppConstants
+
+```dart
+class AppConstants {
+  // Backend
+  static const String apiBaseUrl     = 'https://10.0.0.1:5000';
+  // Channels
+  static const String methodChannel  = 'com.neuralfw/vpn_control';
+  static const String eventChannel   = 'com.neuralfw/packet_stream';
+  static const String wgChannel      = 'com.neuralfw/wireguard';
+  // Thresholds (local defaults — overridden by /settings response)
+  static const double blockThreshold = 0.20;
+  static const double warnThreshold  = 0.10;
+  static const int    floodPktPerSec = 1000;
+  static const int    synFloodPerSec = 100;
+  static const int    maxLogEntries  = 200;
+  static const int    sparklineHistory = 60;
+}
+```
+
+---
+
+## 13. WIREGUARD + HTTPS SECURE CONNECTION PLAN
+
+### 13.1 Architecture Overview
+
+The system uses two security layers stacked on top of each other:
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| Network tunnel | WireGuard | Encrypted VPN between mobile and VPS |
+| API communication | HTTPS / TLS | Encrypted HTTP requests inside the tunnel |
+
+The mobile app uses Android's `VpnService` (already implemented as `NeuralVpnService`) to capture local traffic. That captured traffic data is forwarded to a remote AI server on the VPS via a WireGuard tunnel for deep analysis. The AI server returns a verdict (Benign / Malicious) which the app uses to update its firewall rules (ACL/Blacklist).
+
+**OPEN ARCHITECTURE DECISION — must resolve before implementing server:**
+
+| Option | On-device TFLite | Server-side AI | Trade-off |
+|---|---|---|---|
+| A | Yes (current plan) | No | Works offline, limited model size |
+| B | No | Yes (WireGuard plan) | Requires VPS connection, bigger/better models |
+| C | Both (hybrid) | Yes | On-device for speed, server for accuracy — complex |
+
+The current plan has both TFLite assets and a server workflow. **Choose one before building the backend.**
+
+---
+
+### 13.2 Network Configuration
+
+```
+Private WireGuard Network: 10.0.0.0/24
+  VPS (WireGuard server + AI server): 10.0.0.1
+  Mobile (WireGuard client):          10.0.0.2
+
+AI server endpoint (inside tunnel only):
+  https://10.0.0.1:5000
+  NOT exposed to the public internet
+```
+
+Note: `NeuralVpnService.kt` already assigns `.addAddress("10.0.0.2", 32)` — this matches the WireGuard client IP.
+
+---
+
+### 13.3 WireGuard Server Setup (VPS)
+
+```bash
+# 1. Install WireGuard
+sudo apt install wireguard
+
+# 2. Generate server keys
+wg genkey | tee server_private.key | wg pubkey > server_public.key
+
+# 3. Generate mobile client keys
+wg genkey | tee client_private.key | wg pubkey > client_public.key
+
+# 4. Create /etc/wireguard/wg0.conf
+[Interface]
+Address    = 10.0.0.1/24
+ListenPort = 51820
+PrivateKey = <server_private_key>
+
+[Peer]
+# Mobile client
+PublicKey  = <client_public_key>
+AllowedIPs = 10.0.0.2/32
+
+# 5. Start and enable
+sudo systemctl enable --now wg-quick@wg0
+```
+
+---
+
+### 13.4 WireGuard Client Setup (Android / Kotlin)
+
+**Do NOT implement WireGuard protocol manually.** Use the official `wireguard-android` library:
+
+```kotlin
+// android/app/build.gradle
+dependencies {
+    implementation("com.wireguard.android:tunnel:1.0.20230706")
+}
+```
+
+The WireGuard tunnel configuration stored in the app (as a string asset or embedded config):
+
+```
+[Interface]
+PrivateKey = <client_private_key>
+Address    = 10.0.0.2/32
+DNS        = 8.8.8.8
+
+[Peer]
+PublicKey    = <server_public_key>
+Endpoint     = <VPS_PUBLIC_IP>:51820
+AllowedIPs   = 10.0.0.1/32   # only route VPS traffic through tunnel
+PersistentKeepalive = 25
+```
+
+`AllowedIPs = 10.0.0.1/32` (not `0.0.0.0/0`) — only routes AI server traffic through WireGuard, leaving normal user traffic unaffected.
+
+---
+
+### 13.5 Kotlin MethodChannel for WireGuard
+
+```kotlin
+// MainActivity.kt — WireGuard MethodChannel additions
+private val WIREGUARD_CHANNEL = "com.neuralfw/wireguard"
+
+// In onCreate():
+MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WIREGUARD_CHANNEL)
+    .setMethodCallHandler { call, result ->
+        when (call.method) {
+            "connectVPN"    -> { startWireGuardTunnel(); result.success(null) }
+            "disconnectVPN" -> { stopWireGuardTunnel();  result.success(null) }
+            "getVPNStatus"  -> result.success(getWireGuardStatus())
+            else            -> result.notImplemented()
+        }
+    }
+```
+
+Flutter side (`VpnBridgeService`) calls these via `MethodChannel('com.neuralfw/wireguard')`.
+
+---
+
+### 13.6 HTTPS / TLS with a Private IP (Critical Detail)
+
+Let's Encrypt does NOT issue certificates for private IPs (10.0.0.1). Use a self-signed certificate:
+
+```bash
+# On VPS — generate self-signed cert
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem \
+  -days 365 -nodes -subj "/CN=10.0.0.1" \
+  -addext "subjectAltName=IP:10.0.0.1"
+```
+
+**Android must trust this cert.** Two approaches:
+
+**Option A — Bundle cert in app (recommended for PoC):**
+Place `cert.pem` in `assets/certs/` and configure Dio/http to use it:
+```dart
+// In AI server HTTP client setup
+final cert = await rootBundle.load('assets/certs/cert.pem');
+final context = SecurityContext();
+context.setTrustedCertificatesBytes(cert.buffer.asUint8List());
+final client = HttpClient(context: context);
+```
+
+**Option B — network_security_config.xml (easier but less strict):**
+```xml
+<!-- android/app/src/main/res/xml/network_security_config.xml -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">10.0.0.1</domain>
+        <trust-anchors>
+            <certificates src="@raw/server_cert"/>
+        </trust-anchors>
+    </domain-config>
+</network-security-config>
+```
+Place `cert.pem` as `android/app/src/main/res/raw/server_cert.pem`.
+
+---
+
+### 13.7 AI Server Setup (VPS)
+
+The AI server runs on the VPS, bound to the WireGuard private IP only:
+
+```python
+# server config — binds to WireGuard IP, not 0.0.0.0
+HOST = "10.0.0.1"
+PORT = 5000
+# TLS cert generated in 12.6
+SSL_CERT = "/etc/neural_firewall/cert.pem"
+SSL_KEY  = "/etc/neural_firewall/key.pem"
+```
+
+The server receives flow feature vectors from the mobile app and returns ML inference results.
+
+**Backend framework choice context (for framework selection):**
+- Language: Python
+- Task: Serve ML model inference (scikit-learn / TFLite or similar)
+- Transport: HTTPS REST (JSON), private network only
+- Concurrency: Multiple packets per second from one mobile client
+- Deployment: Single VPS, systemd service
+- Contenders: **Flask**, **FastAPI**
+
+---
+
+### 13.8 System Workflow (End-to-End)
+
+```
+1. User opens Flutter app
+2. User taps "Connect"
+3. Flutter → MethodChannel → Kotlin: connectVPN()
+4. Kotlin starts WireGuard tunnel (wireguard-android library)
+5. Secure WireGuard tunnel established (10.0.0.2 ↔ 10.0.0.1)
+6. NeuralVpnService begins capturing device traffic via TUN interface
+7. PacketParser + FlowTracker extract flow features
+8. EventChannel sends JSON features to Flutter (TrafficBloc)
+9. PacketProcessorService forwards features to AI server:
+       POST https://10.0.0.1:5000/predict  (inside WireGuard tunnel)
+       Body: { protocol, flowIatMean, totFwdPkts, pktSizeAvg, flowDuration }
+10. AI server runs ML model, returns:
+       { "label": "Benign" | "Malicious", "bf_score": 0.87, "dos_score": 0.12 }
+11. App updates PacketStatus and emits TrafficState
+12. If status == BLOCK → BlacklistCubit.addAutoMl(srcIp)
+13. UI rebuilds via BlocBuilder
+```
+
+---
+
+### 13.9 New Dart Service — AI Server Client
+
+```dart
+// lib/services/ai_server_service.dart
+class AiServerService {
+  static const _baseUrl = 'https://10.0.0.1:5000';
+  late final Dio _dio;
+
+  AiServerService() {
+    _dio = Dio(BaseOptions(baseUrl: _baseUrl));
+    // attach self-signed cert trust (see 12.6)
+  }
+
+  Future<DetectionResult> predict(FlowFeatures features) async {
+    final response = await _dio.post('/predict', data: features.toJson());
+    return DetectionResult.fromJson(response.data as Map<String, dynamic>);
+  }
+}
+```
+
+`AiServerService` replaces or supplements `MlInferenceService` depending on the architecture decision in 12.1.
+
+---
+
+### 13.10 Updated Project Structure Additions
+
+```
+android/app/src/main/
+  kotlin/com/neuralfw/
+    wireguard/
+      WireGuardManager.kt     ← wraps wireguard-android library
+  res/
+    raw/
+      server_cert.pem         ← self-signed TLS cert (Option B)
+    xml/
+      network_security_config.xml  ← already exists, update for 10.0.0.1
+
+assets/
+  certs/
+    server_cert.pem           ← self-signed TLS cert (Option A)
+  wireguard/
+    client.conf               ← WireGuard client config (keys embedded at build time)
+
+lib/
+  services/
+    ai_server_service.dart    ← HTTPS client to remote AI server
+```
+
+---
+
+### 13.11 Security Summary
+
+| Component | Technology | What it protects |
+|---|---|---|
+| Network tunnel | WireGuard (UDP 51820) | All traffic between mobile and VPS is encrypted |
+| API layer | HTTPS / TLS 1.3 | API payloads encrypted, server authenticated by cert |
+| Server isolation | Bind to 10.0.0.1 only | AI server unreachable without WireGuard tunnel |
+| Android cert trust | network_security_config / custom HttpClient | Prevents MITM against self-signed cert |
+
+---
+
+### 13.12 Known Issues & Mitigations (WireGuard / HTTPS)
+
+| Risk | Mitigation |
+|---|---|
+| Private key exposure in APK | Store WireGuard client private key in Android Keystore, not as plain asset |
+| Self-signed cert MITM | Pin the cert SHA-256 fingerprint in the app; rotate on expiry |
+| WireGuard tunnel drops during background | Use `PersistentKeepalive = 25` in peer config |
+| AI server port exposed if WireGuard misconfigured | Use iptables on VPS to block port 5000 from non-WireGuard interfaces |
+| Architecture conflict (TFLite vs server inference) | Resolve 12.1 decision first; remove unused TFLite assets if going server-only |

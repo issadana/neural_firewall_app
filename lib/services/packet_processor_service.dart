@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:logger/logger.dart';
 
 import '../core/utils/network_utils.dart';
@@ -11,8 +10,7 @@ final _log = Logger();
 class PacketProcessorService {
   final BlacklistService _blacklist;
   final AclService _acl;
-  final HeuristicService _heuristics;
-  final MlInferenceService _ml;
+  final BruteForceDetector _detector;
 
   late double _blockThreshold;
   late double _warnThreshold;
@@ -22,14 +20,12 @@ class PacketProcessorService {
   PacketProcessorService({
     required BlacklistService blacklist,
     required AclService acl,
-    required HeuristicService heuristics,
-    required MlInferenceService ml,
+    required BruteForceDetector detector,
     double blockThreshold = 0.20,
     double warnThreshold = 0.10,
   })  : _blacklist = blacklist,
         _acl = acl,
-        _heuristics = heuristics,
-        _ml = ml,
+        _detector = detector,
         _blockThreshold = blockThreshold,
         _warnThreshold = warnThreshold;
 
@@ -105,28 +101,20 @@ class PacketProcessorService {
         );
       }
 
+      // Feature order must match model: proto, iat_mean, fwd_pkts, pkt_size_avg
       final features = {
-        'packetCount': 1,
-        'totalBytes': sizeBytes,
-        'iatMean': 0,
-        'iatStd': 0,
-        'duration': 0,
-        'tcpSynFlag': (flags & 0x02) != 0,
-        'tcpFinFlag': (flags & 0x01) != 0,
-        'tcpResetFlag': (flags & 0x04) != 0,
+        'proto': protocolNum,
+        'iat_mean': rawPacket['flowIatMean'] ?? 0.0,
+        'fwd_pkts': 1,
+        'pkt_size_avg': sizeBytes.toDouble(),
       };
 
-      _heuristics.analyzeFlow(features);
+      final bfScore = await _detector.predict(features);
 
-      final bfScore = await _ml.runBruteForce(features);
-      final dosScore = await _ml.runDos(features);
-
-      final maxScore = max(bfScore, dosScore);
       PacketStatus status;
-
-      if (maxScore >= _blockThreshold) {
+      if (bfScore >= _blockThreshold) {
         status = PacketStatus.aiBlock;
-      } else if (maxScore >= _warnThreshold) {
+      } else if (bfScore >= _warnThreshold) {
         status = PacketStatus.warn;
       } else {
         status = PacketStatus.safe;
@@ -142,7 +130,7 @@ class PacketProcessorService {
         status: status,
         sizeBytes: sizeBytes,
         bruteForceScore: bfScore,
-        dosScore: dosScore,
+        dosScore: 0.0,
         timestamp: DateTime.now(),
         isBlacklisted: false,
         isAclBlocked: false,

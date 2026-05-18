@@ -1,96 +1,83 @@
-import 'dart:math';
+import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
+import 'package:tflite_flutter/tflite_flutter.dart';
 
 final _log = Logger();
 
-class MlInferenceService {
+class BruteForceDetector {
+  static const String _modelAsset =
+      'lib/services/ai_models/bruteforce_detector.tflite';
+  static const String _scalerAsset =
+      'lib/services/ai_models/scaler_params.json';
+
+  Interpreter? _interpreter;
+  List<double> _means = [0.0, 0.0, 0.0, 0.0];
+  List<double> _stds = [1.0, 1.0, 1.0, 1.0];
   bool _initialized = false;
 
   Future<void> init() async {
     if (_initialized) return;
     try {
-      _log.i('ML Inference Service initialized');
+      _interpreter = await Interpreter.fromAsset(_modelAsset);
+      await _loadScaler();
+      _log.i('BruteForceDetector ready. Input: [1,4] Output: [1,1]');
       _initialized = true;
     } catch (e) {
-      _log.e('Failed to initialize ML service: $e');
-      throw Exception('ML initialization failed: $e');
+      _log.e('Failed to initialize BruteForceDetector: $e');
+      rethrow;
     }
   }
 
-  Future<double> runBruteForce(Map<String, dynamic> features) async {
+  Future<void> _loadScaler() async {
+    try {
+      final raw = await rootBundle.loadString(_scalerAsset);
+      final json = jsonDecode(raw) as Map<String, dynamic>;
+      _means = List<double>.from((json['means'] as List).map((v) => (v as num).toDouble()));
+      _stds = List<double>.from((json['stds'] as List).map((v) => (v as num).toDouble()));
+      _log.i('Scaler loaded — means: $_means  stds: $_stds');
+    } catch (e) {
+      _log.w('scaler_params.json missing or invalid — using identity scaling. $e');
+    }
+  }
+
+  /// Expects packet map with keys: proto, iat_mean, fwd_pkts, pkt_size_avg
+  Future<double> predict(Map<String, dynamic> packet) async {
     if (!_initialized) await init();
     try {
-      final packetCount = features['packetCount'] as int? ?? 0;
-      final duration = features['duration'] as int? ?? 0;
-      final iatStd = features['iatStd'] as int? ?? 0;
+      // Input shape (1, 4)
+      final input = [_scale(packet)];
+      // Output shape (1, 1)
+      final output = [[0.0]];
 
-      var score = 0.0;
-      if (packetCount > 100) score += 0.3;
-      if (iatStd < 10) score += 0.2;
-      if (duration < 5000) score += 0.1;
+      _interpreter!.run(input, output);
 
-      return min(1.0, score);
+      return output[0][0].clamp(0.0, 1.0);
     } catch (e) {
-      _log.e('Brute force inference error: $e');
+      _log.e('Inference error: $e');
       return 0.0;
     }
   }
 
-  Future<double> runDos(Map<String, dynamic> features) async {
-    if (!_initialized) await init();
-    try {
-      final totalBytes = features['totalBytes'] as int? ?? 0;
-      final iatMean = features['iatMean'] as int? ?? 0;
-      final packetCount = features['packetCount'] as int? ?? 0;
+  /// Builds the 4-element float32 vector in model feature order and
+  /// applies StandardScaler:  scaled = (value − mean) / std
+  List<double> _scale(Map<String, dynamic> packet) {
+    final raw = [
+      (packet['proto'] as num? ?? 6).toDouble(),       // index 0
+      (packet['iat_mean'] as num? ?? 0).toDouble(),    // index 1
+      (packet['fwd_pkts'] as num? ?? 1).toDouble(),    // index 2
+      (packet['pkt_size_avg'] as num? ?? 0).toDouble(), // index 3
+    ];
 
-      var score = 0.0;
-      if (packetCount > 1000) score += 0.4;
-      if (totalBytes > 10000000) score += 0.3;
-      if (iatMean < 5) score += 0.2;
-
-      return min(1.0, score);
-    } catch (e) {
-      _log.e('DoS inference error: $e');
-      return 0.0;
-    }
+    return List.generate(raw.length, (i) {
+      final std = _stds[i] == 0.0 ? 1.0 : _stds[i];
+      return (raw[i] - _means[i]) / std;
+    });
   }
 
   void dispose() {
+    _interpreter?.close();
+    _interpreter = null;
     _initialized = false;
-  }
-}
-
-class HeuristicService {
-  bool checkSynFlood(int synCount, Duration window, int threshold) {
-    final ratePerSecond = (synCount / window.inSeconds).toInt();
-    return ratePerSecond > threshold;
-  }
-
-  bool checkPacketFlood(int packetCount, Duration window, int threshold) {
-    final ratePerSecond = (packetCount / window.inSeconds).toInt();
-    return ratePerSecond > threshold;
-  }
-
-  double calculateAnomalyScore(
-    int iatStdDev,
-    int packetCount,
-    int totalBytes,
-  ) {
-    var score = 0.0;
-
-    if (iatStdDev < 5) score += 0.2;
-    if (iatStdDev < 2) score += 0.2;
-    if (packetCount > 500) score += 0.3;
-    if (totalBytes > 5000000) score += 0.2;
-
-    return (score / 1.0).clamp(0.0, 1.0);
-  }
-
-  Map<String, dynamic> analyzeFlow(Map<String, dynamic> features) {
-    return {
-      'flaggedReasons': <String>[],
-      'heuristicScore': 0.0,
-      'anomalyFlags': <String>[],
-    };
   }
 }

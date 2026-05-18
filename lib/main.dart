@@ -28,8 +28,8 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
 
   // Initialize services
-  final mlService = MlInferenceService();
-  await mlService.init();
+  final detector = BruteForceDetector();
+  await detector.init();
 
   final blacklistService = BlacklistService();
   await blacklistService.init();
@@ -37,7 +37,6 @@ void main() async {
   final aclService = AclService();
   await aclService.init();
 
-  final heuristicService = HeuristicService();
   final vpnBridgeService = VpnBridgeService();
 
   // Create Cubits/Blocs
@@ -48,8 +47,7 @@ void main() async {
   final packetProcessor = PacketProcessorService(
     blacklist: blacklistService,
     acl: aclService,
-    heuristics: heuristicService,
-    ml: mlService,
+    detector: detector,
     blockThreshold: settingsCubit.state.blockThreshold,
     warnThreshold: settingsCubit.state.warnThreshold,
   );
