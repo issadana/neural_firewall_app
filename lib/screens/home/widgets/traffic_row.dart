@@ -5,7 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../models/enums.dart';
 import '../../../models/packet_record/packet_record.dart';
 
-final _timeFmt = DateFormat('h:mm a');
+final _timeFmt   = DateFormat('h:mm a');
 final _timeFmtMs = DateFormat('h:mm:ss a');
 
 class TrafficRow extends StatelessWidget {
@@ -15,35 +15,35 @@ class TrafficRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = _statusColor(record.status);
-    final bgColor = _cardBackground(record.status);
+    final bgColor     = _cardBackground(record.status);
 
     return GestureDetector(
       onTap: () => _showDetail(context),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.borderColor, width: 1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderColor, width: 0.5),
         ),
         child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Left accent bar
               Container(
-                width: 4,
+                width: 3,
                 decoration: BoxDecoration(
                   color: statusColor,
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    bottomLeft: Radius.circular(10),
+                    topLeft: Radius.circular(12),
+                    bottomLeft: Radius.circular(12),
                   ),
                 ),
               ),
               Expanded(
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -70,7 +70,7 @@ class TrafficRow extends StatelessWidget {
           Text(
             _timeFmt.format(record.timestamp),
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               color: AppColors.textDisabled,
               fontFamily: 'monospace',
             ),
@@ -85,16 +85,15 @@ class TrafficRow extends StatelessWidget {
               '${record.srcIp}:${record.srcPort}',
               style: const TextStyle(
                 fontSize: 12,
-                color: AppColors.textPrimary,
+                color: AppColors.textSecondary,
                 fontFamily: 'monospace',
               ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 6),
-            child: Icon(Icons.arrow_forward, size: 12,
-                color: AppColors.textDisabled),
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Icon(Icons.arrow_forward_rounded, size: 11, color: AppColors.textDisabled),
           ),
           Expanded(
             child: Text(
@@ -102,7 +101,7 @@ class TrafficRow extends StatelessWidget {
               textAlign: TextAlign.right,
               style: const TextStyle(
                 fontSize: 12,
-                color: AppColors.textSecondary,
+                color: AppColors.textDisabled,
                 fontFamily: 'monospace',
               ),
               overflow: TextOverflow.ellipsis,
@@ -117,10 +116,7 @@ class TrafficRow extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             _formatSize(record.sizeBytes),
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textDisabled,
-            ),
+            style: const TextStyle(fontSize: 11, color: AppColors.textDisabled),
           ),
           const Spacer(),
           _ScoreTag('BF', record.bruteForceScore * 100),
@@ -132,9 +128,10 @@ class TrafficRow extends StatelessWidget {
   void _showDetail(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surfaceDark,
+      backgroundColor: AppColors.surfaceElevated,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        side: BorderSide(color: AppColors.borderColor, width: 0.5),
       ),
       builder: (_) => _PacketDetailSheet(record: record),
     );
@@ -142,26 +139,24 @@ class TrafficRow extends StatelessWidget {
 
   Color _statusColor(PacketStatus status) => switch (status) {
         PacketStatus.aiBlock => AppColors.statusDanger,
-        PacketStatus.warn => AppColors.statusWarning,
-        PacketStatus.safe => AppColors.statusNormal,
-        PacketStatus.tcp => AppColors.accentBlue,
-        PacketStatus.quic => const Color(0xFFAA77FF),
-        PacketStatus.ping => AppColors.statusWarning,
-        PacketStatus.err => AppColors.textDisabled,
+        PacketStatus.warn    => AppColors.statusWarning,
+        PacketStatus.safe    => AppColors.statusNormal,
+        PacketStatus.tcp     => AppColors.accentBlue,
+        PacketStatus.quic    => const Color(0xFFAA77FF),
+        PacketStatus.ping    => AppColors.statusWarning,
+        PacketStatus.err     => AppColors.textDisabled,
       };
 
   Color _cardBackground(PacketStatus status) => switch (status) {
-        PacketStatus.aiBlock =>
-          AppColors.statusDanger.withValues(alpha: 0.07),
-        PacketStatus.warn =>
-          AppColors.statusWarning.withValues(alpha: 0.05),
-        _ => AppColors.surfaceLight,
+        PacketStatus.aiBlock => AppColors.statusDanger.withValues(alpha: 0.08),
+        PacketStatus.warn    => AppColors.statusWarning.withValues(alpha: 0.05),
+        _                    => AppColors.surfaceLight,
       };
 
   String _protocolName(Protocol protocol) => switch (protocol) {
-        Protocol.tcp => 'TCP',
-        Protocol.udp => 'UDP',
-        Protocol.icmp => 'ICMP',
+        Protocol.tcp     => 'TCP',
+        Protocol.udp     => 'UDP',
+        Protocol.icmp    => 'ICMP',
         Protocol.unknown => 'OTHER',
       };
 
@@ -171,7 +166,7 @@ class TrafficRow extends StatelessWidget {
   }
 }
 
-// ─── Sub-widgets ─────────────────────────────────────────────────────────────
+// ─── Sub-widgets ──────────────────────────────────────────────────────────────
 
 class _StatusBadge extends StatelessWidget {
   final PacketStatus status;
@@ -180,29 +175,29 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (status) {
-      PacketStatus.aiBlock => ('🚫 BLOCK', AppColors.statusDanger),
-      PacketStatus.warn => ('⚠️ WARN', AppColors.statusWarning),
-      PacketStatus.safe => ('✅ SAFE', AppColors.statusNormal),
-      PacketStatus.tcp => ('🔵 TCP', AppColors.accentBlue),
-      PacketStatus.quic => ('🟣 QUIC', const Color(0xFFAA77FF)),
-      PacketStatus.ping => ('🟡 PING', AppColors.statusWarning),
-      PacketStatus.err => ('❌ ERR', AppColors.textDisabled),
+      PacketStatus.aiBlock => ('BLOCK',  AppColors.statusDanger),
+      PacketStatus.warn    => ('WARN',   AppColors.statusWarning),
+      PacketStatus.safe    => ('SAFE',   AppColors.statusNormal),
+      PacketStatus.tcp     => ('TCP',    AppColors.accentBlue),
+      PacketStatus.quic    => ('QUIC',   const Color(0xFFAA77FF)),
+      PacketStatus.ping    => ('PING',   AppColors.statusWarning),
+      PacketStatus.err     => ('ERR',    AppColors.textDisabled),
     };
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.4), width: 1),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 0.5),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
           color: color,
-          letterSpacing: 0.5,
+          letterSpacing: 0.8,
         ),
       ),
     );
@@ -218,18 +213,16 @@ class _ProtoChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
-        color: AppColors.accentBlue.withValues(alpha: 0.1),
+        color: AppColors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-            color: AppColors.accentBlue.withValues(alpha: 0.3), width: 1),
       ),
       child: Text(
         label,
         style: const TextStyle(
-          fontSize: 11,
-          color: AppColors.accentBlue,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 0.3,
+          fontSize: 10,
+          color: AppColors.primary,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.4,
         ),
       ),
     );
@@ -254,14 +247,14 @@ class _ScoreTag extends StatelessWidget {
       children: [
         Text(
           '$label:',
-          style: const TextStyle(fontSize: 11, color: AppColors.textDisabled),
+          style: const TextStyle(fontSize: 10, color: AppColors.textDisabled),
         ),
         const SizedBox(width: 2),
         Text(
           '${pct.toStringAsFixed(0)}%',
           style: TextStyle(
-            fontSize: 11,
-            fontWeight: pct >= 10 ? FontWeight.bold : FontWeight.normal,
+            fontSize: 10,
+            fontWeight: pct >= 10 ? FontWeight.w700 : FontWeight.w400,
             color: color,
           ),
         ),
@@ -284,9 +277,10 @@ class _PacketDetailSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Drag handle
           Center(
             child: Container(
-              width: 40,
+              width: 36,
               height: 4,
               decoration: BoxDecoration(
                 color: AppColors.borderColor,
@@ -294,7 +288,7 @@ class _PacketDetailSheet extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Row(
             children: [
               _StatusBadge(record.status),
@@ -302,14 +296,14 @@ class _PacketDetailSheet extends StatelessWidget {
               Text(
                 _timeFmtMs.format(record.timestamp),
                 style: const TextStyle(
-                    color: AppColors.textDisabled, fontSize: 12,
-                    fontFamily: 'monospace'),
+                  color: AppColors.textDisabled,
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          const Divider(color: AppColors.borderColor, height: 1),
-          const SizedBox(height: 14),
+          const SizedBox(height: 20),
           _DetailSection('CONNECTION', [
             _DetailRow('Source', '${record.srcIp}:${record.srcPort}'),
             _DetailRow('Destination', '${record.dstIp}:${record.dstPort}'),
@@ -336,11 +330,9 @@ class _PacketDetailSheet extends StatelessWidget {
             const SizedBox(height: 12),
             _DetailSection('BLOCKS', [
               if (record.isBlacklisted)
-                _DetailRow('Blacklisted', 'Yes',
-                    valueColor: AppColors.statusDanger),
+                _DetailRow('Blacklisted', 'Yes', valueColor: AppColors.statusDanger),
               if (record.isAclBlocked)
-                _DetailRow('ACL Blocked', 'Yes',
-                    valueColor: AppColors.statusDanger),
+                _DetailRow('ACL Blocked', 'Yes', valueColor: AppColors.statusDanger),
             ]),
           ],
         ],
@@ -355,9 +347,9 @@ class _PacketDetailSheet extends StatelessWidget {
           : AppColors.textDisabled;
 
   String _protocolName(Protocol protocol) => switch (protocol) {
-        Protocol.tcp => 'TCP',
-        Protocol.udp => 'UDP',
-        Protocol.icmp => 'ICMP',
+        Protocol.tcp     => 'TCP',
+        Protocol.udp     => 'UDP',
+        Protocol.icmp    => 'ICMP',
         Protocol.unknown => 'OTHER',
       };
 
@@ -380,27 +372,29 @@ class _DetailSection extends StatelessWidget {
         Text(
           title,
           style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
             color: AppColors.textDisabled,
-            letterSpacing: 1.2,
+            letterSpacing: 1.4,
           ),
         ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
             color: AppColors.surfaceLight,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.borderColor),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderColor, width: 0.5),
           ),
           child: Column(
             children: rows
                 .expand((row) => [
                       row,
                       if (row != rows.last)
-                        const Divider(
-                            height: 1, color: AppColors.borderColor,
-                            indent: 12, endIndent: 12),
+                        Container(
+                          height: 0.5,
+                          color: AppColors.borderColor,
+                          margin: const EdgeInsets.symmetric(horizontal: 12),
+                        ),
                     ])
                 .toList(),
           ),
@@ -419,13 +413,12 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
           Text(
             label,
-            style: const TextStyle(
-                fontSize: 13, color: AppColors.textSecondary),
+            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
           const Spacer(),
           Text(
@@ -434,7 +427,7 @@ class _DetailRow extends StatelessWidget {
               fontSize: 13,
               color: valueColor ?? AppColors.textPrimary,
               fontFamily: 'monospace',
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

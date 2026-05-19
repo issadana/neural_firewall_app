@@ -122,6 +122,7 @@ flutter:
   assets:
    - assets/images/
    - assets/images/logo/
+   - assets/images/branding/
    - assets/icon/
    - lib/services/ai_models/
 

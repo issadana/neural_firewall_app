@@ -18,8 +18,11 @@ class BlacklistTile extends StatelessWidget {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
-        color: AppColors.statusDanger.withValues(alpha: 0.1),
-        child: const Icon(Icons.delete_outline, color: AppColors.statusDanger),
+        decoration: BoxDecoration(
+          color: AppColors.statusDanger.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Icon(Icons.delete_rounded, color: AppColors.statusDanger, size: 22),
       ),
       confirmDismiss: (_) async {
         return await showDialog<bool>(
@@ -48,6 +51,7 @@ class BlacklistTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderColor, width: 0.5),
           boxShadow: AppColors.cardShadow,
         ),
         child: Padding(
@@ -55,13 +59,13 @@ class BlacklistTile extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
-                  color: AppColors.statusDanger.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.statusDanger.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(11),
                 ),
-                child: const Icon(Icons.block, color: AppColors.statusDanger, size: 18),
+                child: const Icon(Icons.block_rounded, color: AppColors.statusDanger, size: 18),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -72,35 +76,48 @@ class BlacklistTile extends StatelessWidget {
                       entry.ip,
                       style: const TextStyle(
                         color: AppColors.textPrimary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
                         fontFamily: 'monospace',
+                        letterSpacing: 0.3,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 5),
                     Row(
                       children: [
                         _ReasonBadge(reason: entry.reason),
                         const SizedBox(width: 8),
                         Text(
-                          DateFormat('MM/dd HH:mm').format(entry.addedAt),
-                          style: const TextStyle(color: AppColors.textDisabled, fontSize: 12),
+                          DateFormat('MM/dd  HH:mm').format(entry.addedAt),
+                          style: const TextStyle(
+                            color: AppColors.textDisabled,
+                            fontSize: 11,
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-              if (entry.bruteForceScore != null || entry.dosScore != null)
+              if (entry.bruteForceScore != null || entry.dosScore != null) ...[
                 _ScoreBadges(bf: entry.bruteForceScore, dos: entry.dosScore),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 18),
-                color: AppColors.textDisabled,
-                onPressed: onDelete,
-                tooltip: 'Remove',
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                const SizedBox(width: 8),
+              ],
+              GestureDetector(
+                onTap: onDelete,
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: AppColors.statusDanger.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.delete_outline_rounded,
+                    size: 16,
+                    color: AppColors.statusDanger,
+                  ),
+                ),
               ),
             ],
           ),
@@ -117,20 +134,21 @@ class _ReasonBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isManual = reason == 'manual';
+    final color = isManual ? AppColors.primary : AppColors.statusDanger;
+    final label = isManual ? 'Manual' : 'AI Block';
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: isManual
-            ? AppColors.primary.withValues(alpha: 0.1)
-            : AppColors.statusDanger.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
-        isManual ? 'Manual' : 'AI Block',
+        label,
         style: TextStyle(
           fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: isManual ? AppColors.primary : AppColors.statusDanger,
+          fontWeight: FontWeight.w700,
+          color: color,
           letterSpacing: 0.3,
         ),
       ),
@@ -147,6 +165,7 @@ class _ScoreBadges extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
       children: [
         if (bf != null)
           Text(
@@ -154,7 +173,7 @@ class _ScoreBadges extends StatelessWidget {
             style: const TextStyle(
               color: AppColors.statusWarning,
               fontSize: 11,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
         if (dos != null)
@@ -163,7 +182,7 @@ class _ScoreBadges extends StatelessWidget {
             style: const TextStyle(
               color: AppColors.statusDanger,
               fontSize: 11,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
       ],

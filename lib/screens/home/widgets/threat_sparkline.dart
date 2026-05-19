@@ -14,27 +14,41 @@ class ThreatSparkline extends StatelessWidget {
     return BlocBuilder<TrafficBloc, TrafficState>(
       builder: (context, state) {
         return Container(
-          height: 80,
-          margin: const EdgeInsets.only(right: 12, left: 12, bottom: 15,),
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+          height: 100,
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 8),
           decoration: BoxDecoration(
-            color: AppColors.chartBackground,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.borderColor),
+            color: AppColors.surfaceLight,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.borderColor, width: 0.5),
+            boxShadow: AppColors.cardShadow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'THREAT LEVEL',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textSecondary,
-                  letterSpacing: 0.8,
-                ),
+              Row(
+                children: [
+                  Container(
+                    width: 3,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: AppColors.statusDanger,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'THREAT TREND',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textMuted,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Expanded(child: _buildChart(state.sparklineData)),
             ],
           ),
@@ -47,16 +61,16 @@ class ThreatSparkline extends StatelessWidget {
     if (data.isEmpty) {
       return const Center(
         child: Text(
-          'No data — start capture',
-          style: TextStyle(fontSize: 15, color: AppColors.textDisabled),
+          'Start capture to see threat trend',
+          style: TextStyle(fontSize: 12, color: AppColors.textDisabled),
         ),
       );
     }
 
-    final spots = <FlSpot>[];
-    for (int i = 0; i < data.length; i++) {
-      spots.add(FlSpot(i.toDouble(), data[i].clamp(0.0, 100.0)));
-    }
+    final spots = <FlSpot>[
+      for (int i = 0; i < data.length; i++)
+        FlSpot(i.toDouble(), data[i].clamp(0.0, 100.0)),
+    ];
 
     return LineChart(
       LineChartData(
@@ -69,18 +83,26 @@ class ThreatSparkline extends StatelessWidget {
           LineChartBarData(
             spots: spots,
             isCurved: true,
+            curveSmoothness: 0.35,
             color: AppColors.statusDanger,
-            barWidth: 1.5,
+            barWidth: 2,
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
-              color: AppColors.statusDanger.withValues(alpha: 0.15),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppColors.statusDanger.withValues(alpha: 0.25),
+                  AppColors.statusDanger.withValues(alpha: 0.02),
+                ],
+              ),
             ),
           ),
         ],
         lineTouchData: const LineTouchData(enabled: false),
       ),
-      duration: Duration.zero,
+      duration: const Duration(milliseconds: 150),
     );
   }
 }

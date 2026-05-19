@@ -16,7 +16,6 @@ class StatsRow extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
@@ -24,15 +23,15 @@ class StatsRow extends StatelessWidget {
                     label: 'Packets',
                     value: stats.packetsAnalyzed.toString(),
                     subtitle: 'Analyzed',
-                    icon: Icons.analytics_outlined,
+                    icon: Icons.analytics_rounded,
                     color: AppColors.primary,
                   ),
                   const SizedBox(width: 12),
                   _StatCard(
-                    label: 'Blacklisted',
+                    label: 'Blocked',
                     value: stats.ipsBlacklisted.toString(),
-                    subtitle: 'Auto-blocked',
-                    icon: Icons.block_outlined,
+                    subtitle: 'Auto-blocked IPs',
+                    icon: Icons.block_rounded,
                     color: AppColors.statusDanger,
                   ),
                 ],
@@ -66,10 +65,11 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.borderColor, width: 0.5),
           boxShadow: AppColors.cardShadow,
         ),
         child: Column(
@@ -78,37 +78,50 @@ class _StatCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: 34,
+                  height: 34,
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
+                    color: color.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(icon, size: 16, color: color),
+                  child: Icon(icon, size: 17, color: color),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: color,
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                      letterSpacing: 0.4,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Text(
               value,
               style: const TextStyle(
-                fontSize: 26,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
+                letterSpacing: -1,
               ),
             ),
+            const SizedBox(height: 2),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textDisabled,
+              ),
             ),
           ],
         ),
@@ -131,22 +144,25 @@ class _ThreatGaugeCard extends StatelessWidget {
             ? AppColors.statusWarning
             : AppColors.accent;
 
+    final levelLabel = pct >= 0.20 ? 'HIGH' : pct >= 0.10 ? 'MEDIUM' : 'LOW';
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderColor, width: 0.5),
         boxShadow: AppColors.cardShadow,
       ),
       child: Row(
         children: [
           CircularPercentIndicator(
-            radius: 32,
+            radius: 34,
             lineWidth: 5,
             percent: pct,
             center: Text(
-              '${threatPercent.toStringAsFixed(1)}%',
+              '${threatPercent.toStringAsFixed(0)}%',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -156,31 +172,53 @@ class _ThreatGaugeCard extends StatelessWidget {
             progressColor: color,
             backgroundColor: AppColors.borderColor,
             circularStrokeCap: CircularStrokeCap.round,
+            animation: true,
+            animationDuration: 600,
           ),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.security_outlined, size: 14, color: color),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Max Threat',
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.security_rounded, size: 14, color: color),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'THREAT LEVEL',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textMuted,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    levelLabel,
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       color: color,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Highest detected',
-                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-              ),
-            ],
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Highest score detected',
+                  style: TextStyle(fontSize: 12, color: AppColors.textDisabled),
+                ),
+              ],
+            ),
           ),
         ],
       ),

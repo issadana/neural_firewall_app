@@ -1,5 +1,6 @@
 import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'blocs/auth/auth_cubit.dart';
@@ -29,9 +30,7 @@ class SentriApp extends StatelessWidget {
             return const _AppShell();
           }
           if (state.status == AuthStatus.initial) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
+            return const _SplashLoader();
           }
           return const SignInScreen();
         },
@@ -39,6 +38,38 @@ class SentriApp extends StatelessWidget {
     );
   }
 }
+
+class _SplashLoader extends StatelessWidget {
+  const _SplashLoader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/images/logo/logo.png', width: 56, height: 56),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.primary.withValues(alpha: 0.8),
+              ),
+            ),
+          ],
+        )
+            .animate()
+            .fadeIn(duration: 500.ms, curve: Curves.easeOut),
+      ),
+    );
+  }
+}
+
+// ── Authenticated shell ─────────────────────────────────────────────────────
 
 class _AppShell extends StatefulWidget {
   const _AppShell();
@@ -60,78 +91,222 @@ class _AppShellState extends State<_AppShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: _buildNavBar(),
+      bottomNavigationBar: _PremiumNavBar(
+        currentIndex: _currentIndex,
+        onTap: (i) => setState(() => _currentIndex = i),
+      ),
     );
   }
+}
 
-  Widget _buildNavBar() {
+// ── Premium Navigation Bar ───────────────────────────────────────────────────
+
+class _PremiumNavBar extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  const _PremiumNavBar({required this.currentIndex, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
     return BlocBuilder<BlacklistCubit, BlacklistState>(
       builder: (context, blacklist) {
         final blockedCount = blacklist.entries.length;
 
         return Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.surfaceLight,
-            border: Border(top: BorderSide(color: AppColors.borderColor, width: 1)),
-          ),
-          child: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (i) => setState(() => _currentIndex = i),
-            backgroundColor: AppColors.surfaceLight,
-            selectedItemColor: AppColors.primary,
-            unselectedItemColor: AppColors.textSecondary,
-            type: BottomNavigationBarType.fixed,
-            elevation: 0,
-            selectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            unselectedLabelStyle: const TextStyle(fontSize: 12),
-            items: [
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home),
-                label: 'Dashboard',
-              ),
-              BottomNavigationBarItem(
-                icon: badges.Badge(
-                  showBadge: blockedCount > 0,
-                  badgeContent: Text(
-                    blockedCount > 99 ? '99+' : '$blockedCount',
-                    style: const TextStyle(fontSize: 10, color: Colors.white),
-                  ),
-                  badgeStyle: const badges.BadgeStyle(
-                    badgeColor: AppColors.statusDanger,
-                    padding: EdgeInsets.all(4),
-                  ),
-                  child: const Icon(Icons.block_outlined),
-                ),
-                activeIcon: badges.Badge(
-                  showBadge: blockedCount > 0,
-                  badgeContent: Text(
-                    blockedCount > 99 ? '99+' : '$blockedCount',
-                    style: const TextStyle(fontSize: 10, color: Colors.white),
-                  ),
-                  badgeStyle: const badges.BadgeStyle(
-                    badgeColor: AppColors.statusDanger,
-                    padding: EdgeInsets.all(4),
-                  ),
-                  child: const Icon(Icons.block),
-                ),
-                label: 'Blacklist',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.shield_outlined),
-                activeIcon: Icon(Icons.shield),
-                label: 'ACL',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.settings_outlined),
-                activeIcon: Icon(Icons.settings),
-                label: 'Settings',
+            border: const Border(
+              top: BorderSide(color: AppColors.borderColor, width: 0.5),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.4),
+                blurRadius: 24,
+                offset: const Offset(0, -4),
               ),
             ],
           ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _NavItem(
+                    index: 0,
+                    currentIndex: currentIndex,
+                    icon: Icons.home_outlined,
+                    activeIcon: Icons.home_rounded,
+                    label: 'Dashboard',
+                    onTap: onTap,
+                  ),
+                  _NavItemWithBadge(
+                    index: 1,
+                    currentIndex: currentIndex,
+                    icon: Icons.block_outlined,
+                    activeIcon: Icons.block_rounded,
+                    label: 'Blacklist',
+                    badgeCount: blockedCount,
+                    onTap: onTap,
+                  ),
+                  _NavItem(
+                    index: 2,
+                    currentIndex: currentIndex,
+                    icon: Icons.shield_outlined,
+                    activeIcon: Icons.shield_rounded,
+                    label: 'ACL',
+                    onTap: onTap,
+                  ),
+                  _NavItem(
+                    index: 3,
+                    currentIndex: currentIndex,
+                    icon: Icons.settings_outlined,
+                    activeIcon: Icons.settings_rounded,
+                    label: 'Settings',
+                    onTap: onTap,
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       },
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final int index;
+  final int currentIndex;
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final ValueChanged<int> onTap;
+
+  const _NavItem({
+    required this.index,
+    required this.currentIndex,
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = index == currentIndex;
+    return _NavItemBase(
+      isActive: isActive,
+      icon: isActive ? activeIcon : icon,
+      label: label,
+      onTap: () => onTap(index),
+    );
+  }
+}
+
+class _NavItemWithBadge extends StatelessWidget {
+  final int index;
+  final int currentIndex;
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final int badgeCount;
+  final ValueChanged<int> onTap;
+
+  const _NavItemWithBadge({
+    required this.index,
+    required this.currentIndex,
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.badgeCount,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = index == currentIndex;
+
+    final iconWidget = badges.Badge(
+      showBadge: badgeCount > 0,
+      badgeContent: Text(
+        badgeCount > 99 ? '99+' : '$badgeCount',
+        style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+      badgeStyle: const badges.BadgeStyle(
+        badgeColor: AppColors.statusDanger,
+        padding: EdgeInsets.all(3.5),
+      ),
+      child: Icon(
+        isActive ? activeIcon : icon,
+        size: 24,
+        color: isActive ? AppColors.primary : AppColors.textDisabled,
+      ),
+    );
+
+    return _NavItemBase(
+      isActive: isActive,
+      label: label,
+      onTap: () => onTap(index),
+      customIcon: iconWidget,
+    );
+  }
+}
+
+class _NavItemBase extends StatelessWidget {
+  final bool isActive;
+  final IconData? icon;
+  final Widget? customIcon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _NavItemBase({
+    required this.isActive,
+    required this.label,
+    required this.onTap,
+    this.icon,
+    this.customIcon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primary.withValues(alpha: 0.12) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            customIcon ??
+                Icon(
+                  icon,
+                  size: 24,
+                  color: isActive ? AppColors.primary : AppColors.textDisabled,
+                ),
+            const SizedBox(height: 3),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                color: isActive ? AppColors.primary : AppColors.textDisabled,
+              ),
+              child: Text(label),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

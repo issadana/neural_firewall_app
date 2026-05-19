@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../blocs/acl/acl_cubit.dart';
@@ -17,53 +18,11 @@ class AclScreen extends StatelessWidget {
         final entries = state.entries;
 
         return Scaffold(
-          backgroundColor: AppColors.primaryBlack,
-          appBar: AppBar(
-            backgroundColor: AppColors.surfaceLight,
-            elevation: 0,
-            title: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Access Control',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${entries.length}',
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1),
-              child: Divider(height: 1, color: AppColors.borderColor),
-            ),
-            actions: [
-              if (entries.isNotEmpty)
-                TextButton.icon(
-                  onPressed: () => _confirmClearAll(context),
-                  icon: const Icon(Icons.delete_sweep_outlined, size: 16),
-                  label: const Text('Clear All', style: TextStyle(fontSize: 13)),
-                  style: TextButton.styleFrom(foregroundColor: AppColors.statusDanger),
-                ),
-              const SizedBox(width: 4),
-            ],
+          backgroundColor: AppColors.background,
+          appBar: _AclAppBar(
+            count: entries.length,
+            showClear: entries.isNotEmpty,
+            onClear: () => _confirmClearAll(context),
           ),
           body: Column(
             children: [
@@ -73,13 +32,20 @@ class AclScreen extends StatelessWidget {
                     ? const _EmptyState()
                     : ListView.builder(
                         padding: const EdgeInsets.symmetric(vertical: 12),
+                        physics: const BouncingScrollPhysics(),
                         itemCount: entries.length,
                         itemBuilder: (context, i) {
                           final entry = entries[i];
                           return AclTile(
                             entry: entry,
                             onDelete: () => context.read<AclCubit>().remove(entry.ip),
-                          );
+                          )
+                              .animate()
+                              .fadeIn(
+                                duration: 250.ms,
+                                delay: Duration(milliseconds: i < 8 ? i * 30 : 0),
+                              )
+                              .slideX(begin: 0.02, end: 0, duration: 250.ms);
                         },
                       ),
               ),
@@ -90,9 +56,9 @@ class AclScreen extends StatelessWidget {
             onPressed: () => _showAddDialog(context),
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
-            elevation: 2,
+            elevation: 4,
             tooltip: 'Add ACL Rule',
-            child: const Icon(Icons.add),
+            child: const Icon(Icons.add_rounded),
           ),
         );
       },
@@ -140,6 +106,69 @@ class AclScreen extends StatelessWidget {
   }
 }
 
+// ── App Bar ───────────────────────────────────────────────────────────────────
+
+class _AclAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final int count;
+  final bool showClear;
+  final VoidCallback onClear;
+
+  const _AclAppBar({
+    required this.count,
+    required this.showClear,
+    required this.onClear,
+  });
+
+  @override
+  Size get preferredSize => const Size.fromHeight(56);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: AppColors.background,
+      elevation: 0,
+      centerTitle: false,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(0.5),
+        child: Container(height: 0.5, color: AppColors.borderColor),
+      ),
+      title: Row(
+        children: [
+          const Text('Access Control'),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '$count',
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        if (showClear)
+          TextButton.icon(
+            onPressed: onClear,
+            icon: const Icon(Icons.delete_sweep_rounded, size: 16),
+            label: const Text('Clear All', style: TextStyle(fontSize: 13)),
+            style: TextButton.styleFrom(foregroundColor: AppColors.statusDanger),
+          ),
+        const SizedBox(width: 4),
+      ],
+    );
+  }
+}
+
+// ── Info Banner ───────────────────────────────────────────────────────────────
+
 class _InfoBanner extends StatelessWidget {
   const _InfoBanner();
 
@@ -149,18 +178,18 @@ class _InfoBanner extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+        color: AppColors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 0.5),
       ),
       child: const Row(
         children: [
-          Icon(Icons.info_outline, color: AppColors.primary, size: 16),
+          Icon(Icons.info_rounded, color: AppColors.primary, size: 15),
           SizedBox(width: 10),
           Expanded(
             child: Text(
               'ACL rules are checked before ML inference. Matching IPs are permanently blocked.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              style: TextStyle(color: AppColors.textMuted, fontSize: 12, height: 1.4),
             ),
           ),
         ],
@@ -168,6 +197,8 @@ class _InfoBanner extends StatelessWidget {
     );
   }
 }
+
+// ── Empty State ───────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
@@ -178,24 +209,40 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.shield_outlined, size: 64, color: AppColors.primary.withValues(alpha: 0.3)),
-          const SizedBox(height: 16),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceLight,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: AppColors.borderColor),
+            ),
+            child: Icon(
+              Icons.shield_rounded,
+              size: 36,
+              color: AppColors.primary.withValues(alpha: 0.6),
+            ),
+          ),
+          const SizedBox(height: 20),
           const Text(
             'No ACL rules',
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
             'Tap + to add a permanent block rule.\nACL rules bypass ML inference.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            style: TextStyle(color: AppColors.textDisabled, fontSize: 14, height: 1.5),
           ),
         ],
-      ),
+      )
+          .animate()
+          .fadeIn(duration: 500.ms)
+          .slideY(begin: 0.04, end: 0, duration: 500.ms),
     );
   }
 }

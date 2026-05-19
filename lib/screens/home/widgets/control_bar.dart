@@ -20,36 +20,46 @@ class ControlBar extends StatelessWidget {
         final isStarting = vpn.status == VpnStatus.starting;
 
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: const BoxDecoration(
             color: AppColors.surfaceLight,
-            border: Border(bottom: BorderSide(color: AppColors.borderColor, width: 1)),
+            border: Border(
+              bottom: BorderSide(color: AppColors.borderColor, width: 0.5),
+            ),
           ),
           child: Row(
             children: [
+              // Status indicator + label
               _VpnStatusDot(status: vpn.status),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  _statusLabel(vpn.status),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: _statusColor(vpn.status),
-                    letterSpacing: 0.3,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _statusLabel(vpn.status),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: _statusColor(vpn.status),
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    Text(
+                      _statusSub(vpn.status),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textDisabled,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              TextButton.icon(
-                onPressed: () => context.read<TrafficBloc>().add(const ClearLogsEvent()),
-                icon: const Icon(Icons.clear_all, size: 16),
-                label: const Text('Clear', style: TextStyle(fontSize: 13)),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.textSecondary,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                ),
-              ),
-              const SizedBox(width: 4),
+              // Clear logs ghost button
+              _ClearButton(),
+              const SizedBox(width: 8),
+              // Start / Stop
               _StartStopButton(isRunning: isRunning, isStarting: isStarting),
             ],
           ),
@@ -59,19 +69,28 @@ class ControlBar extends StatelessWidget {
   }
 
   String _statusLabel(VpnStatus status) => switch (status) {
-        VpnStatus.stopped => 'Protection stopped',
-        VpnStatus.starting => 'Starting…',
-        VpnStatus.running => 'Active — Capturing',
-        VpnStatus.error => 'VPN error',
+        VpnStatus.stopped  => 'OFFLINE',
+        VpnStatus.starting => 'STARTING',
+        VpnStatus.running  => 'ACTIVE',
+        VpnStatus.error    => 'ERROR',
+      };
+
+  String _statusSub(VpnStatus status) => switch (status) {
+        VpnStatus.stopped  => 'Protection off',
+        VpnStatus.starting => 'Initializing VPN…',
+        VpnStatus.running  => 'Capturing traffic',
+        VpnStatus.error    => 'VPN error — tap to retry',
       };
 
   Color _statusColor(VpnStatus status) => switch (status) {
-        VpnStatus.stopped => AppColors.vpnDisconnected,
+        VpnStatus.stopped  => AppColors.vpnDisconnected,
         VpnStatus.starting => AppColors.vpnConnecting,
-        VpnStatus.running => AppColors.vpnConnected,
-        VpnStatus.error => AppColors.statusDanger,
+        VpnStatus.running  => AppColors.vpnConnected,
+        VpnStatus.error    => AppColors.statusDanger,
       };
 }
+
+// ── VPN Status Dot ────────────────────────────────────────────────────────────
 
 class _VpnStatusDot extends StatelessWidget {
   final VpnStatus status;
@@ -80,10 +99,10 @@ class _VpnStatusDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (status) {
-      VpnStatus.running => AppColors.vpnConnected,
+      VpnStatus.running  => AppColors.vpnConnected,
       VpnStatus.starting => AppColors.vpnConnecting,
-      VpnStatus.error => AppColors.statusDanger,
-      _ => AppColors.vpnDisconnected,
+      VpnStatus.error    => AppColors.statusDanger,
+      _                  => AppColors.vpnDisconnected,
     };
 
     final dot = Container(
@@ -92,20 +111,62 @@ class _VpnStatusDot extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: color,
-        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 6)],
+        boxShadow: AppColors.glowShadow(color),
       ),
     );
 
     if (status == VpnStatus.running) {
       return dot
           .animate(onPlay: (c) => c.repeat())
-          .scaleXY(begin: 1.0, end: 1.4, duration: 800.ms)
+          .scaleXY(begin: 1.0, end: 1.5, duration: 900.ms, curve: Curves.easeInOut)
           .then()
-          .scaleXY(begin: 1.4, end: 1.0, duration: 800.ms);
+          .scaleXY(begin: 1.5, end: 1.0, duration: 900.ms, curve: Curves.easeInOut);
+    }
+    if (status == VpnStatus.starting) {
+      return dot
+          .animate(onPlay: (c) => c.repeat())
+          .fadeIn(duration: 600.ms)
+          .then()
+          .fadeOut(duration: 600.ms);
     }
     return dot;
   }
 }
+
+// ── Clear Button ──────────────────────────────────────────────────────────────
+
+class _ClearButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.read<TrafficBloc>().add(const ClearLogsEvent()),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.borderColor.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.clear_all_rounded, size: 14, color: AppColors.textDisabled),
+            SizedBox(width: 4),
+            Text(
+              'Clear',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textDisabled,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Start / Stop Button ───────────────────────────────────────────────────────
 
 class _StartStopButton extends StatelessWidget {
   final bool isRunning;
@@ -116,23 +177,27 @@ class _StartStopButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isStarting) {
-      return const SizedBox(
+      return Container(
         width: 80,
-        child: Center(
-          child: SizedBox(
-            width: 18,
-            height: 18,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: AppColors.vpnConnecting,
-            ),
+        height: 36,
+        alignment: Alignment.center,
+        child: const SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: AppColors.vpnConnecting,
           ),
         ),
       );
     }
 
-    return ElevatedButton(
-      onPressed: () {
+    final bgColor = isRunning ? AppColors.statusDanger : AppColors.accent;
+    final label = isRunning ? 'Stop' : 'Start';
+    final icon = isRunning ? Icons.stop_rounded : Icons.play_arrow_rounded;
+
+    return GestureDetector(
+      onTap: () {
         if (isRunning) {
           context.read<VpnCubit>().stop();
           context.read<TrafficBloc>().add(const StopListeningEvent());
@@ -141,17 +206,30 @@ class _StartStopButton extends StatelessWidget {
           context.read<TrafficBloc>().add(const StartListeningEvent());
         }
       },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isRunning ? AppColors.statusDanger : AppColors.accent,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        minimumSize: const Size(80, 36),
-        shape: const StadiumBorder(),
-        elevation: 0,
-      ),
-      child: Text(
-        isRunning ? 'Stop' : 'Start',
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: AppColors.glowShadow(bgColor),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: Colors.white),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

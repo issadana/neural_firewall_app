@@ -18,15 +18,15 @@ class BruteForceDetector {
 
   Future<void> init() async {
     if (_initialized) return;
-    try {
-      _interpreter = await Interpreter.fromAsset(_modelAsset);
-      await _loadScaler();
-      _log.i('BruteForceDetector ready. Input: [1,4] Output: [1,1]');
-      _initialized = true;
-    } catch (e) {
-      _log.e('Failed to initialize BruteForceDetector: $e');
-      rethrow;
-    }
+    // try {
+    //   _interpreter = await Interpreter.fromAsset(_modelAsset);
+    //   await _loadScaler();
+    //   _log.i('BruteForceDetector ready. Input: [1,4] Output: [1,1]');
+    //   _initialized = true;
+    // } catch (e) {
+    //   _log.e('Failed to initialize BruteForceDetector: $e');
+    //   rethrow;
+    // }
   }
 
   Future<void> _loadScaler() async {

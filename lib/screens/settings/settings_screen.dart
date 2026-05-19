@@ -16,37 +16,34 @@ class SettingsScreen extends StatelessWidget {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: AppColors.primaryBlack,
+          backgroundColor: AppColors.background,
           appBar: AppBar(
-            backgroundColor: AppColors.surfaceLight,
+            backgroundColor: AppColors.background,
             elevation: 0,
-            title: const Text(
-              'Settings',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-            ),
+            centerTitle: false,
+            title: const Text('Settings'),
             bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1),
-              child: Divider(height: 1, color: AppColors.borderColor),
+              preferredSize: const Size.fromHeight(0.5),
+              child: Container(height: 0.5, color: AppColors.borderColor),
             ),
           ),
           body: ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
+            physics: const BouncingScrollPhysics(),
             children: [
               _SectionHeader(label: 'Detection Thresholds'),
               _ThresholdSlider(
                 label: 'Block Threshold',
-                description: 'Packets scoring above this are blocked and the source IP auto-blacklisted.',
+                description:
+                    'Packets scoring above this are blocked and the source IP auto-blacklisted.',
                 value: state.blockThreshold,
                 color: AppColors.statusDanger,
                 onChanged: (v) => context.read<SettingsCubit>().setBlockThreshold(v),
               ),
               _ThresholdSlider(
                 label: 'Warn Threshold',
-                description: 'Packets between warn and block threshold are flagged as warnings.',
+                description:
+                    'Packets between warn and block threshold are flagged as warnings.',
                 value: state.warnThreshold,
                 color: AppColors.statusWarning,
                 onChanged: (v) => context.read<SettingsCubit>().setWarnThreshold(v),
@@ -54,42 +51,46 @@ class SettingsScreen extends StatelessWidget {
               const _Divider(),
               _SectionHeader(label: 'Heuristics'),
               _ToggleTile(
-                icon: Icons.speed_outlined,
+                icon: Icons.speed_rounded,
                 label: 'Packet Flood Detection',
                 subtitle: 'Block sources exceeding packet/sec limit',
                 value: state.floodDetection,
-                onChanged: (v) => context.read<SettingsCubit>().toggleFloodDetection(v),
+                onChanged: (v) =>
+                    context.read<SettingsCubit>().toggleFloodDetection(v),
               ),
               if (state.floodDetection)
                 _NumberField(
                   label: 'Flood Packet/sec limit',
                   value: state.floodPktPerSec,
-                  onSubmitted: (v) => context.read<SettingsCubit>().setFloodPktPerSec(v),
+                  onSubmitted: (v) =>
+                      context.read<SettingsCubit>().setFloodPktPerSec(v),
                 ),
               _ToggleTile(
-                icon: Icons.sync_alt_outlined,
+                icon: Icons.sync_alt_rounded,
                 label: 'SYN Flood Detection',
                 subtitle: 'Detect TCP SYN flood attacks',
                 value: state.synFloodDetection,
-                onChanged: (v) => context.read<SettingsCubit>().toggleSynFloodDetection(v),
+                onChanged: (v) =>
+                    context.read<SettingsCubit>().toggleSynFloodDetection(v),
               ),
               if (state.synFloodDetection)
                 _NumberField(
                   label: 'SYN Flood Packet/sec limit',
                   value: state.synFloodPerSec,
-                  onSubmitted: (v) => context.read<SettingsCubit>().setSynFloodPerSec(v),
+                  onSubmitted: (v) =>
+                      context.read<SettingsCubit>().setSynFloodPerSec(v),
                 ),
               const _Divider(),
               _SectionHeader(label: 'ML Models'),
               _ToggleTile(
-                icon: Icons.psychology_outlined,
+                icon: Icons.psychology_rounded,
                 label: 'Brute Force Detector',
                 subtitle: 'On-device model for brute force attack detection',
                 value: state.bfModelEnabled,
                 onChanged: (v) => context.read<SettingsCubit>().toggleBfModel(v),
               ),
               _ToggleTile(
-                icon: Icons.bolt_outlined,
+                icon: Icons.bolt_rounded,
                 label: 'DoS Specialist',
                 subtitle: 'On-device model for denial-of-service detection',
                 value: state.dosModelEnabled,
@@ -100,7 +101,8 @@ class SettingsScreen extends StatelessWidget {
               _NumberField(
                 label: 'Max Log Entries',
                 value: state.maxLogEntries,
-                onSubmitted: (v) => context.read<SettingsCubit>().setMaxLogEntries(v),
+                onSubmitted: (v) =>
+                    context.read<SettingsCubit>().setMaxLogEntries(v),
               ),
               const _Divider(),
               _SectionHeader(label: 'About'),
@@ -108,7 +110,7 @@ class SettingsScreen extends StatelessWidget {
               const _Divider(),
               _SectionHeader(label: 'Account'),
               const _LogoutTile(),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
             ],
           ),
         );
@@ -116,6 +118,8 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 }
+
+// ── Section Header ────────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
   final String label;
@@ -125,14 +129,31 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: AppColors.primary,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 0.8,
-        ),
+      child: Row(
+        children: [
+          Container(
+            width: 3,
+            height: 14,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF5A8BFF), AppColors.primary],
+              ),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.0,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -143,9 +164,15 @@ class _Divider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(color: AppColors.borderColor, height: 1, indent: 16, endIndent: 16);
+    return Container(
+      height: 0.5,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      color: AppColors.borderColor,
+    );
   }
 }
+
+// ── Threshold Slider ──────────────────────────────────────────────────────────
 
 class _ThresholdSlider extends StatelessWidget {
   final String label;
@@ -165,11 +192,12 @@ class _ThresholdSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderColor, width: 0.5),
         boxShadow: AppColors.cardShadow,
       ),
       child: Column(
@@ -179,7 +207,11 @@ class _ThresholdSlider extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
               ),
               const Spacer(),
               Container(
@@ -190,30 +222,46 @@ class _ThresholdSlider extends StatelessWidget {
                 ),
                 child: Text(
                   '${(value * 100).toStringAsFixed(0)}%',
-                  style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14),
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
           ),
-          Slider(
-            value: value,
-            min: 0.05,
-            max: 0.95,
-            divisions: 18,
-            activeColor: color,
-            inactiveColor: color.withValues(alpha: 0.15),
-            onChanged: onChanged,
+          SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: color,
+              inactiveTrackColor: color.withValues(alpha: 0.15),
+              thumbColor: color,
+              overlayColor: color.withValues(alpha: 0.15),
+              trackHeight: 3,
+            ),
+            child: Slider(
+              value: value,
+              min: 0.05,
+              max: 0.95,
+              divisions: 18,
+              onChanged: onChanged,
+            ),
           ),
           Text(
             description,
-            style: const TextStyle(color: AppColors.textDisabled, fontSize: 12),
+            style: const TextStyle(
+              color: AppColors.textDisabled,
+              fontSize: 12,
+              height: 1.4,
+            ),
           ),
-          const SizedBox(height: 4),
         ],
       ),
     );
   }
 }
+
+// ── Toggle Tile ───────────────────────────────────────────────────────────────
 
 class _ToggleTile extends StatelessWidget {
   final IconData icon;
@@ -233,31 +281,51 @@ class _ToggleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderColor, width: 0.5),
         boxShadow: AppColors.cardShadow,
       ),
       child: SwitchListTile(
-        secondary: Icon(icon, color: value ? AppColors.primary : AppColors.textDisabled, size: 22),
+        secondary: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: value
+                ? AppColors.primary.withValues(alpha: 0.15)
+                : AppColors.borderColor.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            color: value ? AppColors.primary : AppColors.textDisabled,
+            size: 18,
+          ),
+        ),
         title: Text(
           label,
           style: TextStyle(
             color: value ? AppColors.textPrimary : AppColors.textSecondary,
             fontWeight: FontWeight.w600,
+            fontSize: 14,
           ),
         ),
-        subtitle: Text(subtitle, style: const TextStyle(color: AppColors.textDisabled, fontSize: 12)),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(color: AppColors.textDisabled, fontSize: 12),
+        ),
         value: value,
         onChanged: onChanged,
-        activeThumbColor: AppColors.primary,
-        activeTrackColor: AppColors.primary.withValues(alpha: 0.3),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       ),
     );
   }
 }
+
+// ── Number Field ──────────────────────────────────────────────────────────────
 
 class _NumberField extends StatefulWidget {
   final String label;
@@ -305,11 +373,12 @@ class _NumberFieldState extends State<_NumberField> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderColor, width: 0.5),
         boxShadow: AppColors.cardShadow,
       ),
       child: Row(
@@ -317,7 +386,11 @@ class _NumberFieldState extends State<_NumberField> {
           Expanded(
             child: Text(
               widget.label,
-              style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
             ),
           ),
           SizedBox(
@@ -347,7 +420,7 @@ class _NumberFieldState extends State<_NumberField> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.primary),
+                  borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
                 ),
               ),
               onSubmitted: (_) => _submit(),
@@ -360,6 +433,8 @@ class _NumberFieldState extends State<_NumberField> {
   }
 }
 
+// ── About Tile ────────────────────────────────────────────────────────────────
+
 class _AboutTile extends StatelessWidget {
   final SettingsState state;
   const _AboutTile({required this.state});
@@ -367,11 +442,12 @@ class _AboutTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderColor, width: 0.5),
         boxShadow: AppColors.cardShadow,
       ),
       child: Column(
@@ -379,7 +455,22 @@ class _AboutTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Image.asset('assets/images/Sentri_logo.png', height: 36),
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.navyLight,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.borderColor),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(11),
+                  child: Image.asset(
+                    'assets/images/logo/logo.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,16 +484,16 @@ class _AboutTile extends StatelessWidget {
                     ),
                   ),
                   const Text(
-                    'v1.0.0 — AI-Powered NIDS',
+                    'v1.0.0  ·  AI-Powered NIDS',
                     style: TextStyle(color: AppColors.textDisabled, fontSize: 12),
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          const Divider(color: AppColors.borderColor),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
+          Container(height: 0.5, color: AppColors.borderColor),
+          const SizedBox(height: 12),
           _AboutRow(label: 'BF Model features', value: '4'),
           _AboutRow(label: 'DoS Model features', value: '5'),
           _AboutRow(
@@ -420,23 +511,38 @@ class _AboutTile extends StatelessWidget {
   }
 }
 
+// ── Logout Tile ───────────────────────────────────────────────────────────────
+
 class _LogoutTile extends StatelessWidget {
   const _LogoutTile();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderColor, width: 0.5),
         boxShadow: AppColors.cardShadow,
       ),
       child: ListTile(
-        leading: const Icon(Icons.logout_outlined, color: AppColors.statusDanger, size: 22),
+        leading: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: AppColors.statusDanger.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(Icons.logout_rounded, color: AppColors.statusDanger, size: 18),
+        ),
         title: const Text(
           'Sign Out',
-          style: TextStyle(color: AppColors.statusDanger, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: AppColors.statusDanger,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
         ),
         onTap: () async {
           final confirmed = await showDialog<bool>(
@@ -461,10 +567,13 @@ class _LogoutTile extends StatelessWidget {
             context.read<AuthCubit>().signOut();
           }
         },
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
 }
+
+// ── About Row ─────────────────────────────────────────────────────────────────
 
 class _AboutRow extends StatelessWidget {
   final String label;
@@ -474,17 +583,20 @@ class _AboutRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         children: [
-          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          Text(
+            label,
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+          ),
           const Spacer(),
           Text(
             value,
             style: const TextStyle(
               color: AppColors.primary,
               fontSize: 13,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

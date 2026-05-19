@@ -19,7 +19,7 @@ class AddIpDialog extends StatefulWidget {
 }
 
 class _AddIpDialogState extends State<AddIpDialog> {
-  final _ipController = TextEditingController();
+  final _ipController    = TextEditingController();
   final _notesController = TextEditingController();
   String? _error;
 
@@ -45,59 +45,61 @@ class _AddIpDialogState extends State<AddIpDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: AppColors.surfaceLight,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(24)),
+    return Dialog(
+      backgroundColor: AppColors.surfaceElevated,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: const BorderSide(color: AppColors.borderColor, width: 0.5),
       ),
-      title: Text(
-        widget.title,
-        style: const TextStyle(
-          color: AppColors.textPrimary,
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-        ),
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _ipController,
-            autofocus: true,
-            keyboardType: TextInputType.number,
-            style: const TextStyle(color: AppColors.textPrimary),
-            decoration: InputDecoration(
-              hintText: widget.hint,
-              hintStyle: const TextStyle(color: AppColors.textDisabled),
-              errorText: _error,
-              filled: true,
-              fillColor: AppColors.surfaceDark,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.borderColor),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.borderColor),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-              ),
-              prefixIcon: const Icon(Icons.dns_outlined, color: AppColors.textDisabled, size: 18),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.dns_rounded, color: AppColors.primary, size: 18),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  widget.title,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
             ),
-            onSubmitted: (_) => widget.notesHint == null ? _submit() : null,
-          ),
-          if (widget.notesHint != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
+
+            // IP field
             TextField(
-              controller: _notesController,
-              style: const TextStyle(color: AppColors.textPrimary),
+              controller: _ipController,
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontFamily: 'monospace',
+                fontSize: 15,
+              ),
               decoration: InputDecoration(
-                hintText: widget.notesHint,
-                hintStyle: const TextStyle(color: AppColors.textDisabled),
+                hintText: widget.hint,
+                hintStyle: const TextStyle(color: AppColors.textDisabled, fontFamily: 'monospace'),
+                errorText: _error,
                 filled: true,
                 fillColor: AppColors.surfaceDark,
+                prefixIcon: const Icon(Icons.router_rounded, color: AppColors.textDisabled, size: 18),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: AppColors.borderColor),
@@ -110,30 +112,79 @@ class _AddIpDialogState extends State<AddIpDialog> {
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
                 ),
-                prefixIcon: const Icon(Icons.notes_outlined, color: AppColors.textDisabled, size: 18),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.statusDanger),
+                ),
               ),
-              onSubmitted: (_) => _submit(),
+              onSubmitted: (_) => widget.notesHint == null ? _submit() : null,
+            ),
+
+            if (widget.notesHint != null) ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: _notesController,
+                style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: widget.notesHint,
+                  hintStyle: const TextStyle(color: AppColors.textDisabled),
+                  filled: true,
+                  fillColor: AppColors.surfaceDark,
+                  prefixIcon: const Icon(Icons.notes_rounded, color: AppColors.textDisabled, size: 18),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.borderColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                  ),
+                ),
+                onSubmitted: (_) => _submit(),
+              ),
+            ],
+
+            const SizedBox(height: 24),
+
+            // Actions
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: TextButton.styleFrom(foregroundColor: AppColors.textMuted),
+                  child: const Text('Cancel'),
+                ),
+                const SizedBox(width: 8),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF5A8BFF), AppColors.primary],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                      shadowColor: Colors.transparent,
+                      minimumSize: const Size(80, 40),
+                      shape: const StadiumBorder(),
+                      elevation: 0,
+                    ),
+                    child: const Text('Add', style: TextStyle(fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ],
             ),
           ],
-        ],
+        ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
-        ),
-        ElevatedButton(
-          onPressed: _submit,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            minimumSize: const Size(72, 40),
-            shape: const StadiumBorder(),
-            elevation: 0,
-          ),
-          child: const Text('Add', style: TextStyle(fontWeight: FontWeight.w600)),
-        ),
-      ],
     );
   }
 }

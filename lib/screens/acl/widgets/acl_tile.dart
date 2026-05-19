@@ -18,8 +18,11 @@ class AclTile extends StatelessWidget {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
-        color: AppColors.statusDanger.withValues(alpha: 0.1),
-        child: const Icon(Icons.delete_outline, color: AppColors.statusDanger),
+        decoration: BoxDecoration(
+          color: AppColors.statusDanger.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Icon(Icons.delete_rounded, color: AppColors.statusDanger, size: 22),
       ),
       confirmDismiss: (_) async {
         return await showDialog<bool>(
@@ -48,6 +51,7 @@ class AclTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderColor, width: 0.5),
           boxShadow: AppColors.cardShadow,
         ),
         child: Padding(
@@ -55,13 +59,13 @@ class AclTile extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(11),
                 ),
-                child: const Icon(Icons.shield_outlined, color: AppColors.primary, size: 18),
+                child: const Icon(Icons.shield_rounded, color: AppColors.primary, size: 18),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -72,41 +76,45 @@ class AclTile extends StatelessWidget {
                       entry.ip,
                       style: const TextStyle(
                         color: AppColors.textPrimary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
                         fontFamily: 'monospace',
+                        letterSpacing: 0.3,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 5),
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(20),
+                            color: AppColors.primary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(
-                            'ACL Rule',
+                            'ACL RULE',
                             style: TextStyle(
                               fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
                               color: AppColors.primary,
-                              letterSpacing: 0.3,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          DateFormat('MM/dd HH:mm').format(entry.addedAt),
-                          style: const TextStyle(color: AppColors.textDisabled, fontSize: 12),
+                          DateFormat('MM/dd  HH:mm').format(entry.addedAt),
+                          style: const TextStyle(color: AppColors.textDisabled, fontSize: 11),
                         ),
                         if (entry.notes != null && entry.notes!.isNotEmpty) ...[
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               entry.notes!,
-                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                              style: const TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 11,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -116,13 +124,21 @@ class AclTile extends StatelessWidget {
                   ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 18),
-                color: AppColors.textDisabled,
-                onPressed: onDelete,
-                tooltip: 'Remove',
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+              GestureDetector(
+                onTap: onDelete,
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: AppColors.statusDanger.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.delete_outline_rounded,
+                    size: 16,
+                    color: AppColors.statusDanger,
+                  ),
+                ),
               ),
             ],
           ),

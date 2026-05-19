@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../blocs/blacklist/blacklist_cubit.dart';
@@ -17,65 +18,27 @@ class BlacklistScreen extends StatelessWidget {
         final entries = state.entries;
 
         return Scaffold(
-          backgroundColor: AppColors.primaryBlack,
-          appBar: AppBar(
-            backgroundColor: AppColors.surfaceLight,
-            elevation: 0,
-            title: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Blacklist',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.statusDanger.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${entries.length}',
-                    style: const TextStyle(
-                      color: AppColors.statusDanger,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1),
-              child: Divider(height: 1, color: AppColors.borderColor),
-            ),
-            actions: [
-              if (entries.isNotEmpty)
-                TextButton.icon(
-                  onPressed: () => _confirmClearAll(context),
-                  icon: const Icon(Icons.delete_sweep_outlined, size: 16),
-                  label: const Text('Clear All', style: TextStyle(fontSize: 13)),
-                  style: TextButton.styleFrom(foregroundColor: AppColors.statusDanger),
-                ),
-              const SizedBox(width: 4),
-            ],
+          backgroundColor: AppColors.background,
+          appBar: _BlacklistAppBar(
+            count: entries.length,
+            showClear: entries.isNotEmpty,
+            onClear: () => _confirmClearAll(context),
           ),
           body: entries.isEmpty
               ? const _EmptyState()
               : ListView.builder(
                   padding: const EdgeInsets.symmetric(vertical: 12),
+                  physics: const BouncingScrollPhysics(),
                   itemCount: entries.length,
                   itemBuilder: (context, i) {
                     final entry = entries[i];
                     return BlacklistTile(
                       entry: entry,
                       onDelete: () => context.read<BlacklistCubit>().remove(entry.ip),
-                    );
+                    )
+                        .animate()
+                        .fadeIn(duration: 250.ms, delay: Duration(milliseconds: i < 8 ? i * 30 : 0))
+                        .slideX(begin: 0.02, end: 0, duration: 250.ms);
                   },
                 ),
           floatingActionButton: FloatingActionButton(
@@ -83,9 +46,9 @@ class BlacklistScreen extends StatelessWidget {
             onPressed: () => _showAddDialog(context),
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
-            elevation: 2,
+            elevation: 4,
             tooltip: 'Block IP',
-            child: const Icon(Icons.add),
+            child: const Icon(Icons.add_rounded),
           ),
         );
       },
@@ -127,6 +90,70 @@ class BlacklistScreen extends StatelessWidget {
   }
 }
 
+// ── App Bar ───────────────────────────────────────────────────────────────────
+
+class _BlacklistAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final int count;
+  final bool showClear;
+  final VoidCallback onClear;
+
+  const _BlacklistAppBar({
+    required this.count,
+    required this.showClear,
+    required this.onClear,
+  });
+
+  @override
+  Size get preferredSize => const Size.fromHeight(56);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: AppColors.background,
+      elevation: 0,
+      centerTitle: false,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(0.5),
+        child: Container(height: 0.5, color: AppColors.borderColor),
+      ),
+      title: Row(
+        children: [
+          const Text('Blacklist'),
+          const SizedBox(width: 10),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: AppColors.statusDanger.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '$count',
+              style: const TextStyle(
+                color: AppColors.statusDanger,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        if (showClear)
+          TextButton.icon(
+            onPressed: onClear,
+            icon: const Icon(Icons.delete_sweep_rounded, size: 16),
+            label: const Text('Clear All', style: TextStyle(fontSize: 13)),
+            style: TextButton.styleFrom(foregroundColor: AppColors.statusDanger),
+          ),
+        const SizedBox(width: 4),
+      ],
+    );
+  }
+}
+
+// ── Empty State ───────────────────────────────────────────────────────────────
+
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
 
@@ -136,24 +163,40 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.verified_user_outlined, size: 64, color: AppColors.accent.withValues(alpha: 0.4)),
-          const SizedBox(height: 16),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceLight,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: AppColors.borderColor),
+            ),
+            child: Icon(
+              Icons.verified_user_rounded,
+              size: 36,
+              color: AppColors.accent.withValues(alpha: 0.7),
+            ),
+          ),
+          const SizedBox(height: 20),
           const Text(
             'No blocked IPs',
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
-            'IPs are auto-blocked when AI detects threats,\nor tap + to block manually.',
+            'IPs are auto-blocked when threats are\ndetected, or tap + to block manually.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            style: TextStyle(color: AppColors.textDisabled, fontSize: 14, height: 1.5),
           ),
         ],
-      ),
+      )
+          .animate()
+          .fadeIn(duration: 500.ms)
+          .slideY(begin: 0.04, end: 0, duration: 500.ms),
     );
   }
 }
