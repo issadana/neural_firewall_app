@@ -11,6 +11,7 @@ class ThreatSparkline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return BlocBuilder<TrafficBloc, TrafficState>(
       builder: (context, state) {
         return Container(
@@ -18,10 +19,10 @@ class ThreatSparkline extends StatelessWidget {
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           padding: const EdgeInsets.fromLTRB(16, 12, 12, 8),
           decoration: BoxDecoration(
-            color: AppColors.surfaceLight,
+            color: colors.surfaceLight,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.borderColor, width: 0.5),
-            boxShadow: AppColors.cardShadow,
+            border: Border.all(color: colors.borderColor, width: 0.5),
+            boxShadow: colors.cardShadow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,19 +38,19 @@ class ThreatSparkline extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     'THREAT TREND',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textMuted,
+                      color: colors.textMuted,
                       letterSpacing: 1.2,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 6),
-              Expanded(child: _buildChart(state.sparklineData)),
+              Expanded(child: _buildChart(state.sparklineData, colors)),
             ],
           ),
         );
@@ -57,12 +58,12 @@ class ThreatSparkline extends StatelessWidget {
     );
   }
 
-  Widget _buildChart(List<double> data) {
+  Widget _buildChart(List<double> data, AppThemeColors colors) {
     if (data.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'Start capture to see threat trend',
-          style: TextStyle(fontSize: 12, color: AppColors.textDisabled),
+          style: TextStyle(fontSize: 12, color: colors.textDisabled),
         ),
       );
     }

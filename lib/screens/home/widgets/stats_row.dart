@@ -63,14 +63,15 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surfaceLight,
+          color: colors.surfaceLight,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.borderColor, width: 0.5),
-          boxShadow: AppColors.cardShadow,
+          border: Border.all(color: colors.borderColor, width: 0.5),
+          boxShadow: colors.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,19 +109,19 @@ class _StatCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 letterSpacing: -1,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               subtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textDisabled,
+                color: colors.textDisabled,
               ),
             ),
           ],
@@ -137,6 +138,7 @@ class _ThreatGaugeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final pct = (threatPercent / 100).clamp(0.0, 1.0);
     final color = pct >= 0.20
         ? AppColors.statusDanger
@@ -150,10 +152,10 @@ class _ThreatGaugeCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: colors.surfaceLight,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderColor, width: 0.5),
-        boxShadow: AppColors.cardShadow,
+        border: Border.all(color: colors.borderColor, width: 0.5),
+        boxShadow: colors.cardShadow,
       ),
       child: Row(
         children: [
@@ -170,7 +172,7 @@ class _ThreatGaugeCard extends StatelessWidget {
               ),
             ),
             progressColor: color,
-            backgroundColor: AppColors.borderColor,
+            backgroundColor: colors.borderColor,
             circularStrokeCap: CircularStrokeCap.round,
             animation: true,
             animationDuration: 600,
@@ -184,12 +186,12 @@ class _ThreatGaugeCard extends StatelessWidget {
                   children: [
                     Icon(Icons.security_rounded, size: 14, color: color),
                     const SizedBox(width: 6),
-                    const Text(
+                    Text(
                       'THREAT LEVEL',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textMuted,
+                        color: colors.textMuted,
                         letterSpacing: 0.8,
                       ),
                     ),
@@ -213,9 +215,9 @@ class _ThreatGaugeCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   'Highest score detected',
-                  style: TextStyle(fontSize: 12, color: AppColors.textDisabled),
+                  style: TextStyle(fontSize: 12, color: colors.textDisabled),
                 ),
               ],
             ),

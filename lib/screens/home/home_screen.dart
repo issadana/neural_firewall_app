@@ -11,7 +11,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.appColors.background,
       appBar: _SentriAppBar(),
       body: const Column(
         children: [
@@ -42,13 +42,14 @@ class _SentriAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       height: 56 + MediaQuery.of(context).padding.top,
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
+      decoration: BoxDecoration(
+        color: colors.background,
         border: Border(
-          bottom: BorderSide(color: AppColors.borderColor, width: 0.5),
+          bottom: BorderSide(color: colors.borderColor, width: 0.5),
         ),
       ),
       child: Row(
@@ -60,12 +61,12 @@ class _SentriAppBar extends StatelessWidget implements PreferredSizeWidget {
             fit: BoxFit.contain,
           ),
           const SizedBox(width: 10),
-          const Text(
+          Text(
             'Sentri',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               letterSpacing: -0.5,
             ),
           ),
@@ -93,12 +94,12 @@ class _TrafficHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          const Text(
+          Text(
             'TRAFFIC LOG',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: AppColors.textMuted,
+              color: context.appColors.textMuted,
               letterSpacing: 1.4,
             ),
           ),

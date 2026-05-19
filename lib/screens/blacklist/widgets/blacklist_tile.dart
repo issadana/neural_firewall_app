@@ -12,6 +12,7 @@ class BlacklistTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Dismissible(
       key: ValueKey(entry.ip),
       direction: DismissDirection.endToStart,
@@ -49,10 +50,10 @@ class BlacklistTile extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
         decoration: BoxDecoration(
-          color: AppColors.surfaceLight,
+          color: colors.surfaceLight,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.borderColor, width: 0.5),
-          boxShadow: AppColors.cardShadow,
+          border: Border.all(color: colors.borderColor, width: 0.5),
+          boxShadow: colors.cardShadow,
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -74,8 +75,8 @@ class BlacklistTile extends StatelessWidget {
                   children: [
                     Text(
                       entry.ip,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
+                      style: TextStyle(
+                        color: colors.textPrimary,
                         fontWeight: FontWeight.w700,
                         fontSize: 14,
                         fontFamily: 'monospace',
@@ -89,8 +90,8 @@ class BlacklistTile extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           DateFormat('MM/dd  HH:mm').format(entry.addedAt),
-                          style: const TextStyle(
-                            color: AppColors.textDisabled,
+                          style: TextStyle(
+                            color: colors.textDisabled,
                             fontSize: 11,
                           ),
                         ),

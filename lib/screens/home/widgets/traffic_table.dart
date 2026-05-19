@@ -42,6 +42,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return BlocBuilder<VpnCubit, VpnState>(
       builder: (context, vpn) {
         if (vpn.status == VpnStatus.starting) {
@@ -56,30 +57,30 @@ class _EmptyState extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceLight,
+                  color: colors.surfaceLight,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.borderColor),
+                  border: Border.all(color: colors.borderColor),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.wifi_tethering_off_outlined,
                   size: 26,
-                  color: AppColors.textDisabled,
+                  color: colors.textDisabled,
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'No traffic captured',
                 style: TextStyle(
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Tap START to begin monitoring',
                 style: TextStyle(
-                  color: AppColors.textDisabled,
+                  color: colors.textDisabled,
                   fontSize: 13,
                 ),
               ),
@@ -99,9 +100,10 @@ class _ShimmerCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Shimmer.fromColors(
-      baseColor: AppColors.surfaceLight,
-      highlightColor: AppColors.borderColor,
+      baseColor: colors.surfaceLight,
+      highlightColor: colors.borderColor,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 8),
         shrinkWrap: true,
@@ -111,7 +113,7 @@ class _ShimmerCards extends StatelessWidget {
           height: 70,
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
           decoration: BoxDecoration(
-            color: AppColors.surfaceLight,
+            color: colors.surfaceLight,
             borderRadius: BorderRadius.circular(12),
           ),
         ),

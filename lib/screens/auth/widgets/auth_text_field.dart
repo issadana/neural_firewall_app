@@ -50,6 +50,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
@@ -64,29 +65,29 @@ class _AuthTextFieldState extends State<AuthTextField> {
         textInputAction: widget.textInputAction,
         onFieldSubmitted: widget.onFieldSubmitted,
         validator: widget.validator,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 15,
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           letterSpacing: 0.2,
         ),
         decoration: InputDecoration(
           labelText: widget.label,
           hintText: widget.hint,
           filled: true,
-          fillColor: AppColors.surfaceDark,
+          fillColor: colors.surfaceDark,
           labelStyle: TextStyle(
-            color: _isFocused ? AppColors.primary : AppColors.textMuted,
+            color: _isFocused ? AppColors.primary : colors.textMuted,
             fontSize: 14,
           ),
-          hintStyle: const TextStyle(color: AppColors.textDisabled, fontSize: 14),
+          hintStyle: TextStyle(color: colors.textDisabled, fontSize: 14),
           contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: AppColors.borderColor),
+            borderSide: BorderSide(color: colors.borderColor),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: AppColors.borderColor),
+            borderSide: BorderSide(color: colors.borderColor),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
@@ -106,7 +107,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
                     _obscured
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
-                    color: _isFocused ? AppColors.primary : AppColors.textDisabled,
+                    color: _isFocused ? AppColors.primary : colors.textDisabled,
                     size: 20,
                   ),
                   onPressed: () => setState(() => _obscured = !_obscured),

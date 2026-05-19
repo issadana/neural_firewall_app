@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'blocs/auth/auth_cubit.dart';
 import 'blocs/blacklist/blacklist_cubit.dart';
 import 'blocs/blacklist/blacklist_state.dart';
+import 'blocs/settings/settings_cubit.dart';
+import 'blocs/settings/settings_state.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'models/app_models.dart';
@@ -20,21 +22,28 @@ class SentriApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppConstants.appName,
-      theme: AppTheme.lightTheme(),
-      debugShowCheckedModeBanner: false,
-      home: BlocBuilder<AuthCubit, AuthState>(
-        builder: (context, state) {
-          if (state.status == AuthStatus.authenticated) {
-            return const _AppShell();
-          }
-          if (state.status == AuthStatus.initial) {
-            return const _SplashLoader();
-          }
-          return const SignInScreen();
-        },
-      ),
+    return BlocBuilder<SettingsCubit, SettingsState>(
+      buildWhen: (prev, curr) => prev.darkMode != curr.darkMode,
+      builder: (context, settings) {
+        return MaterialApp(
+          title: AppConstants.appName,
+          theme: AppTheme.lightTheme(),
+          darkTheme: AppTheme.darkTheme(),
+          themeMode: settings.darkMode ? ThemeMode.dark : ThemeMode.light,
+          debugShowCheckedModeBanner: false,
+          home: BlocBuilder<AuthCubit, AuthState>(
+            builder: (context, state) {
+              if (state.status == AuthStatus.authenticated) {
+                return const _AppShell();
+              }
+              if (state.status == AuthStatus.initial) {
+                return const _SplashLoader();
+              }
+              return const SignInScreen();
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -45,7 +54,7 @@ class _SplashLoader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.appColors.background,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -91,7 +100,7 @@ class _AppShellState extends State<_AppShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.appColors.background,
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: _PremiumNavBar(
         currentIndex: _currentIndex,
@@ -111,15 +120,16 @@ class _PremiumNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return BlocBuilder<BlacklistCubit, BlacklistState>(
       builder: (context, blacklist) {
         final blockedCount = blacklist.entries.length;
 
         return Container(
           decoration: BoxDecoration(
-            color: AppColors.surfaceLight,
-            border: const Border(
-              top: BorderSide(color: AppColors.borderColor, width: 0.5),
+            color: colors.surfaceLight,
+            border: Border(
+              top: BorderSide(color: colors.borderColor, width: 0.5),
             ),
             boxShadow: [
               BoxShadow(
@@ -230,6 +240,7 @@ class _NavItemWithBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = index == currentIndex;
+    final colors = context.appColors;
 
     final iconWidget = badges.Badge(
       showBadge: badgeCount > 0,
@@ -244,7 +255,7 @@ class _NavItemWithBadge extends StatelessWidget {
       child: Icon(
         isActive ? activeIcon : icon,
         size: 24,
-        color: isActive ? AppColors.primary : AppColors.textDisabled,
+        color: isActive ? AppColors.primary : colors.textDisabled,
       ),
     );
 
@@ -274,6 +285,7 @@ class _NavItemBase extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -292,7 +304,7 @@ class _NavItemBase extends StatelessWidget {
                 Icon(
                   icon,
                   size: 24,
-                  color: isActive ? AppColors.primary : AppColors.textDisabled,
+                  color: isActive ? AppColors.primary : colors.textDisabled,
                 ),
             const SizedBox(height: 3),
             AnimatedDefaultTextStyle(
@@ -300,7 +312,7 @@ class _NavItemBase extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                color: isActive ? AppColors.primary : AppColors.textDisabled,
+                color: isActive ? AppColors.primary : colors.textDisabled,
               ),
               child: Text(label),
             ),

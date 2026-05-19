@@ -14,6 +14,7 @@ class ControlBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return BlocBuilder<VpnCubit, VpnState>(
       builder: (context, vpn) {
         final isRunning = vpn.status == VpnStatus.running;
@@ -21,15 +22,14 @@ class ControlBar extends StatelessWidget {
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
-            color: AppColors.surfaceLight,
+          decoration: BoxDecoration(
+            color: colors.surfaceLight,
             border: Border(
-              bottom: BorderSide(color: AppColors.borderColor, width: 0.5),
+              bottom: BorderSide(color: colors.borderColor, width: 0.5),
             ),
           ),
           child: Row(
             children: [
-              // Status indicator + label
               _VpnStatusDot(status: vpn.status),
               const SizedBox(width: 10),
               Expanded(
@@ -48,18 +48,16 @@ class ControlBar extends StatelessWidget {
                     ),
                     Text(
                       _statusSub(vpn.status),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: AppColors.textDisabled,
+                        color: colors.textDisabled,
                       ),
                     ),
                   ],
                 ),
               ),
-              // Clear logs ghost button
               _ClearButton(),
               const SizedBox(width: 8),
-              // Start / Stop
               _StartStopButton(isRunning: isRunning, isStarting: isStarting),
             ],
           ),
@@ -138,24 +136,25 @@ class _VpnStatusDot extends StatelessWidget {
 class _ClearButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return GestureDetector(
       onTap: () => context.read<TrafficBloc>().add(const ClearLogsEvent()),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.borderColor.withValues(alpha: 0.6),
+          color: colors.borderColor.withValues(alpha: 0.6),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.clear_all_rounded, size: 14, color: AppColors.textDisabled),
-            SizedBox(width: 4),
+            Icon(Icons.clear_all_rounded, size: 14, color: colors.textDisabled),
+            const SizedBox(width: 4),
             Text(
               'Clear',
               style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textDisabled,
+                color: colors.textDisabled,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -177,16 +176,17 @@ class _StartStopButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isStarting) {
-      return Container(
+      return const SizedBox(
         width: 80,
         height: 36,
-        alignment: Alignment.center,
-        child: const SizedBox(
-          width: 18,
-          height: 18,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: AppColors.vpnConnecting,
+        child: Center(
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppColors.vpnConnecting,
+            ),
           ),
         ),
       );

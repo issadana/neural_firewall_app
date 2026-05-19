@@ -13,12 +13,13 @@ class AclScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return BlocBuilder<AclCubit, AclState>(
       builder: (context, state) {
         final entries = state.entries;
 
         return Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: colors.background,
           appBar: _AclAppBar(
             count: entries.length,
             showClear: entries.isNotEmpty,
@@ -124,13 +125,14 @@ class _AclAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return AppBar(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       elevation: 0,
       centerTitle: false,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(0.5),
-        child: Container(height: 0.5, color: AppColors.borderColor),
+        child: Container(height: 0.5, color: colors.borderColor),
       ),
       title: Row(
         children: [
@@ -189,7 +191,7 @@ class _InfoBanner extends StatelessWidget {
           Expanded(
             child: Text(
               'ACL rules are checked before ML inference. Matching IPs are permanently blocked.',
-              style: TextStyle(color: AppColors.textMuted, fontSize: 12, height: 1.4),
+              style: TextStyle(color: AppColors.primary, fontSize: 12, height: 1.4),
             ),
           ),
         ],
@@ -205,6 +207,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -213,9 +216,9 @@ class _EmptyState extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: AppColors.surfaceLight,
+              color: colors.surfaceLight,
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: AppColors.borderColor),
+              border: Border.all(color: colors.borderColor),
             ),
             child: Icon(
               Icons.shield_rounded,
@@ -224,19 +227,19 @@ class _EmptyState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'No ACL rules',
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Tap + to add a permanent block rule.\nACL rules bypass ML inference.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textDisabled, fontSize: 14, height: 1.5),
+            style: TextStyle(color: colors.textDisabled, fontSize: 14, height: 1.5),
           ),
         ],
       )

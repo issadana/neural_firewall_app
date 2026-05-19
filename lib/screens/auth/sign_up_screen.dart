@@ -35,9 +35,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.authBackground),
+        decoration: BoxDecoration(gradient: colors.authBackground),
         child: BlocConsumer<AuthCubit, AuthState>(
           listener: (context, state) {
             if (state.status == AuthStatus.authenticated) {
@@ -63,11 +64,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const SizedBox(height: 56),
-                    _buildBrand(),
+                    _buildBrand(colors),
                     const SizedBox(height: 36),
-                    _buildCard(context, isLoading),
+                    _buildCard(context, isLoading, colors),
                     const SizedBox(height: 28),
-                    _buildSignInLink(context),
+                    _buildSignInLink(context, colors),
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -79,17 +80,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildBrand() {
+  Widget _buildBrand(AppThemeColors colors) {
     return Column(
       children: [
         Container(
           width: 72,
           height: 72,
           decoration: BoxDecoration(
-            color: AppColors.surfaceLight,
+            color: colors.surfaceLight,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.borderColor),
-            boxShadow: AppColors.cardShadow,
+            border: Border.all(color: colors.borderColor),
+            boxShadow: colors.cardShadow,
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(19),
@@ -102,12 +103,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         ),
         const SizedBox(height: 20),
-        const Text(
+        Text(
           'Sentri',
           style: TextStyle(
             fontSize: 34,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: colors.textPrimary,
             letterSpacing: -1.2,
           ),
         ),
@@ -116,13 +117,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
           'assets/images/branding/sentri-slogan.png',
           height: 22,
           fit: BoxFit.contain,
-          color: AppColors.textSecondary,
+          color: colors.textSecondary,
           colorBlendMode: BlendMode.modulate,
-          errorBuilder: (_, _, _) => const Text(
+          errorBuilder: (_, _, _) => Text(
             'Stay safe, stay ahead',
             style: TextStyle(
               fontSize: 13,
-              color: AppColors.textMuted,
+              color: colors.textMuted,
               letterSpacing: 0.4,
             ),
           ),
@@ -134,33 +135,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
         .slideY(begin: -0.08, end: 0, duration: 600.ms, curve: Curves.easeOut);
   }
 
-  Widget _buildCard(BuildContext context, bool isLoading) {
+  Widget _buildCard(BuildContext context, bool isLoading, AppThemeColors colors) {
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: colors.surfaceLight,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.borderColor),
-        boxShadow: AppColors.cardShadow,
+        border: Border.all(color: colors.borderColor),
+        boxShadow: colors.cardShadow,
       ),
       child: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Create account',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: colors.textPrimary,
                 letterSpacing: -0.4,
               ),
             ),
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Protect your network from day one',
-              style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+              style: TextStyle(fontSize: 13, color: colors.textMuted),
             ),
             const SizedBox(height: 24),
             AuthTextField(
@@ -215,13 +216,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
         .slideY(begin: 0.06, end: 0, duration: 700.ms, delay: 200.ms, curve: Curves.easeOut);
   }
 
-  Widget _buildSignInLink(BuildContext context) {
+  Widget _buildSignInLink(BuildContext context, AppThemeColors colors) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
+        Text(
           'Already have an account?',
-          style: TextStyle(color: AppColors.textMuted, fontSize: 14),
+          style: TextStyle(color: colors.textMuted, fontSize: 14),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(),

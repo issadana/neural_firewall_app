@@ -14,5 +14,6 @@ abstract class SettingsState with _$SettingsState {
     @Default(true) bool bfModelEnabled,
     @Default(true) bool dosModelEnabled,
     @Default(200) int maxLogEntries,
+    @Default(true) bool darkMode,
   }) = _SettingsState;
 }

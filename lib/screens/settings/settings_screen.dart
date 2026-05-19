@@ -13,24 +13,34 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: colors.background,
           appBar: AppBar(
-            backgroundColor: AppColors.background,
+            backgroundColor: colors.background,
             elevation: 0,
             centerTitle: false,
             title: const Text('Settings'),
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(0.5),
-              child: Container(height: 0.5, color: AppColors.borderColor),
+              child: Container(height: 0.5, color: colors.borderColor),
             ),
           ),
           body: ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
             physics: const BouncingScrollPhysics(),
             children: [
+              _SectionHeader(label: 'Appearance'),
+              _ToggleTile(
+                icon: Icons.dark_mode_rounded,
+                label: 'Dark Mode',
+                subtitle: 'Switch between dark and light theme',
+                value: state.darkMode,
+                onChanged: (v) => context.read<SettingsCubit>().toggleDarkMode(v),
+              ),
+              const _Divider(),
               _SectionHeader(label: 'Detection Thresholds'),
               _ThresholdSlider(
                 label: 'Block Threshold',
@@ -127,6 +137,7 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
       child: Row(
@@ -146,8 +157,8 @@ class _SectionHeader extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             label.toUpperCase(),
-            style: const TextStyle(
-              color: AppColors.textMuted,
+            style: TextStyle(
+              color: colors.textMuted,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.0,
@@ -167,7 +178,7 @@ class _Divider extends StatelessWidget {
     return Container(
       height: 0.5,
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      color: AppColors.borderColor,
+      color: context.appColors.borderColor,
     );
   }
 }
@@ -191,14 +202,15 @@ class _ThresholdSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: colors.surfaceLight,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderColor, width: 0.5),
-        boxShadow: AppColors.cardShadow,
+        border: Border.all(color: colors.borderColor, width: 0.5),
+        boxShadow: colors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,8 +219,8 @@ class _ThresholdSlider extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
+                style: TextStyle(
+                  color: colors.textPrimary,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -249,8 +261,8 @@ class _ThresholdSlider extends StatelessWidget {
           ),
           Text(
             description,
-            style: const TextStyle(
-              color: AppColors.textDisabled,
+            style: TextStyle(
+              color: colors.textDisabled,
               fontSize: 12,
               height: 1.4,
             ),
@@ -280,13 +292,14 @@ class _ToggleTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: colors.surfaceLight,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderColor, width: 0.5),
-        boxShadow: AppColors.cardShadow,
+        border: Border.all(color: colors.borderColor, width: 0.5),
+        boxShadow: colors.cardShadow,
       ),
       child: SwitchListTile(
         secondary: AnimatedContainer(
@@ -296,26 +309,26 @@ class _ToggleTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: value
                 ? AppColors.primary.withValues(alpha: 0.15)
-                : AppColors.borderColor.withValues(alpha: 0.6),
+                : colors.borderColor.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
             icon,
-            color: value ? AppColors.primary : AppColors.textDisabled,
+            color: value ? AppColors.primary : colors.textDisabled,
             size: 18,
           ),
         ),
         title: Text(
           label,
           style: TextStyle(
-            color: value ? AppColors.textPrimary : AppColors.textSecondary,
+            color: value ? colors.textPrimary : colors.textSecondary,
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(color: AppColors.textDisabled, fontSize: 12),
+          style: TextStyle(color: colors.textDisabled, fontSize: 12),
         ),
         value: value,
         onChanged: onChanged,
@@ -372,22 +385,23 @@ class _NumberFieldState extends State<_NumberField> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: colors.surfaceLight,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderColor, width: 0.5),
-        boxShadow: AppColors.cardShadow,
+        border: Border.all(color: colors.borderColor, width: 0.5),
+        boxShadow: colors.cardShadow,
       ),
       child: Row(
         children: [
           Expanded(
             child: Text(
               widget.label,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -409,14 +423,14 @@ class _NumberFieldState extends State<_NumberField> {
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 filled: true,
-                fillColor: AppColors.surfaceDark,
+                fillColor: colors.surfaceDark,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.borderColor),
+                  borderSide: BorderSide(color: colors.borderColor),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.borderColor),
+                  borderSide: BorderSide(color: colors.borderColor),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -441,14 +455,15 @@ class _AboutTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: colors.surfaceLight,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderColor, width: 0.5),
-        boxShadow: AppColors.cardShadow,
+        border: Border.all(color: colors.borderColor, width: 0.5),
+        boxShadow: colors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -459,9 +474,9 @@ class _AboutTile extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: AppColors.navyLight,
+                  color: colors.navyLight,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.borderColor),
+                  border: Border.all(color: colors.borderColor),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(11),
@@ -477,22 +492,22 @@ class _AboutTile extends StatelessWidget {
                 children: [
                   Text(
                     AppConstants.appName,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
+                    style: TextStyle(
+                      color: colors.textPrimary,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
                   ),
-                  const Text(
+                  Text(
                     'v1.0.0  ·  AI-Powered NIDS',
-                    style: TextStyle(color: AppColors.textDisabled, fontSize: 12),
+                    style: TextStyle(color: colors.textDisabled, fontSize: 12),
                   ),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Container(height: 0.5, color: AppColors.borderColor),
+          Container(height: 0.5, color: colors.borderColor),
           const SizedBox(height: 12),
           _AboutRow(label: 'BF Model features', value: '4'),
           _AboutRow(label: 'DoS Model features', value: '5'),
@@ -518,13 +533,14 @@ class _LogoutTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: colors.surfaceLight,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderColor, width: 0.5),
-        boxShadow: AppColors.cardShadow,
+        border: Border.all(color: colors.borderColor, width: 0.5),
+        boxShadow: colors.cardShadow,
       ),
       child: ListTile(
         leading: Container(
@@ -588,7 +604,7 @@ class _AboutRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            style: TextStyle(color: context.appColors.textSecondary, fontSize: 13),
           ),
           const Spacer(),
           Text(

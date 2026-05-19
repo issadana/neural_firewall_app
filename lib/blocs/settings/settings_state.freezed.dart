@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SettingsState {
 
- double get blockThreshold; double get warnThreshold; bool get floodDetection; bool get synFloodDetection; int get floodPktPerSec; int get synFloodPerSec; bool get bfModelEnabled; bool get dosModelEnabled; int get maxLogEntries;
+ double get blockThreshold; double get warnThreshold; bool get floodDetection; bool get synFloodDetection; int get floodPktPerSec; int get synFloodPerSec; bool get bfModelEnabled; bool get dosModelEnabled; int get maxLogEntries; bool get darkMode;
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $SettingsStateCopyWith<SettingsState> get copyWith => _$SettingsStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsState&&(identical(other.blockThreshold, blockThreshold) || other.blockThreshold == blockThreshold)&&(identical(other.warnThreshold, warnThreshold) || other.warnThreshold == warnThreshold)&&(identical(other.floodDetection, floodDetection) || other.floodDetection == floodDetection)&&(identical(other.synFloodDetection, synFloodDetection) || other.synFloodDetection == synFloodDetection)&&(identical(other.floodPktPerSec, floodPktPerSec) || other.floodPktPerSec == floodPktPerSec)&&(identical(other.synFloodPerSec, synFloodPerSec) || other.synFloodPerSec == synFloodPerSec)&&(identical(other.bfModelEnabled, bfModelEnabled) || other.bfModelEnabled == bfModelEnabled)&&(identical(other.dosModelEnabled, dosModelEnabled) || other.dosModelEnabled == dosModelEnabled)&&(identical(other.maxLogEntries, maxLogEntries) || other.maxLogEntries == maxLogEntries));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SettingsState&&(identical(other.blockThreshold, blockThreshold) || other.blockThreshold == blockThreshold)&&(identical(other.warnThreshold, warnThreshold) || other.warnThreshold == warnThreshold)&&(identical(other.floodDetection, floodDetection) || other.floodDetection == floodDetection)&&(identical(other.synFloodDetection, synFloodDetection) || other.synFloodDetection == synFloodDetection)&&(identical(other.floodPktPerSec, floodPktPerSec) || other.floodPktPerSec == floodPktPerSec)&&(identical(other.synFloodPerSec, synFloodPerSec) || other.synFloodPerSec == synFloodPerSec)&&(identical(other.bfModelEnabled, bfModelEnabled) || other.bfModelEnabled == bfModelEnabled)&&(identical(other.dosModelEnabled, dosModelEnabled) || other.dosModelEnabled == dosModelEnabled)&&(identical(other.maxLogEntries, maxLogEntries) || other.maxLogEntries == maxLogEntries)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,blockThreshold,warnThreshold,floodDetection,synFloodDetection,floodPktPerSec,synFloodPerSec,bfModelEnabled,dosModelEnabled,maxLogEntries);
+int get hashCode => Object.hash(runtimeType,blockThreshold,warnThreshold,floodDetection,synFloodDetection,floodPktPerSec,synFloodPerSec,bfModelEnabled,dosModelEnabled,maxLogEntries,darkMode);
 
 @override
 String toString() {
-  return 'SettingsState(blockThreshold: $blockThreshold, warnThreshold: $warnThreshold, floodDetection: $floodDetection, synFloodDetection: $synFloodDetection, floodPktPerSec: $floodPktPerSec, synFloodPerSec: $synFloodPerSec, bfModelEnabled: $bfModelEnabled, dosModelEnabled: $dosModelEnabled, maxLogEntries: $maxLogEntries)';
+  return 'SettingsState(blockThreshold: $blockThreshold, warnThreshold: $warnThreshold, floodDetection: $floodDetection, synFloodDetection: $synFloodDetection, floodPktPerSec: $floodPktPerSec, synFloodPerSec: $synFloodPerSec, bfModelEnabled: $bfModelEnabled, dosModelEnabled: $dosModelEnabled, maxLogEntries: $maxLogEntries, darkMode: $darkMode)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $SettingsStateCopyWith<$Res>  {
   factory $SettingsStateCopyWith(SettingsState value, $Res Function(SettingsState) _then) = _$SettingsStateCopyWithImpl;
 @useResult
 $Res call({
- double blockThreshold, double warnThreshold, bool floodDetection, bool synFloodDetection, int floodPktPerSec, int synFloodPerSec, bool bfModelEnabled, bool dosModelEnabled, int maxLogEntries
+ double blockThreshold, double warnThreshold, bool floodDetection, bool synFloodDetection, int floodPktPerSec, int synFloodPerSec, bool bfModelEnabled, bool dosModelEnabled, int maxLogEntries, bool darkMode
 });
 
 
@@ -62,7 +62,7 @@ class _$SettingsStateCopyWithImpl<$Res>
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? blockThreshold = null,Object? warnThreshold = null,Object? floodDetection = null,Object? synFloodDetection = null,Object? floodPktPerSec = null,Object? synFloodPerSec = null,Object? bfModelEnabled = null,Object? dosModelEnabled = null,Object? maxLogEntries = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? blockThreshold = null,Object? warnThreshold = null,Object? floodDetection = null,Object? synFloodDetection = null,Object? floodPktPerSec = null,Object? synFloodPerSec = null,Object? bfModelEnabled = null,Object? dosModelEnabled = null,Object? maxLogEntries = null,Object? darkMode = null,}) {
   return _then(_self.copyWith(
 blockThreshold: null == blockThreshold ? _self.blockThreshold : blockThreshold // ignore: cast_nullable_to_non_nullable
 as double,warnThreshold: null == warnThreshold ? _self.warnThreshold : warnThreshold // ignore: cast_nullable_to_non_nullable
@@ -73,7 +73,8 @@ as int,synFloodPerSec: null == synFloodPerSec ? _self.synFloodPerSec : synFloodP
 as int,bfModelEnabled: null == bfModelEnabled ? _self.bfModelEnabled : bfModelEnabled // ignore: cast_nullable_to_non_nullable
 as bool,dosModelEnabled: null == dosModelEnabled ? _self.dosModelEnabled : dosModelEnabled // ignore: cast_nullable_to_non_nullable
 as bool,maxLogEntries: null == maxLogEntries ? _self.maxLogEntries : maxLogEntries // ignore: cast_nullable_to_non_nullable
-as int,
+as int,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -83,17 +84,6 @@ as int,
 /// Adds pattern-matching-related methods to [SettingsState].
 extension SettingsStatePatterns on SettingsState {
 /// A variant of `map` that fallback to returning `orElse`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
 @optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SettingsState value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
@@ -103,18 +93,6 @@ return $default(_that);case _:
 
 }
 }
-/// A `switch`-like method, using callbacks.
-///
-/// Callbacks receives the raw object, upcasted.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case final Subclass2 value:
-///     return ...;
-/// }
-/// ```
 
 @optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SettingsState value)  $default,){
 final _that = this;
@@ -125,17 +103,6 @@ return $default(_that);case _:
 
 }
 }
-/// A variant of `map` that fallback to returning `null`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
 
 @optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SettingsState value)?  $default,){
 final _that = this;
@@ -146,63 +113,29 @@ return $default(_that);case _:
 
 }
 }
-/// A variant of `when` that fallback to an `orElse` callback.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double blockThreshold,  double warnThreshold,  bool floodDetection,  bool synFloodDetection,  int floodPktPerSec,  int synFloodPerSec,  bool bfModelEnabled,  bool dosModelEnabled,  int maxLogEntries)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double blockThreshold,  double warnThreshold,  bool floodDetection,  bool synFloodDetection,  int floodPktPerSec,  int synFloodPerSec,  bool bfModelEnabled,  bool dosModelEnabled,  int maxLogEntries,  bool darkMode)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SettingsState() when $default != null:
-return $default(_that.blockThreshold,_that.warnThreshold,_that.floodDetection,_that.synFloodDetection,_that.floodPktPerSec,_that.synFloodPerSec,_that.bfModelEnabled,_that.dosModelEnabled,_that.maxLogEntries);case _:
+return $default(_that.blockThreshold,_that.warnThreshold,_that.floodDetection,_that.synFloodDetection,_that.floodPktPerSec,_that.synFloodPerSec,_that.bfModelEnabled,_that.dosModelEnabled,_that.maxLogEntries,_that.darkMode);case _:
   return orElse();
 
 }
 }
-/// A `switch`-like method, using callbacks.
-///
-/// As opposed to `map`, this offers destructuring.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case Subclass2(:final field2):
-///     return ...;
-/// }
-/// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double blockThreshold,  double warnThreshold,  bool floodDetection,  bool synFloodDetection,  int floodPktPerSec,  int synFloodPerSec,  bool bfModelEnabled,  bool dosModelEnabled,  int maxLogEntries)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double blockThreshold,  double warnThreshold,  bool floodDetection,  bool synFloodDetection,  int floodPktPerSec,  int synFloodPerSec,  bool bfModelEnabled,  bool dosModelEnabled,  int maxLogEntries,  bool darkMode)  $default,) {final _that = this;
 switch (_that) {
 case _SettingsState():
-return $default(_that.blockThreshold,_that.warnThreshold,_that.floodDetection,_that.synFloodDetection,_that.floodPktPerSec,_that.synFloodPerSec,_that.bfModelEnabled,_that.dosModelEnabled,_that.maxLogEntries);case _:
+return $default(_that.blockThreshold,_that.warnThreshold,_that.floodDetection,_that.synFloodDetection,_that.floodPktPerSec,_that.synFloodPerSec,_that.bfModelEnabled,_that.dosModelEnabled,_that.maxLogEntries,_that.darkMode);case _:
   throw StateError('Unexpected subclass');
 
 }
 }
-/// A variant of `when` that fallback to returning `null`
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double blockThreshold,  double warnThreshold,  bool floodDetection,  bool synFloodDetection,  int floodPktPerSec,  int synFloodPerSec,  bool bfModelEnabled,  bool dosModelEnabled,  int maxLogEntries)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double blockThreshold,  double warnThreshold,  bool floodDetection,  bool synFloodDetection,  int floodPktPerSec,  int synFloodPerSec,  bool bfModelEnabled,  bool dosModelEnabled,  int maxLogEntries,  bool darkMode)?  $default,) {final _that = this;
 switch (_that) {
 case _SettingsState() when $default != null:
-return $default(_that.blockThreshold,_that.warnThreshold,_that.floodDetection,_that.synFloodDetection,_that.floodPktPerSec,_that.synFloodPerSec,_that.bfModelEnabled,_that.dosModelEnabled,_that.maxLogEntries);case _:
+return $default(_that.blockThreshold,_that.warnThreshold,_that.floodDetection,_that.synFloodDetection,_that.floodPktPerSec,_that.synFloodPerSec,_that.bfModelEnabled,_that.dosModelEnabled,_that.maxLogEntries,_that.darkMode);case _:
   return null;
 
 }
@@ -214,8 +147,8 @@ return $default(_that.blockThreshold,_that.warnThreshold,_that.floodDetection,_t
 
 
 class _SettingsState implements SettingsState {
-  const _SettingsState({this.blockThreshold = 0.20, this.warnThreshold = 0.10, this.floodDetection = true, this.synFloodDetection = true, this.floodPktPerSec = 1000, this.synFloodPerSec = 100, this.bfModelEnabled = true, this.dosModelEnabled = true, this.maxLogEntries = 200});
-  
+  const _SettingsState({this.blockThreshold = 0.20, this.warnThreshold = 0.10, this.floodDetection = true, this.synFloodDetection = true, this.floodPktPerSec = 1000, this.synFloodPerSec = 100, this.bfModelEnabled = true, this.dosModelEnabled = true, this.maxLogEntries = 200, this.darkMode = true});
+
 
 @override@JsonKey() final  double blockThreshold;
 @override@JsonKey() final  double warnThreshold;
@@ -226,6 +159,7 @@ class _SettingsState implements SettingsState {
 @override@JsonKey() final  bool bfModelEnabled;
 @override@JsonKey() final  bool dosModelEnabled;
 @override@JsonKey() final  int maxLogEntries;
+@override@JsonKey() final  bool darkMode;
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +171,16 @@ _$SettingsStateCopyWith<_SettingsState> get copyWith => __$SettingsStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsState&&(identical(other.blockThreshold, blockThreshold) || other.blockThreshold == blockThreshold)&&(identical(other.warnThreshold, warnThreshold) || other.warnThreshold == warnThreshold)&&(identical(other.floodDetection, floodDetection) || other.floodDetection == floodDetection)&&(identical(other.synFloodDetection, synFloodDetection) || other.synFloodDetection == synFloodDetection)&&(identical(other.floodPktPerSec, floodPktPerSec) || other.floodPktPerSec == floodPktPerSec)&&(identical(other.synFloodPerSec, synFloodPerSec) || other.synFloodPerSec == synFloodPerSec)&&(identical(other.bfModelEnabled, bfModelEnabled) || other.bfModelEnabled == bfModelEnabled)&&(identical(other.dosModelEnabled, dosModelEnabled) || other.dosModelEnabled == dosModelEnabled)&&(identical(other.maxLogEntries, maxLogEntries) || other.maxLogEntries == maxLogEntries));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SettingsState&&(identical(other.blockThreshold, blockThreshold) || other.blockThreshold == blockThreshold)&&(identical(other.warnThreshold, warnThreshold) || other.warnThreshold == warnThreshold)&&(identical(other.floodDetection, floodDetection) || other.floodDetection == floodDetection)&&(identical(other.synFloodDetection, synFloodDetection) || other.synFloodDetection == synFloodDetection)&&(identical(other.floodPktPerSec, floodPktPerSec) || other.floodPktPerSec == floodPktPerSec)&&(identical(other.synFloodPerSec, synFloodPerSec) || other.synFloodPerSec == synFloodPerSec)&&(identical(other.bfModelEnabled, bfModelEnabled) || other.bfModelEnabled == bfModelEnabled)&&(identical(other.dosModelEnabled, dosModelEnabled) || other.dosModelEnabled == dosModelEnabled)&&(identical(other.maxLogEntries, maxLogEntries) || other.maxLogEntries == maxLogEntries)&&(identical(other.darkMode, darkMode) || other.darkMode == darkMode));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,blockThreshold,warnThreshold,floodDetection,synFloodDetection,floodPktPerSec,synFloodPerSec,bfModelEnabled,dosModelEnabled,maxLogEntries);
+int get hashCode => Object.hash(runtimeType,blockThreshold,warnThreshold,floodDetection,synFloodDetection,floodPktPerSec,synFloodPerSec,bfModelEnabled,dosModelEnabled,maxLogEntries,darkMode);
 
 @override
 String toString() {
-  return 'SettingsState(blockThreshold: $blockThreshold, warnThreshold: $warnThreshold, floodDetection: $floodDetection, synFloodDetection: $synFloodDetection, floodPktPerSec: $floodPktPerSec, synFloodPerSec: $synFloodPerSec, bfModelEnabled: $bfModelEnabled, dosModelEnabled: $dosModelEnabled, maxLogEntries: $maxLogEntries)';
+  return 'SettingsState(blockThreshold: $blockThreshold, warnThreshold: $warnThreshold, floodDetection: $floodDetection, synFloodDetection: $synFloodDetection, floodPktPerSec: $floodPktPerSec, synFloodPerSec: $synFloodPerSec, bfModelEnabled: $bfModelEnabled, dosModelEnabled: $dosModelEnabled, maxLogEntries: $maxLogEntries, darkMode: $darkMode)';
 }
 
 
@@ -257,7 +191,7 @@ abstract mixin class _$SettingsStateCopyWith<$Res> implements $SettingsStateCopy
   factory _$SettingsStateCopyWith(_SettingsState value, $Res Function(_SettingsState) _then) = __$SettingsStateCopyWithImpl;
 @override @useResult
 $Res call({
- double blockThreshold, double warnThreshold, bool floodDetection, bool synFloodDetection, int floodPktPerSec, int synFloodPerSec, bool bfModelEnabled, bool dosModelEnabled, int maxLogEntries
+ double blockThreshold, double warnThreshold, bool floodDetection, bool synFloodDetection, int floodPktPerSec, int synFloodPerSec, bool bfModelEnabled, bool dosModelEnabled, int maxLogEntries, bool darkMode
 });
 
 
@@ -274,7 +208,7 @@ class __$SettingsStateCopyWithImpl<$Res>
 
 /// Create a copy of SettingsState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? blockThreshold = null,Object? warnThreshold = null,Object? floodDetection = null,Object? synFloodDetection = null,Object? floodPktPerSec = null,Object? synFloodPerSec = null,Object? bfModelEnabled = null,Object? dosModelEnabled = null,Object? maxLogEntries = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? blockThreshold = null,Object? warnThreshold = null,Object? floodDetection = null,Object? synFloodDetection = null,Object? floodPktPerSec = null,Object? synFloodPerSec = null,Object? bfModelEnabled = null,Object? dosModelEnabled = null,Object? maxLogEntries = null,Object? darkMode = null,}) {
   return _then(_SettingsState(
 blockThreshold: null == blockThreshold ? _self.blockThreshold : blockThreshold // ignore: cast_nullable_to_non_nullable
 as double,warnThreshold: null == warnThreshold ? _self.warnThreshold : warnThreshold // ignore: cast_nullable_to_non_nullable
@@ -285,7 +219,8 @@ as int,synFloodPerSec: null == synFloodPerSec ? _self.synFloodPerSec : synFloodP
 as int,bfModelEnabled: null == bfModelEnabled ? _self.bfModelEnabled : bfModelEnabled // ignore: cast_nullable_to_non_nullable
 as bool,dosModelEnabled: null == dosModelEnabled ? _self.dosModelEnabled : dosModelEnabled // ignore: cast_nullable_to_non_nullable
 as bool,maxLogEntries: null == maxLogEntries ? _self.maxLogEntries : maxLogEntries // ignore: cast_nullable_to_non_nullable
-as int,
+as int,darkMode: null == darkMode ? _self.darkMode : darkMode // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

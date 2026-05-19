@@ -24,6 +24,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       bfModelEnabled: _prefs.getBool('bfModelEnabled') ?? true,
       dosModelEnabled: _prefs.getBool('dosModelEnabled') ?? true,
       maxLogEntries: _prefs.getInt('maxLogEntries') ?? 200,
+      darkMode: _prefs.getBool('darkMode') ?? true,
     ));
   }
 
@@ -70,5 +71,10 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setMaxLogEntries(int v) async {
     await _prefs.setInt('maxLogEntries', v);
     emit(state.copyWith(maxLogEntries: v));
+  }
+
+  Future<void> toggleDarkMode(bool v) async {
+    await _prefs.setBool('darkMode', v);
+    emit(state.copyWith(darkMode: v));
   }
 }

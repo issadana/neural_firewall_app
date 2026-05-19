@@ -45,11 +45,12 @@ class _AddIpDialogState extends State<AddIpDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Dialog(
-      backgroundColor: AppColors.surfaceElevated,
+      backgroundColor: colors.surfaceElevated,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: const BorderSide(color: AppColors.borderColor, width: 0.5),
+        side: BorderSide(color: colors.borderColor, width: 0.5),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -57,7 +58,6 @@ class _AddIpDialogState extends State<AddIpDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Row(
               children: [
                 Container(
@@ -72,8 +72,8 @@ class _AddIpDialogState extends State<AddIpDialog> {
                 const SizedBox(width: 12),
                 Text(
                   widget.title,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
                     letterSpacing: -0.3,
@@ -83,30 +83,29 @@ class _AddIpDialogState extends State<AddIpDialog> {
             ),
             const SizedBox(height: 20),
 
-            // IP field
             TextField(
               controller: _ipController,
               autofocus: true,
               keyboardType: TextInputType.number,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: colors.textPrimary,
                 fontFamily: 'monospace',
                 fontSize: 15,
               ),
               decoration: InputDecoration(
                 hintText: widget.hint,
-                hintStyle: const TextStyle(color: AppColors.textDisabled, fontFamily: 'monospace'),
+                hintStyle: TextStyle(color: colors.textDisabled, fontFamily: 'monospace'),
                 errorText: _error,
                 filled: true,
-                fillColor: AppColors.surfaceDark,
-                prefixIcon: const Icon(Icons.router_rounded, color: AppColors.textDisabled, size: 18),
+                fillColor: colors.surfaceDark,
+                prefixIcon: Icon(Icons.router_rounded, color: colors.textDisabled, size: 18),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.borderColor),
+                  borderSide: BorderSide(color: colors.borderColor),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.borderColor),
+                  borderSide: BorderSide(color: colors.borderColor),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -124,20 +123,20 @@ class _AddIpDialogState extends State<AddIpDialog> {
               const SizedBox(height: 12),
               TextField(
                 controller: _notesController,
-                style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+                style: TextStyle(color: colors.textPrimary, fontSize: 14),
                 decoration: InputDecoration(
                   hintText: widget.notesHint,
-                  hintStyle: const TextStyle(color: AppColors.textDisabled),
+                  hintStyle: TextStyle(color: colors.textDisabled),
                   filled: true,
-                  fillColor: AppColors.surfaceDark,
-                  prefixIcon: const Icon(Icons.notes_rounded, color: AppColors.textDisabled, size: 18),
+                  fillColor: colors.surfaceDark,
+                  prefixIcon: Icon(Icons.notes_rounded, color: colors.textDisabled, size: 18),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.borderColor),
+                    borderSide: BorderSide(color: colors.borderColor),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.borderColor),
+                    borderSide: BorderSide(color: colors.borderColor),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -150,13 +149,12 @@ class _AddIpDialogState extends State<AddIpDialog> {
 
             const SizedBox(height: 24),
 
-            // Actions
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(foregroundColor: AppColors.textMuted),
+                  style: TextButton.styleFrom(foregroundColor: colors.textMuted),
                   child: const Text('Cancel'),
                 ),
                 const SizedBox(width: 8),

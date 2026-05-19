@@ -13,12 +13,13 @@ class BlacklistScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return BlocBuilder<BlacklistCubit, BlacklistState>(
       builder: (context, state) {
         final entries = state.entries;
 
         return Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: colors.background,
           appBar: _BlacklistAppBar(
             count: entries.length,
             showClear: entries.isNotEmpty,
@@ -108,13 +109,14 @@ class _BlacklistAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return AppBar(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       elevation: 0,
       centerTitle: false,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(0.5),
-        child: Container(height: 0.5, color: AppColors.borderColor),
+        child: Container(height: 0.5, color: colors.borderColor),
       ),
       title: Row(
         children: [
@@ -159,6 +161,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -167,9 +170,9 @@ class _EmptyState extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: AppColors.surfaceLight,
+              color: colors.surfaceLight,
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: AppColors.borderColor),
+              border: Border.all(color: colors.borderColor),
             ),
             child: Icon(
               Icons.verified_user_rounded,
@@ -178,19 +181,19 @@ class _EmptyState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'No blocked IPs',
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: colors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'IPs are auto-blocked when threats are\ndetected, or tap + to block manually.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textDisabled, fontSize: 14, height: 1.5),
+            style: TextStyle(color: colors.textDisabled, fontSize: 14, height: 1.5),
           ),
         ],
       )
