@@ -1,7 +1,0 @@
-{
-  "_instructions": "Run the export script in your Python project to populate these values from scaler.joblib: python export_scaler.py",
-  "type": "standard",
-  "features": ["proto", "iat_mean", "fwd_pkts", "pkt_size_avg"],
-  "means": [0.0, 0.0, 0.0, 0.0],
-  "stds": [1.0, 1.0, 1.0, 1.0]
-}

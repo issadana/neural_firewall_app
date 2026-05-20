@@ -3,19 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'blocs/auth/auth_cubit.dart';
-import 'blocs/blacklist/blacklist_cubit.dart';
-import 'blocs/blacklist/blacklist_state.dart';
-import 'blocs/settings/settings_cubit.dart';
-import 'blocs/settings/settings_state.dart';
-import 'core/theme/app_colors.dart';
-import 'core/theme/app_theme.dart';
-import 'models/app_models.dart';
-import 'screens/acl/acl_screen.dart';
-import 'screens/auth/sign_in_screen.dart';
-import 'screens/blacklist/blacklist_screen.dart';
-import 'screens/home/home_screen.dart';
-import 'screens/settings/settings_screen.dart';
+import 'package:Sentri/core/constants/app_constants.dart';
+import 'package:Sentri/core/theme/app_colors.dart';
+import 'package:Sentri/core/theme/app_theme.dart';
+import 'package:Sentri/features/acl/presentation/screens/acl_screen.dart';
+import 'package:Sentri/features/auth/presentation/bloc/auth_cubit.dart';
+import 'package:Sentri/features/auth/presentation/screens/sign_in_screen.dart';
+import 'package:Sentri/features/blacklist/presentation/bloc/blacklist_cubit.dart';
+import 'package:Sentri/features/blacklist/presentation/screens/blacklist_screen.dart';
+import 'package:Sentri/features/settings/presentation/bloc/settings_cubit.dart';
+import 'package:Sentri/features/settings/presentation/screens/settings_screen.dart';
+import 'package:Sentri/features/traffic/presentation/screens/home_screen.dart';
 
 class SentriApp extends StatelessWidget {
   const SentriApp({super.key});
@@ -70,15 +68,11 @@ class _SplashLoader extends StatelessWidget {
               ),
             ),
           ],
-        )
-            .animate()
-            .fadeIn(duration: 500.ms, curve: Curves.easeOut),
+        ).animate().fadeIn(duration: 500.ms, curve: Curves.easeOut),
       ),
     );
   }
 }
-
-// ── Authenticated shell ─────────────────────────────────────────────────────
 
 class _AppShell extends StatefulWidget {
   const _AppShell();
@@ -110,8 +104,6 @@ class _AppShellState extends State<_AppShell> {
   }
 }
 
-// ── Premium Navigation Bar ───────────────────────────────────────────────────
-
 class _PremiumNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -128,9 +120,7 @@ class _PremiumNavBar extends StatelessWidget {
         return Container(
           decoration: BoxDecoration(
             color: colors.surfaceLight,
-            border: Border(
-              top: BorderSide(color: colors.borderColor, width: 0.5),
-            ),
+            border: Border(top: BorderSide(color: colors.borderColor, width: 0.5)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.4),

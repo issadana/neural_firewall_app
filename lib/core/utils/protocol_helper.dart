@@ -9,9 +9,7 @@ class ProtocolHelper {
         return 'UDP';
       case Protocol.icmp:
         return 'ICMP';
-      case Protocol.igmp:
-        return 'IGMP';
-      case Protocol.other:
+      case Protocol.unknown:
         return 'Other';
     }
   }
@@ -24,10 +22,8 @@ class ProtocolHelper {
         return Protocol.udp;
       case 1:
         return Protocol.icmp;
-      case 2:
-        return Protocol.igmp;
       default:
-        return Protocol.other;
+        return Protocol.unknown;
     }
   }
 
@@ -39,9 +35,7 @@ class ProtocolHelper {
         return 17;
       case Protocol.icmp:
         return 1;
-      case Protocol.igmp:
-        return 2;
-      case Protocol.other:
+      case Protocol.unknown:
         return 0;
     }
   }

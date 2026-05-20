@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-import '../../models/app_models.dart';
+import '../enums.dart';
 
 class ProtocolHelper {
   static Protocol parseProtocol(int protocolNumber) {

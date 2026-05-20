@@ -1,15 +1,59 @@
-enum VpnStatus { connected, connecting, disconnected, reconnecting }
+enum VpnStatus { stopped, starting, running, error }
 
-enum PacketStatus { normal, anomaly, flood, ddos }
+enum PacketStatus {
+  aiBlock,
+  warn,
+  safe,
+  tcp,
+  quic,
+  ping,
+  err,
+}
 
-enum Protocol { tcp, udp, icmp, igmp, other }
+enum Protocol { tcp, udp, icmp, unknown }
 
-enum BlacklistReason { malicious, flood, ddos, suspicious, manual }
+enum BlacklistReason {
+  manual,
+  autoMl,
+  autoHeuristic,
+}
 
-enum AclAction { allow, block, notify }
+extension PacketStatusDisplay on PacketStatus {
+  String get icon {
+    switch (this) {
+      case PacketStatus.aiBlock:
+        return '🚫';
+      case PacketStatus.warn:
+        return '⚠️';
+      case PacketStatus.safe:
+        return '✅';
+      case PacketStatus.tcp:
+        return '🔵';
+      case PacketStatus.quic:
+        return '🟣';
+      case PacketStatus.ping:
+        return '🟡';
+      case PacketStatus.err:
+        return '❌';
+    }
+  }
 
-enum TrafficType { inbound, outbound, local }
-
-enum DashboardView { overview, detailed, analytics }
-
-enum AlertSeverity { low, medium, high, critical }
+  String get label {
+    switch (this) {
+      case PacketStatus.aiBlock:
+        return 'AI BLOCK';
+      case PacketStatus.warn:
+        return 'WARN';
+      case PacketStatus.safe:
+        return 'SAFE';
+      case PacketStatus.tcp:
+        return 'TCP';
+      case PacketStatus.quic:
+        return 'QUIC';
+      case PacketStatus.ping:
+        return 'PING';
+      case PacketStatus.err:
+        return 'ERR';
+    }
+  }
+}
