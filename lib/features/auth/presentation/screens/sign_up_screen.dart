@@ -1,3 +1,4 @@
+import 'package:Sentri/core/constants/assets_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -95,7 +96,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(19),
             child: Image.asset(
-              'assets/images/logo/logo.png',
+              AssetsManager.logo  ,
               width: 72,
               height: 72,
               fit: BoxFit.contain,

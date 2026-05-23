@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:Sentri/core/theme/app_colors.dart';
+import 'package:Sentri/core/constants/assets_manager.dart';
 import '../bloc/auth_cubit.dart';
 import 'sign_up_screen.dart';
 import '../widgets/auth_button.dart';
@@ -92,7 +93,7 @@ class _SignInScreenState extends State<SignInScreen> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(19),
             child: Image.asset(
-              'assets/images/logo/logo.png',
+              AssetsManager.logo,
               width: 72,
               height: 72,
               fit: BoxFit.contain,
@@ -108,23 +109,7 @@ class _SignInScreenState extends State<SignInScreen> {
             color: colors.textPrimary,
             letterSpacing: -1.2,
           ),
-        ),
-        const SizedBox(height: 12),
-        Image.asset(
-          'assets/images/branding/sentri-slogan.png',
-          height: 22,
-          fit: BoxFit.contain,
-          color: colors.textSecondary,
-          colorBlendMode: BlendMode.modulate,
-          errorBuilder: (_, _, _) => Text(
-            'Stay safe, stay ahead',
-            style: TextStyle(
-              fontSize: 13,
-              color: colors.textMuted,
-              letterSpacing: 0.4,
-            ),
-          ),
-        ),
+        ),       
       ],
     )
         .animate()

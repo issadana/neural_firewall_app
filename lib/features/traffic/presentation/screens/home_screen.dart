@@ -13,64 +13,30 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.appColors.background,
-      appBar: _SentriAppBar(),
-      body: const Column(
-        children: [
-          ControlBar(),
-          Expanded(
-            child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
-              child: Column(
-                children: [
-                  StatsRow(),
-                  ThreatSparkline(),
-                  _TrafficHeader(),
-                  TrafficTable(),
-                  SizedBox(height: 24),
-                ],
+      body: SafeArea(
+        child: const Column(
+          children: [
+            ControlBar(),
+            Expanded(
+              child: SingleChildScrollView(
+                physics: BouncingScrollPhysics(),
+                child: Column(
+                  children: [
+                    StatsRow(),
+                    ThreatSparkline(),
+                    _TrafficHeader(),
+                    TrafficTable(),
+                    SizedBox(height: 24),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
-
-class _SentriAppBar extends StatelessWidget implements PreferredSizeWidget {
-  @override
-  Size get preferredSize => const Size.fromHeight(56);
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    return Container(
-      height: 56 + MediaQuery.of(context).padding.top,
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-      decoration: BoxDecoration(
-        color: colors.background,
-        border: Border(bottom: BorderSide(color: colors.borderColor, width: 0.5)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset('assets/images/logo/logo.png', height: 28, fit: BoxFit.contain),
-          const SizedBox(width: 10),
-          Text(
-            'Sentri',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: colors.textPrimary,
-              letterSpacing: -0.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _TrafficHeader extends StatelessWidget {
   const _TrafficHeader();
 

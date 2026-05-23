@@ -1,3 +1,4 @@
+import 'package:Sentri/core/constants/assets_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -449,7 +450,7 @@ class _AboutTile extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(11),
-                  child: Image.asset('assets/images/logo/logo.png', fit: BoxFit.contain),
+                  child: Image.asset(AssetsManager.logo, fit: BoxFit.contain),
                 ),
               ),
               const SizedBox(width: 12),

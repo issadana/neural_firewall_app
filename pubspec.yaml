@@ -56,7 +56,7 @@ dependencies:
   flutter_foreground_task: ^6.1.3
 
   # ── ML Inference ─────────────────────────────────────────────────
-  tflite_flutter: ^0.10.4
+  tflite_flutter: ^0.12.1
 
   # ── Persistence ──────────────────────────────────────────────────
   shared_preferences: ^2.5.5
@@ -124,7 +124,7 @@ flutter:
    - assets/images/logo/
    - assets/images/branding/
    - assets/icon/
-   - lib/services/ai_models/
+   - assets/ai_models/bruteforce/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

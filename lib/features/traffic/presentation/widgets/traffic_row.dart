@@ -330,6 +330,7 @@ class _PacketDetailSheet extends StatelessWidget {
                 _DetailRow('ACL Blocked', 'Yes', valueColor: AppColors.statusDanger),
             ], colors),
           ],
+          const SizedBox(height: 30),
         ],
       ),
     );

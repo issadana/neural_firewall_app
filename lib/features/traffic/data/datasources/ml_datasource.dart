@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:Sentri/core/constants/ai_models.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
@@ -8,9 +9,9 @@ final _log = Logger();
 
 class MlDataSource {
   static const String _modelAsset =
-      'lib/services/ai_models/bruteforce_detector.tflite';
+      AiModels.bruteForceModel; 
   static const String _scalerAsset =
-      'lib/services/ai_models/scaler_params.json';
+      AiModels.bruteForceScalerParams; 
 
   Interpreter? _interpreter;
   List<double> _means = [0.0, 0.0, 0.0, 0.0];
@@ -19,26 +20,24 @@ class MlDataSource {
 
   Future<void> init() async {
     if (_initialized) return;
-    // try {
-    //   _interpreter = await Interpreter.fromAsset(_modelAsset);
-    //   await _loadScaler();
-    //   _log.i('MlDataSource ready. Input: [1,4] Output: [1,1]');
-    //   _initialized = true;
-    // } catch (e) {
-    //   _log.e('Failed to initialize MlDataSource: $e');
-    //   rethrow;
-    // }
+    try {
+      _interpreter = await Interpreter.fromAsset(_modelAsset);
+      await _loadScaler();
+      _log.i('MlDataSource ready. Input: [1,4] Output: [1,1]');
+      _initialized = true;
+    } catch (e) {
+      _log.e('Failed to initialize MlDataSource: $e');
+      rethrow;
+    }
   }
 
   Future<void> _loadScaler() async {
     try {
-      final raw = await rootBundle.loadString(_scalerAsset);
-      final json = jsonDecode(raw) as Map<String, dynamic>;
-      _means = List<double>.from(
-          (json['means'] as List).map((v) => (v as num).toDouble()));
-      _stds = List<double>.from(
-          (json['stds'] as List).map((v) => (v as num).toDouble()));
-      _log.i('Scaler loaded — means: $_means  stds: $_stds');
+      final String jsonString = await rootBundle.loadString(_scalerAsset);
+      final Map<String, dynamic> scalerParams = jsonDecode(jsonString);
+      List<double> means = List<double>.from(scalerParams['mean'] as List);
+      List<double> scales = List<double>.from(scalerParams['scale'] as List);
+      _log.i('Scaler loaded — means: $means  scales: $scales');
     } catch (e) {
       _log.w('scaler_params.json missing or invalid — using identity scaling. $e');
     }

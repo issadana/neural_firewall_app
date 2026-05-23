@@ -2,8 +2,8 @@ import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:Sentri/core/constants/app_constants.dart';
+import 'package:Sentri/core/constants/assets_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/core/theme/app_theme.dart';
 import 'package:Sentri/features/acl/presentation/screens/acl_screen.dart';
@@ -57,7 +57,7 @@ class _SplashLoader extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset('assets/images/logo/logo.png', width: 56, height: 56),
+            Image.asset(AssetsManager.logo, width: 56, height: 56),
             const SizedBox(height: 24),
             SizedBox(
               width: 24,
