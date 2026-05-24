@@ -44,6 +44,7 @@ class TrafficRepositoryImpl implements TrafficRepository {
       final protocolNum = rawPacket['protocol'] as int? ?? 0;
       final sizeBytes = rawPacket['sizeBytes'] as int? ?? 0;
       final flags = rawPacket['flags'] as int? ?? 0;
+      final label = rawPacket['label'] as String? ?? '';
 
       final protocol = ProtocolHelper.parseProtocol(protocolNum);
 
@@ -63,6 +64,7 @@ class TrafficRepositoryImpl implements TrafficRepository {
           timestamp: DateTime.now(),
           isBlacklisted: true,
           isAclBlocked: true,
+          label: label,
         );
       }
 
@@ -82,6 +84,7 @@ class TrafficRepositoryImpl implements TrafficRepository {
           timestamp: DateTime.now(),
           isBlacklisted: true,
           isAclBlocked: false,
+          label: label,
         );
       }
 
@@ -101,6 +104,7 @@ class TrafficRepositoryImpl implements TrafficRepository {
           timestamp: DateTime.now(),
           isBlacklisted: false,
           isAclBlocked: false,
+          label: label,
         );
       }
 
@@ -136,6 +140,7 @@ class TrafficRepositoryImpl implements TrafficRepository {
         timestamp: DateTime.now(),
         isBlacklisted: false,
         isAclBlocked: false,
+        label: label,
       );
     } catch (e) {
       _log.e('Error processing packet: $e');

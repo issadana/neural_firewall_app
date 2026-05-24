@@ -66,6 +66,10 @@ class TrafficRow extends StatelessWidget {
   Widget _headerRow(AppThemeColors colors) => Row(
         children: [
           _StatusBadge(record.status),
+          if (record.label.isNotEmpty) ...[
+            const SizedBox(width: 6),
+            _ServiceChip(record.label),
+          ],
           const Spacer(),
           Text(
             _timeFmt.format(record.timestamp),
@@ -228,6 +232,32 @@ class _ProtoChip extends StatelessWidget {
   }
 }
 
+class _ServiceChip extends StatelessWidget {
+  final String label;
+  const _ServiceChip(this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: const Color(0xFF00BCD4).withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: const Color(0xFF00BCD4).withValues(alpha: 0.3), width: 0.5),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 10,
+          color: Color(0xFF00BCD4),
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+}
+
 class _ScoreTag extends StatelessWidget {
   final String label;
   final double pct;
@@ -302,6 +332,8 @@ class _PacketDetailSheet extends StatelessWidget {
           _DetailSection('CONNECTION', [
             _DetailRow('Source', '${record.srcIp}:${record.srcPort}'),
             _DetailRow('Destination', '${record.dstIp}:${record.dstPort}'),
+            if (record.label.isNotEmpty)
+              _DetailRow('Service', record.label, valueColor: const Color(0xFF00BCD4)),
           ], colors),
           const SizedBox(height: 12),
           _DetailSection('PACKET INFO', [

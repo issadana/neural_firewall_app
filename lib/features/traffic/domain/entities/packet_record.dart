@@ -14,6 +14,7 @@ class PacketRecord {
   final DateTime timestamp;
   final bool isBlacklisted;
   final bool isAclBlocked;
+  final String label;
 
   const PacketRecord({
     required this.id,
@@ -29,5 +30,6 @@ class PacketRecord {
     required this.timestamp,
     required this.isBlacklisted,
     required this.isAclBlocked,
+    this.label = '',
   });
 }
