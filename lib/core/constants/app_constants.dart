@@ -1,4 +1,19 @@
+/// Application-wide constants
 class AppConstants {
+  AppConstants._();
+
+  // Pagination
+  static const int defaultPageSize = 20;
+  static const int initialPage = 0;
+
+  // API Timeouts (3 minutes for meal plan generation)
+  static const Duration connectTimeout = Duration(seconds: 60);
+  static const Duration receiveTimeout = Duration(seconds: 180);
+  static const Duration sendTimeout = Duration(seconds: 30);
+
+  // Cache
+  static const Duration cacheExpiration = Duration(hours: 24);
+
   static const String blacklistBox = 'blacklist_box';
   static const String aclBox = 'acl_box';
   static const double defaultBlockThreshold = 0.80;
@@ -11,3 +26,4 @@ class AppConstants {
   static const String appName = 'Sentri';
   static const String appVersion = '1.0.0';
 }
+
