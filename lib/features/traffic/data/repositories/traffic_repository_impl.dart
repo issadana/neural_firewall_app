@@ -4,6 +4,7 @@ import 'package:Sentri/core/enums.dart';
 import 'package:Sentri/core/utils/network_utils.dart';
 import 'package:Sentri/features/blacklist/domain/repositories/blacklist_repository.dart';
 import 'package:Sentri/features/acl/domain/repositories/acl_repository.dart';
+import 'package:Sentri/features/vpn/data/datasources/vpn_native_datasource.dart';
 import '../../domain/entities/packet_record.dart';
 import '../../domain/repositories/traffic_repository.dart';
 import '../datasources/ml_datasource.dart';
@@ -14,6 +15,7 @@ class TrafficRepositoryImpl implements TrafficRepository {
   final BlacklistRepository _blacklistRepository;
   final AclRepository _aclRepository;
   final MlDataSource _mlDataSource;
+  final VpnNativeDataSource _vpnDataSource;
 
   double _blockThreshold;
   double _warnThreshold;
@@ -23,11 +25,13 @@ class TrafficRepositoryImpl implements TrafficRepository {
     required BlacklistRepository blacklistRepository,
     required AclRepository aclRepository,
     required MlDataSource mlDataSource,
+    required VpnNativeDataSource vpnDataSource,
     double blockThreshold = 0.20,
     double warnThreshold = 0.10,
   })  : _blacklistRepository = blacklistRepository,
         _aclRepository = aclRepository,
         _mlDataSource = mlDataSource,
+        _vpnDataSource = vpnDataSource,
         _blockThreshold = blockThreshold,
         _warnThreshold = warnThreshold;
 
@@ -118,8 +122,25 @@ class TrafficRepositoryImpl implements TrafficRepository {
       final bfScore = await _mlDataSource.predict(features);
 
       final PacketStatus status;
+      bool autoBlacklisted = false;
+
       if (bfScore >= _blockThreshold) {
         status = PacketStatus.aiBlock;
+
+        // Auto-block: persist to blacklist so future packets from this IP
+        // are caught before the ML model even runs.
+        await _blacklistRepository.add(
+          srcIp,
+          'AI detected brute-force (score: ${bfScore.toStringAsFixed(2)})',
+          bfScore: bfScore,
+        );
+        autoBlacklisted = true;
+
+        // Push the block to the Kotlin VPN service so it drops packets from
+        // this IP at the network level — they never reach the internet.
+        await _vpnDataSource.blockIp(srcIp);
+
+        _log.w('Auto-blocked $srcIp — bfScore=$bfScore');
       } else if (bfScore >= _warnThreshold) {
         status = PacketStatus.warn;
       } else {
@@ -138,7 +159,7 @@ class TrafficRepositoryImpl implements TrafficRepository {
         bruteForceScore: bfScore,
         dosScore: 0.0,
         timestamp: DateTime.now(),
-        isBlacklisted: false,
+        isBlacklisted: autoBlacklisted,
         isAclBlocked: false,
         label: label,
       );

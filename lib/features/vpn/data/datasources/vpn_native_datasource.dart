@@ -84,4 +84,39 @@ class VpnNativeDataSource {
       throw Exception('Failed to request VPN permission: $e');
     }
   }
+
+  // ── IP blocking bridge ────────────────────────────────────────────────────
+  // These methods tell the Kotlin VPN service to drop / allow packets from
+  // specific IPs at the network level (inside the TUN read loop).
+
+  /// Adds [ip] to the kernel-level block list in NeuralVpnService.
+  /// All packets from this IP will be silently dropped — they never reach
+  /// the device's apps or the internet.
+  Future<void> blockIp(String ip) async {
+    try {
+      await _vpnMethodChannel.invokeMethod('blockIp', {'ip': ip});
+      _log.i('Blocked IP at network level: $ip');
+    } catch (e) {
+      _log.e('Failed to block IP $ip: $e');
+    }
+  }
+
+  /// Removes [ip] from the block list, restoring normal connectivity.
+  Future<void> unblockIp(String ip) async {
+    try {
+      await _vpnMethodChannel.invokeMethod('unblockIp', {'ip': ip});
+      _log.i('Unblocked IP: $ip');
+    } catch (e) {
+      _log.e('Failed to unblock IP $ip: $e');
+    }
+  }
+
+  /// Returns true if [ip] is currently blocked at the network level.
+  Future<bool> isIpBlocked(String ip) async {
+    try {
+      return await _vpnMethodChannel.invokeMethod<bool>('isIpBlocked', {'ip': ip}) ?? false;
+    } catch (e) {
+      return false;
+    }
+  }
 }

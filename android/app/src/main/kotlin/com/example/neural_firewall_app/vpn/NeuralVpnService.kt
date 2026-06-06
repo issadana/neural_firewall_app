@@ -76,9 +76,27 @@ class NeuralVpnService : VpnService() {
         // @JvmStatic makes it accessible as NeuralVpnService.isRunning from Java/Kotlin callers.
         @JvmStatic @Volatile var isRunning = false
 
+        // blockedIps holds the set of IP addresses that must be silently dropped.
+        // ConcurrentHashMap.newKeySet() gives us a thread-safe Set: the read loop and
+        // MainActivity (MethodChannel thread) can both access it simultaneously.
+        private val blockedIps = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
         // setEventSink() is called by MainActivity when Flutter's EventChannel opens or closes.
         // Passing null disconnects the sink (stops sending data to Flutter).
         fun setEventSink(sink: ((Any) -> Unit)?) { eventSink = sink }
+
+        // blockIp() adds an IP to the blocked set.
+        // All future packets from this IP will be silently dropped (not forwarded).
+        fun blockIp(ip: String) { blockedIps.add(ip) }
+
+        // unblockIp() removes an IP from the blocked set so it can communicate again.
+        fun unblockIp(ip: String) { blockedIps.remove(ip) }
+
+        // isIpBlocked() lets other parts of the service check the set.
+        fun isIpBlocked(ip: String): Boolean = blockedIps.contains(ip)
+
+        // clearBlockedIps() wipes the entire set (e.g. when VPN stops).
+        fun clearBlockedIps() { blockedIps.clear() }
     }
 
     // vpnInterface holds the file descriptor of the TUN interface.
@@ -249,6 +267,12 @@ class NeuralVpnService : VpnService() {
                 val parsed = PacketParser.parse(rawBytes, System.currentTimeMillis())
 
                 if (parsed != null) {
+                    // ── IP Block check ───────────────────────────────────────────
+                    // If Flutter's AI model has flagged this source IP, drop the packet
+                    // immediately — don't forward it and don't notify Flutter again.
+                    // This is the real network-level block: the packet simply goes nowhere.
+                    if (isIpBlocked(parsed.srcIp)) continue
+
                     // Update the flow tracker with this packet's timestamp.
                     // flowTracker.update() returns fresh IAT statistics for this flow.
                     val flowStats = flowTracker.update(parsed)
@@ -268,7 +292,8 @@ class NeuralVpnService : VpnService() {
                         "flowIatMean"  to flowStats.iatMean,   // ML feature: mean inter-arrival time
                         "flowIatStd"   to flowStats.iatStd,    // ML feature: IAT standard deviation
                         "flowDuration" to flowStats.duration,  // how long this flow has been alive
-                        "label"        to dnsCache.serviceLabel(parsed.dstIp) // e.g. "YouTube"
+                        "label"        to dnsCache.serviceLabel(parsed.dstIp), // e.g. "YouTube"
+                        "isBlocked"    to false                // not blocked at network level
                     )
 
                     // eventSink must be called on the MAIN thread (Android UI thread)
@@ -857,6 +882,7 @@ class NeuralVpnService : VpnService() {
     // We must release all resources here to avoid memory leaks and fd leaks.
     override fun onDestroy() {
         isRunning = false               // signal the read loop to stop on its next iteration
+        clearBlockedIps()               // reset the block list for the next VPN session
 
         // Remove the foreground notification from the status bar
         stopForeground(STOP_FOREGROUND_REMOVE)

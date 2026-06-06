@@ -41,6 +41,31 @@ class MainActivity : FlutterActivity() {
                     "checkVPNPermission" -> result.success(VpnService.prepare(this) == null)
                     "requestVPNPermission" -> requestPermission(result)
                     "getNetworkInterfaces" -> result.success(emptyList<String>())
+
+                    // ── IP blocking — called by Flutter when AI flags a threat ──
+                    "blockIp" -> {
+                        val ip = call.argument<String>("ip")
+                        if (ip != null) {
+                            NeuralVpnService.blockIp(ip)
+                            result.success(null)
+                        } else {
+                            result.error("INVALID_ARG", "ip argument is required", null)
+                        }
+                    }
+                    "unblockIp" -> {
+                        val ip = call.argument<String>("ip")
+                        if (ip != null) {
+                            NeuralVpnService.unblockIp(ip)
+                            result.success(null)
+                        } else {
+                            result.error("INVALID_ARG", "ip argument is required", null)
+                        }
+                    }
+                    "isIpBlocked" -> {
+                        val ip = call.argument<String>("ip")
+                        result.success(if (ip != null) NeuralVpnService.isIpBlocked(ip) else false)
+                    }
+
                     else -> result.notImplemented()
                 }
             }

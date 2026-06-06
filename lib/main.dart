@@ -63,6 +63,7 @@ void main() async {
     blacklistRepository: blacklistRepo,
     aclRepository: aclRepo,
     mlDataSource: mlDs,
+    vpnDataSource: vpnDs,
   );
   final vpnRepo = VpnRepositoryImpl(vpnDs);
   final authDs  = AuthLocalDataSource(prefs);
