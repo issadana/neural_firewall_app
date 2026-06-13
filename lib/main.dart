@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/api/dio_consumer.dart';
 import 'core/constants/api_constants.dart';
@@ -147,26 +148,32 @@ void main() async {
   );
 
   runApp(
-    MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) => AuthCubit(
-            checkAuthStatusUseCase: checkAuth,
-            signInUseCase: signIn,
-            signUpUseCase: signUp,
-            signOutUseCase: signOut,
-            updateProfileUseCase: updateProfile,
-          ),
-        ),
-        BlocProvider.value(value: vpnCubit),
-        BlocProvider.value(value: trafficBloc),
-        BlocProvider.value(value: dashboardCubit),
-        BlocProvider.value(value: blacklistCubit),
-        BlocProvider(create: (_) => SettingsCubit(prefs)),
-        BlocProvider.value(value: hardwareMetricsCubit),
-        BlocProvider.value(value: chatCubit),
-      ],
-      child: const SentriApp(),
+    ScreenUtilInit(
+      designSize: const Size(375, 812),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) => AuthCubit(
+                checkAuthStatusUseCase: checkAuth,
+                signInUseCase: signIn,
+                signUpUseCase: signUp,
+                signOutUseCase: signOut,
+                updateProfileUseCase: updateProfile,
+              ),
+            ),
+            BlocProvider.value(value: vpnCubit),
+            BlocProvider.value(value: trafficBloc),
+            BlocProvider.value(value: dashboardCubit),
+            BlocProvider.value(value: blacklistCubit),
+            BlocProvider(create: (_) => SettingsCubit(prefs)),
+            BlocProvider.value(value: chatCubit),
+          ],
+          child: const SentriApp(),
+        );
+      },
     ),
   );
 }
