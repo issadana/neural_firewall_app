@@ -13,8 +13,11 @@ class PacketRecord {
   final double dosScore;
   final DateTime timestamp;
   final bool isBlacklisted;
-  final bool isAclBlocked;
   final String label;
+  final String serviceName;
+  final String appName;
+  final String appPackage;
+  final bool isSystem;
 
   const PacketRecord({
     required this.id,
@@ -29,7 +32,10 @@ class PacketRecord {
     required this.dosScore,
     required this.timestamp,
     required this.isBlacklisted,
-    required this.isAclBlocked,
     this.label = '',
+    this.serviceName = '',
+    this.appName = '',
+    this.appPackage = '',
+    this.isSystem = false,
   });
 }

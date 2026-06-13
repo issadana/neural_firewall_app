@@ -2,6 +2,10 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:Sentri/core/resources/border_radius_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/traffic/presentation/bloc/traffic_bloc.dart';
 
@@ -17,11 +21,9 @@ class ThreatSparkline extends StatelessWidget {
           height: 100,
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           padding: const EdgeInsets.fromLTRB(16, 12, 12, 8),
-          decoration: BoxDecoration(
-            color: colors.surfaceLight,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: colors.borderColor, width: 0.5),
-            boxShadow: colors.cardShadow,
+          decoration: DecorationManager.surfaceCard(
+            colors,
+            radius: BorderRadiusManager.radiusAll20,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,17 +33,16 @@ class ThreatSparkline extends StatelessWidget {
                   Container(
                     width: 3,
                     height: 14,
-                    decoration: BoxDecoration(
-                      color: AppColors.statusDanger,
-                      borderRadius: BorderRadius.circular(2),
+                    decoration: DecorationManager.colorBar(
+                      AppColors.statusDanger,
+                      radius: BorderRadiusManager.radiusAll2,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'THREAT TREND',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
+                    style: getBoldTextStyle(
+                      fontSize: FontSizesManager.s10,
                       color: colors.textMuted,
                       letterSpacing: 1.2,
                     ),
@@ -62,7 +63,7 @@ class ThreatSparkline extends StatelessWidget {
       return Center(
         child: Text(
           'Start capture to see threat trend',
-          style: TextStyle(fontSize: 12, color: colors.textDisabled),
+          style: getRegularTextStyle(fontSize: FontSizesManager.s12, color: colors.textDisabled),
         ),
       );
     }
@@ -89,14 +90,7 @@ class ThreatSparkline extends StatelessWidget {
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.statusDanger.withValues(alpha: 0.25),
-                  AppColors.statusDanger.withValues(alpha: 0.02),
-                ],
-              ),
+              gradient: DecorationManager.threatSparkline,
             ),
           ),
         ],

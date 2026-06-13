@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
+import 'package:Sentri/core/resources/border_radius_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/dashboard/presentation/bloc/dashboard_cubit.dart';
 
@@ -66,11 +70,9 @@ class _StatCard extends StatelessWidget {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: colors.surfaceLight,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: colors.borderColor, width: 0.5),
-          boxShadow: colors.cardShadow,
+        decoration: DecorationManager.surfaceCard(
+          colors,
+          radius: BorderRadiusManager.radiusAll20,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,24 +82,25 @@ class _StatCard extends StatelessWidget {
                 Container(
                   width: 34,
                   height: 34,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
+                  decoration: DecorationManager.tinted(
+                    color,
+                    BorderRadiusManager.radiusAll10,
+                    alpha: 0.15,
                   ),
                   child: Icon(icon, size: 17, color: color),
                 ),
                 const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
+                  decoration: DecorationManager.tinted(
+                    color,
+                    BorderRadiusManager.radiusAll20,
+                    alpha: 0.10,
                   ),
                   child: Text(
                     label,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
+                    style: getBoldTextStyle(
+                      fontSize: FontSizesManager.s10,
                       color: color,
                       letterSpacing: 0.4,
                     ),
@@ -108,9 +111,8 @@ class _StatCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               value,
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+              style: getBoldTextStyle(
+                fontSize: FontSizesManager.s28,
                 color: colors.textPrimary,
                 letterSpacing: -1,
               ),
@@ -118,8 +120,8 @@ class _StatCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               subtitle,
-              style: TextStyle(
-                fontSize: 12,
+              style: getRegularTextStyle(
+                fontSize: FontSizesManager.s12,
                 color: colors.textDisabled,
               ),
             ),
@@ -150,11 +152,9 @@ class _ThreatGaugeCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colors.surfaceLight,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.borderColor, width: 0.5),
-        boxShadow: colors.cardShadow,
+      decoration: DecorationManager.surfaceCard(
+        colors,
+        radius: BorderRadiusManager.radiusAll20,
       ),
       child: Row(
         children: [
@@ -164,9 +164,8 @@ class _ThreatGaugeCard extends StatelessWidget {
             percent: pct,
             center: Text(
               '${threatPercent.toStringAsFixed(0)}%',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+              style: getBoldTextStyle(
+                fontSize: FontSizesManager.s12,
                 color: color,
               ),
             ),
@@ -187,9 +186,8 @@ class _ThreatGaugeCard extends StatelessWidget {
                     const SizedBox(width: 6),
                     Text(
                       'THREAT LEVEL',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                      style: getBoldTextStyle(
+                        fontSize: FontSizesManager.s11,
                         color: colors.textMuted,
                         letterSpacing: 0.8,
                       ),
@@ -199,15 +197,11 @@ class _ThreatGaugeCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+                  decoration: DecorationManager.tinted(color, BorderRadiusManager.radiusAll20),
                   child: Text(
                     levelLabel,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
+                    style: getBoldTextStyle(
+                      fontSize: FontSizesManager.s13,
                       color: color,
                       letterSpacing: 0.5,
                     ),
@@ -216,7 +210,7 @@ class _ThreatGaugeCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Highest score detected',
-                  style: TextStyle(fontSize: 12, color: colors.textDisabled),
+                  style: getRegularTextStyle(fontSize: FontSizesManager.s12, color: colors.textDisabled),
                 ),
               ],
             ),

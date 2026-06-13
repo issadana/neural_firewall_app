@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:Sentri/core/resources/border_radius_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/core/constants/assets_manager.dart';
 import '../bloc/auth_cubit.dart';
@@ -47,7 +51,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   content: Text(state.errorMessage!),
                   backgroundColor: AppColors.statusDanger,
                   behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadiusManager.radiusAll12),
                 ),
               );
             }
@@ -84,14 +88,9 @@ class _SignInScreenState extends State<SignInScreen> {
         Container(
           width: 72,
           height: 72,
-          decoration: BoxDecoration(
-            color: colors.surfaceLight,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: colors.borderColor),
-            boxShadow: colors.cardShadow,
-          ),
+          decoration: DecorationManager.brandLogo(colors),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(19),
+            borderRadius: BorderRadiusManager.radiusAll19,
             child: Image.asset(
               AssetsManager.logo,
               width: 72,
@@ -103,13 +102,12 @@ class _SignInScreenState extends State<SignInScreen> {
         const SizedBox(height: 20),
         Text(
           'Sentri',
-          style: TextStyle(
-            fontSize: 34,
-            fontWeight: FontWeight.bold,
+          style: getBoldTextStyle(
+            fontSize: FontSizesManager.s34,
             color: colors.textPrimary,
             letterSpacing: -1.2,
           ),
-        ),       
+        ),
       ],
     )
         .animate()
@@ -120,11 +118,10 @@ class _SignInScreenState extends State<SignInScreen> {
   Widget _buildCard(BuildContext context, bool isLoading, AppThemeColors colors) {
     return Container(
       padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        color: colors.surfaceLight,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: colors.borderColor),
-        boxShadow: colors.cardShadow,
+      decoration: DecorationManager.surfaceCard(
+        colors,
+        radius: BorderRadiusManager.radiusAll28,
+        borderWidth: 1.0,
       ),
       child: Form(
         key: _formKey,
@@ -133,9 +130,8 @@ class _SignInScreenState extends State<SignInScreen> {
           children: [
             Text(
               'Welcome back',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+              style: getBoldTextStyle(
+                fontSize: FontSizesManager.s20,
                 color: colors.textPrimary,
                 letterSpacing: -0.4,
               ),
@@ -143,7 +139,7 @@ class _SignInScreenState extends State<SignInScreen> {
             const SizedBox(height: 4),
             Text(
               'Sign in to your account',
-              style: TextStyle(fontSize: 13, color: colors.textMuted),
+              style: getRegularTextStyle(fontSize: FontSizesManager.s13, color: colors.textMuted),
             ),
             const SizedBox(height: 24),
             AuthTextField(
@@ -192,7 +188,7 @@ class _SignInScreenState extends State<SignInScreen> {
       children: [
         Text(
           "Don't have an account?",
-          style: TextStyle(color: colors.textMuted, fontSize: 14),
+          style: getRegularTextStyle(fontSize: FontSizesManager.s14, color: colors.textMuted),
         ),
         TextButton(
           onPressed: () {
@@ -211,9 +207,9 @@ class _SignInScreenState extends State<SignInScreen> {
             foregroundColor: AppColors.primary,
             padding: const EdgeInsets.symmetric(horizontal: 8),
           ),
-          child: const Text(
+          child: Text(
             'Sign Up',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            style: getSemiBoldTextStyle(fontSize: FontSizesManager.s14),
           ),
         ),
       ],

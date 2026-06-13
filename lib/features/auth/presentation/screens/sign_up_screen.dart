@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:Sentri/core/resources/border_radius_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import '../bloc/auth_cubit.dart';
 import '../widgets/auth_button.dart';
@@ -17,12 +21,14 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _fullNameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
 
   @override
   void dispose() {
+    _fullNameCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
@@ -31,7 +37,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _submit(BuildContext context) {
     if (!_formKey.currentState!.validate()) return;
-    context.read<AuthCubit>().signUp(_emailCtrl.text, _passwordCtrl.text);
+    context.read<AuthCubit>().signUp(
+          _emailCtrl.text,
+          _fullNameCtrl.text.trim(),
+          _passwordCtrl.text,
+        );
   }
 
   @override
@@ -50,7 +60,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   content: Text(state.errorMessage!),
                   backgroundColor: AppColors.statusDanger,
                   behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadiusManager.radiusAll12),
                 ),
               );
             }
@@ -87,16 +97,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Container(
           width: 72,
           height: 72,
-          decoration: BoxDecoration(
-            color: colors.surfaceLight,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: colors.borderColor),
-            boxShadow: colors.cardShadow,
-          ),
+          decoration: DecorationManager.brandLogo(colors),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(19),
+            borderRadius: BorderRadiusManager.radiusAll19,
             child: Image.asset(
-              AssetsManager.logo  ,
+              AssetsManager.logo,
               width: 72,
               height: 72,
               fit: BoxFit.contain,
@@ -106,9 +111,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         const SizedBox(height: 20),
         Text(
           'Sentri',
-          style: TextStyle(
-            fontSize: 34,
-            fontWeight: FontWeight.bold,
+          style: getBoldTextStyle(
+            fontSize: FontSizesManager.s34,
             color: colors.textPrimary,
             letterSpacing: -1.2,
           ),
@@ -122,7 +126,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           colorBlendMode: BlendMode.modulate,
           errorBuilder: (_, _, _) => Text(
             'Stay safe, stay ahead',
-            style: TextStyle(fontSize: 13, color: colors.textMuted, letterSpacing: 0.4),
+            style: getRegularTextStyle(fontSize: FontSizesManager.s13, color: colors.textMuted, letterSpacing: 0.4),
           ),
         ),
       ],
@@ -135,11 +139,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget _buildCard(BuildContext context, bool isLoading, AppThemeColors colors) {
     return Container(
       padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        color: colors.surfaceLight,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: colors.borderColor),
-        boxShadow: colors.cardShadow,
+      decoration: DecorationManager.surfaceCard(
+        colors,
+        radius: BorderRadiusManager.radiusAll28,
+        borderWidth: 1.0,
       ),
       child: Form(
         key: _formKey,
@@ -148,9 +151,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           children: [
             Text(
               'Create account',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+              style: getBoldTextStyle(
+                fontSize: FontSizesManager.s20,
                 color: colors.textPrimary,
                 letterSpacing: -0.4,
               ),
@@ -158,9 +160,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
             const SizedBox(height: 4),
             Text(
               'Protect your network from day one',
-              style: TextStyle(fontSize: 13, color: colors.textMuted),
+              style: getRegularTextStyle(fontSize: FontSizesManager.s13, color: colors.textMuted),
             ),
             const SizedBox(height: 24),
+            AuthTextField(
+              label: 'Full Name',
+              hint: 'John Doe',
+              controller: _fullNameCtrl,
+              keyboardType: TextInputType.name,
+              textInputAction: TextInputAction.next,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Full name is required';
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
             AuthTextField(
               label: 'Email',
               hint: 'you@example.com',
@@ -219,7 +233,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       children: [
         Text(
           'Already have an account?',
-          style: TextStyle(color: colors.textMuted, fontSize: 14),
+          style: getRegularTextStyle(fontSize: FontSizesManager.s14, color: colors.textMuted),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
@@ -227,9 +241,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
             foregroundColor: AppColors.primary,
             padding: const EdgeInsets.symmetric(horizontal: 8),
           ),
-          child: const Text(
+          child: Text(
             'Sign In',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            style: getSemiBoldTextStyle(fontSize: FontSizesManager.s14),
           ),
         ),
       ],

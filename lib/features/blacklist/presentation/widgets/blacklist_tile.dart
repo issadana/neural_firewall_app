@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:Sentri/core/resources/border_radius_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/blacklist/domain/entities/blacklist_entry.dart';
 
@@ -19,41 +23,40 @@ class BlacklistTile extends StatelessWidget {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
-        decoration: BoxDecoration(
-          color: AppColors.statusDanger.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(16),
+        decoration: DecorationManager.tinted(
+          AppColors.statusDanger,
+          BorderRadiusManager.radiusAll16,
+          alpha: 0.12,
         ),
         child: const Icon(Icons.delete_rounded, color: AppColors.statusDanger, size: 22),
       ),
       confirmDismiss: (_) async {
         return await showDialog<bool>(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text('Remove IP'),
-            content: Text('Remove ${entry.ip} from blacklist?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+              context: context,
+              builder: (_) => AlertDialog(
+                title: const Text('Remove IP'),
+                content: Text('Remove ${entry.ip} from blacklist?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: TextButton.styleFrom(foregroundColor: AppColors.statusDanger),
+                    child: const Text('Remove'),
+                  ),
+                ],
               ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: TextButton.styleFrom(foregroundColor: AppColors.statusDanger),
-                child: const Text('Remove'),
-              ),
-            ],
-          ),
-        ) ??
+            ) ??
             false;
       },
       onDismissed: (_) => onDelete(),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-        decoration: BoxDecoration(
-          color: colors.surfaceLight,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colors.borderColor, width: 0.5),
-          boxShadow: colors.cardShadow,
+        decoration: DecorationManager.surfaceCard(
+          colors,
+          radius: BorderRadiusManager.radiusAll16,
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -62,9 +65,9 @@ class BlacklistTile extends StatelessWidget {
               Container(
                 width: 38,
                 height: 38,
-                decoration: BoxDecoration(
-                  color: AppColors.statusDanger.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(11),
+                decoration: DecorationManager.tinted(
+                  AppColors.statusDanger,
+                  BorderRadiusManager.radiusAll11,
                 ),
                 child: const Icon(Icons.block_rounded, color: AppColors.statusDanger, size: 18),
               ),
@@ -75,11 +78,10 @@ class BlacklistTile extends StatelessWidget {
                   children: [
                     Text(
                       entry.ip,
-                      style: TextStyle(
+                      style: getBoldTextStyle(
+                        fontSize: FontSizesManager.s14,
                         color: colors.textPrimary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        fontFamily: 'monospace',
+                        family: 'monospace',
                         letterSpacing: 0.3,
                       ),
                     ),
@@ -90,7 +92,7 @@ class BlacklistTile extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           DateFormat('MM/dd  HH:mm').format(entry.addedAt),
-                          style: TextStyle(color: colors.textDisabled, fontSize: 11),
+                          style: getRegularTextStyle(fontSize: FontSizesManager.s11, color: colors.textDisabled),
                         ),
                       ],
                     ),
@@ -106,9 +108,10 @@ class BlacklistTile extends StatelessWidget {
                 child: Container(
                   width: 30,
                   height: 30,
-                  decoration: BoxDecoration(
-                    color: AppColors.statusDanger.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8),
+                  decoration: DecorationManager.tinted(
+                    AppColors.statusDanger,
+                    BorderRadiusManager.radiusAll8,
+                    alpha: 0.08,
                   ),
                   child: const Icon(
                     Icons.delete_outline_rounded,
@@ -137,15 +140,11 @@ class _ReasonBadge extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6),
-      ),
+      decoration: DecorationManager.tinted(color, BorderRadiusManager.radiusAll6),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
+        style: getBoldTextStyle(
+          fontSize: FontSizesManager.s10,
           color: color,
           letterSpacing: 0.3,
         ),
@@ -168,19 +167,17 @@ class _ScoreBadges extends StatelessWidget {
         if (bf != null)
           Text(
             'BF ${(bf! * 100).toStringAsFixed(0)}%',
-            style: const TextStyle(
+            style: getBoldTextStyle(
+              fontSize: FontSizesManager.s11,
               color: AppColors.statusWarning,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
             ),
           ),
         if (dos != null)
           Text(
             'DoS ${(dos! * 100).toStringAsFixed(0)}%',
-            style: const TextStyle(
+            style: getBoldTextStyle(
+              fontSize: FontSizesManager.s11,
               color: AppColors.statusDanger,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
             ),
           ),
       ],

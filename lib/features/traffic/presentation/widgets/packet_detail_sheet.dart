@@ -2,6 +2,11 @@ import 'package:Sentri/features/traffic/presentation/widgets/status_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:Sentri/core/enums.dart';
+import 'package:Sentri/core/resources/border_radius_manager.dart';
+import 'package:Sentri/core/resources/color_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/traffic/domain/entities/packet_record.dart';
 
@@ -24,10 +29,7 @@ class PacketDetailSheet extends StatelessWidget {
             child: Container(
               width: 36,
               height: 4,
-              decoration: BoxDecoration(
-                color: colors.borderColor,
-                borderRadius: BorderRadius.circular(2),
-              ),
+              decoration: DecorationManager.sheetHandle(colors),
             ),
           ),
           const SizedBox(height: 20),
@@ -37,10 +39,10 @@ class PacketDetailSheet extends StatelessWidget {
               const Spacer(),
               Text(
                 _timeFmtMs.format(record.timestamp),
-                style: TextStyle(
+                style: getRegularTextStyle(
+                  fontSize: FontSizesManager.s12,
                   color: colors.textDisabled,
-                  fontSize: 12,
-                  fontFamily: 'monospace',
+                  family: 'monospace',
                 ),
               ),
             ],
@@ -50,7 +52,7 @@ class PacketDetailSheet extends StatelessWidget {
             _DetailRow('Source', '${record.srcIp}:${record.srcPort}'),
             _DetailRow('Destination', '${record.dstIp}:${record.dstPort}'),
             if (record.label.isNotEmpty)
-              _DetailRow('Service', record.label, valueColor: const Color(0xFF00BCD4)),
+              _DetailRow('Service', record.label, valueColor: ColorManager.serviceCyan),
           ], colors),
           const SizedBox(height: 12),
           _DetailSection('PACKET INFO', [
@@ -70,13 +72,10 @@ class PacketDetailSheet extends StatelessWidget {
               valueColor: _scoreColor(record.dosScore * 100, colors),
             ),
           ], colors),
-          if (record.isBlacklisted || record.isAclBlocked) ...[
+          if (record.isBlacklisted) ...[
             const SizedBox(height: 12),
             _DetailSection('BLOCKS', [
-              if (record.isBlacklisted)
-                _DetailRow('Blacklisted', 'Yes', valueColor: AppColors.statusDanger),
-              if (record.isAclBlocked)
-                _DetailRow('ACL Blocked', 'Yes', valueColor: AppColors.statusDanger),
+              _DetailRow('Blacklisted', 'Yes', valueColor: AppColors.statusDanger),
             ], colors),
           ],
           const SizedBox(height: 30),
@@ -117,19 +116,17 @@ class _DetailSection extends StatelessWidget {
       children: [
         Text(
           title,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
+          style: getBoldTextStyle(
+            fontSize: FontSizesManager.s10,
             color: colors.textDisabled,
             letterSpacing: 1.4,
           ),
         ),
         const SizedBox(height: 8),
         Container(
-          decoration: BoxDecoration(
-            color: colors.surfaceLight,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: colors.borderColor, width: 0.5),
+          decoration: DecorationManager.surfaceCardBare(
+            colors,
+            radius: BorderRadiusManager.radiusAll12,
           ),
           child: Column(
             children: rows
@@ -163,15 +160,14 @@ class _DetailRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
-          Text(label, style: TextStyle(fontSize: 13, color: colors.textSecondary)),
+          Text(label, style: getRegularTextStyle(fontSize: FontSizesManager.s13, color: colors.textSecondary)),
           const Spacer(),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 13,
+            style: getSemiBoldTextStyle(
+              fontSize: FontSizesManager.s13,
               color: valueColor ?? colors.textPrimary,
-              fontFamily: 'monospace',
-              fontWeight: FontWeight.w600,
+              family: 'monospace',
             ),
           ),
         ],

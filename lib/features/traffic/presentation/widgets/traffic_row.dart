@@ -3,6 +3,11 @@ import 'package:Sentri/features/traffic/presentation/widgets/status_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:Sentri/core/enums.dart';
+import 'package:Sentri/core/resources/border_radius_manager.dart';
+import 'package:Sentri/core/resources/color_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/traffic/domain/entities/packet_record.dart';
 
@@ -22,23 +27,16 @@ class TrafficRow extends StatelessWidget {
       onTap: () => _showDetail(context),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: colors.borderColor, width: 0.5),
-        ),
+        decoration: DecorationManager.trafficRow(bgColor, colors),
         child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Container(
                 width: 3,
-                decoration: BoxDecoration(
-                  color: statusColor,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    bottomLeft: Radius.circular(12),
-                  ),
+                decoration: DecorationManager.colorBar(
+                  statusColor,
+                  radius: BorderRadiusManager.leftRounded12,
                 ),
               ),
               Expanded(
@@ -73,10 +71,10 @@ class TrafficRow extends StatelessWidget {
           const Spacer(),
           Text(
             _timeFmt.format(record.timestamp),
-            style: TextStyle(
-              fontSize: 11,
+            style: getRegularTextStyle(
+              fontSize: FontSizesManager.s11,
               color: colors.textDisabled,
-              fontFamily: 'monospace',
+              family: 'monospace',
             ),
           ),
         ],
@@ -87,10 +85,10 @@ class TrafficRow extends StatelessWidget {
           Expanded(
             child: Text(
               '${record.srcIp}:${record.srcPort}',
-              style: TextStyle(
-                fontSize: 12,
+              style: getRegularTextStyle(
+                fontSize: FontSizesManager.s12,
                 color: colors.textSecondary,
-                fontFamily: 'monospace',
+                family: 'monospace',
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -103,10 +101,10 @@ class TrafficRow extends StatelessWidget {
             child: Text(
               '${record.dstIp}:${record.dstPort}',
               textAlign: TextAlign.right,
-              style: TextStyle(
-                fontSize: 12,
+              style: getRegularTextStyle(
+                fontSize: FontSizesManager.s12,
                 color: colors.textDisabled,
-                fontFamily: 'monospace',
+                family: 'monospace',
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -120,7 +118,7 @@ class TrafficRow extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             _formatSize(record.sizeBytes),
-            style: TextStyle(fontSize: 11, color: colors.textDisabled),
+            style: getRegularTextStyle(fontSize: FontSizesManager.s11, color: colors.textDisabled),
           ),
           const Spacer(),
           _ScoreTag('BF', record.bruteForceScore * 100, colors),
@@ -135,7 +133,7 @@ class TrafficRow extends StatelessWidget {
       context: context,
       backgroundColor: colors.surfaceElevated,
       shape: RoundedRectangleBorder(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadiusManager.topRounded24,
         side: BorderSide(color: colors.borderColor, width: 0.5),
       ),
       builder: (_) => PacketDetailSheet(record: record),
@@ -147,7 +145,7 @@ class TrafficRow extends StatelessWidget {
         PacketStatus.warn    => AppColors.statusWarning,
         PacketStatus.safe    => AppColors.statusNormal,
         PacketStatus.tcp     => AppColors.accentBlue,
-        PacketStatus.quic    => const Color(0xFFAA77FF),
+        PacketStatus.quic    => ColorManager.quicPurple,
         PacketStatus.ping    => AppColors.statusWarning,
         PacketStatus.err     => colors.textDisabled,
       };
@@ -179,16 +177,12 @@ class _ProtoChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-      ),
+      decoration: DecorationManager.protoChip,
       child: Text(
         label,
-        style: const TextStyle(
-          fontSize: 10,
+        style: getBoldTextStyle(
+          fontSize: FontSizesManager.s10,
           color: AppColors.primary,
-          fontWeight: FontWeight.w700,
           letterSpacing: 0.4,
         ),
       ),
@@ -204,17 +198,12 @@ class _ServiceChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-      decoration: BoxDecoration(
-        color: const Color(0xFF00BCD4).withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: const Color(0xFF00BCD4).withValues(alpha: 0.3), width: 0.5),
-      ),
+      decoration: DecorationManager.serviceChip,
       child: Text(
         label,
-        style: const TextStyle(
-          fontSize: 10,
-          color: Color(0xFF00BCD4),
-          fontWeight: FontWeight.w600,
+        style: getSemiBoldTextStyle(
+          fontSize: FontSizesManager.s10,
+          color: ColorManager.serviceCyan,
           letterSpacing: 0.3,
         ),
       ),
@@ -239,15 +228,13 @@ class _ScoreTag extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('$label:', style: TextStyle(fontSize: 10, color: colors.textDisabled)),
+        Text('$label:', style: getRegularTextStyle(fontSize: FontSizesManager.s10, color: colors.textDisabled)),
         const SizedBox(width: 2),
         Text(
           '${pct.toStringAsFixed(0)}%',
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: pct >= 10 ? FontWeight.w700 : FontWeight.w400,
-            color: color,
-          ),
+          style: pct >= 10
+              ? getBoldTextStyle(fontSize: FontSizesManager.s10, color: color)
+              : getRegularTextStyle(fontSize: FontSizesManager.s10, color: color),
         ),
       ],
     );

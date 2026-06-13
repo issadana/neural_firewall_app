@@ -3,6 +3,11 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:Sentri/core/enums.dart';
+import 'package:Sentri/core/resources/border_radius_manager.dart';
+import 'package:Sentri/core/resources/color_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/traffic/presentation/bloc/traffic_bloc.dart';
 import 'package:Sentri/features/vpn/presentation/bloc/vpn_cubit.dart';
@@ -20,12 +25,7 @@ class ControlBar extends StatelessWidget {
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: colors.surfaceLight,
-            border: Border(
-              bottom: BorderSide(color: colors.borderColor, width: 0.5),
-            ),
-          ),
+          decoration: DecorationManager.bottomBorder(colors),
           child: Row(
             children: [
               _VpnStatusDot(status: vpn.status),
@@ -37,17 +37,16 @@ class ControlBar extends StatelessWidget {
                   children: [
                     Text(
                       _statusLabel(vpn.status),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                      style: getBoldTextStyle(
+                        fontSize: FontSizesManager.s13,
                         color: _statusColor(vpn.status),
                         letterSpacing: 0.2,
                       ),
                     ),
                     Text(
                       _statusSub(vpn.status),
-                      style: TextStyle(
-                        fontSize: 11,
+                      style: getRegularTextStyle(
+                        fontSize: FontSizesManager.s11,
                         color: colors.textDisabled,
                       ),
                     ),
@@ -102,11 +101,7 @@ class _VpnStatusDot extends StatelessWidget {
     final dot = Container(
       width: 10,
       height: 10,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-        boxShadow: AppColors.glowShadow(color),
-      ),
+      decoration: DecorationManager.colorDot(color),
     );
 
     if (status == VpnStatus.running) {
@@ -135,10 +130,7 @@ class _ClearButton extends StatelessWidget {
       onTap: () => context.read<TrafficBloc>().add(const ClearLogsEvent()),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: colors.borderColor.withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(8),
-        ),
+        decoration: DecorationManager.clearButton(colors),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -146,10 +138,9 @@ class _ClearButton extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               'Clear',
-              style: TextStyle(
-                fontSize: 12,
+              style: getMediumTextStyle(
+                fontSize: FontSizesManager.s12,
                 color: colors.textDisabled,
-                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -201,22 +192,17 @@ class _StartStopButton extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: AppColors.glowShadow(bgColor),
-        ),
+        decoration: DecorationManager.colorButton(bgColor, radius: BorderRadiusManager.radiusAll20),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: Colors.white),
+            Icon(icon, size: 16, color: ColorManager.white),
             const SizedBox(width: 4),
             Text(
               label,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
+              style: getBoldTextStyle(
+                fontSize: FontSizesManager.s13,
+                color: ColorManager.white,
                 letterSpacing: 0.3,
               ),
             ),

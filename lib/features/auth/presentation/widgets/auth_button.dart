@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:Sentri/core/resources/border_radius_manager.dart';
+import 'package:Sentri/core/resources/color_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 
 class AuthButton extends StatelessWidget {
@@ -20,25 +25,22 @@ class AuthButton extends StatelessWidget {
       width: double.infinity,
       height: 56,
       child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: isLoading
-              ? null
-              : const LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [Color(0xFF5A8BFF), AppColors.primary],
-                ),
-          color: isLoading ? AppColors.primary.withValues(alpha: 0.5) : null,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: isLoading ? null : AppColors.glowShadow(AppColors.primary),
-        ),
+        decoration: isLoading
+            ? BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.5),
+                borderRadius: BorderRadiusManager.radiusAll28,
+              )
+            : DecorationManager.primaryButtonBox(
+                radius: BorderRadiusManager.radiusAll28,
+                glow: true,
+              ),
         child: ElevatedButton(
           onPressed: isLoading ? null : onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            foregroundColor: Colors.white,
-            disabledBackgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
+            backgroundColor: ColorManager.transparent,
+            foregroundColor: ColorManager.white,
+            disabledBackgroundColor: ColorManager.transparent,
+            shadowColor: ColorManager.transparent,
             shape: const StadiumBorder(),
             elevation: 0,
           ),
@@ -48,16 +50,15 @@ class AuthButton extends StatelessWidget {
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor: AlwaysStoppedAnimation<Color>(ColorManager.white),
                   ),
                 )
               : Text(
                   label,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                  style: getSemiBoldTextStyle(
+                    fontSize: FontSizesManager.s16,
                     letterSpacing: 0.5,
-                    color: Colors.white,
+                    color: ColorManager.white,
                   ),
                 ),
         ),

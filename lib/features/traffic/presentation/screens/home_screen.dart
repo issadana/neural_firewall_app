@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:Sentri/core/resources/border_radius_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import '../widgets/control_bar.dart';
 import '../widgets/stats_row.dart';
@@ -37,6 +41,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
+
 class _TrafficHeader extends StatelessWidget {
   const _TrafficHeader();
 
@@ -49,17 +54,16 @@ class _TrafficHeader extends StatelessWidget {
           Container(
             width: 3,
             height: 16,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(2),
+            decoration: DecorationManager.colorBar(
+              AppColors.primary,
+              radius: BorderRadiusManager.radiusAll2,
             ),
           ),
           const SizedBox(width: 8),
           Text(
             'TRAFFIC LOG',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
+            style: getBoldTextStyle(
+              fontSize: FontSizesManager.s11,
               color: context.appColors.textMuted,
               letterSpacing: 1.4,
             ),

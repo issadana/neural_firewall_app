@@ -4,6 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:Sentri/core/constants/app_constants.dart';
+import 'package:Sentri/core/resources/border_radius_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/auth/presentation/bloc/auth_cubit.dart';
 import 'package:Sentri/features/settings/presentation/bloc/settings_cubit.dart';
@@ -138,22 +142,14 @@ class _SectionHeader extends StatelessWidget {
           Container(
             width: 3,
             height: 14,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF5A8BFF), AppColors.primary],
-              ),
-              borderRadius: BorderRadius.circular(2),
-            ),
+            decoration: DecorationManager.sectionAccentBar,
           ),
           const SizedBox(width: 8),
           Text(
             label.toUpperCase(),
-            style: TextStyle(
+            style: getBoldTextStyle(
+              fontSize: FontSizesManager.s11,
               color: colors.textMuted,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
               letterSpacing: 1.0,
             ),
           ),
@@ -197,11 +193,9 @@ class _ThresholdSlider extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-      decoration: BoxDecoration(
-        color: colors.surfaceLight,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.borderColor, width: 0.5),
-        boxShadow: colors.cardShadow,
+      decoration: DecorationManager.surfaceCard(
+        colors,
+        radius: BorderRadiusManager.radiusAll20,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,22 +204,21 @@ class _ThresholdSlider extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: TextStyle(
+                style: getSemiBoldTextStyle(
+                  fontSize: FontSizesManager.s14,
                   color: colors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
                 ),
               ),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(20),
+                decoration: DecorationManager.tinted(
+                  color,
+                  BorderRadiusManager.radiusAll20,
                 ),
                 child: Text(
                   '${(value * 100).toStringAsFixed(0)}%',
-                  style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13),
+                  style: getBoldTextStyle(fontSize: FontSizesManager.s13, color: color),
                 ),
               ),
             ],
@@ -248,7 +241,7 @@ class _ThresholdSlider extends StatelessWidget {
           ),
           Text(
             description,
-            style: TextStyle(color: colors.textDisabled, fontSize: 12, height: 1.4),
+            style: getRegularTextStyle(fontSize: FontSizesManager.s12, color: colors.textDisabled, height: 1.4),
           ),
         ],
       ),
@@ -276,23 +269,16 @@ class _ToggleTile extends StatelessWidget {
     final colors = context.appColors;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      decoration: BoxDecoration(
-        color: colors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colors.borderColor, width: 0.5),
-        boxShadow: colors.cardShadow,
+      decoration: DecorationManager.surfaceCard(
+        colors,
+        radius: BorderRadiusManager.radiusAll16,
       ),
       child: SwitchListTile(
         secondary: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           width: 36,
           height: 36,
-          decoration: BoxDecoration(
-            color: value
-                ? AppColors.primary.withValues(alpha: 0.15)
-                : colors.borderColor.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(10),
-          ),
+          decoration: DecorationManager.toggleIcon(colors, active: value),
           child: Icon(
             icon,
             color: value ? AppColors.primary : colors.textDisabled,
@@ -301,13 +287,12 @@ class _ToggleTile extends StatelessWidget {
         ),
         title: Text(
           label,
-          style: TextStyle(
+          style: getSemiBoldTextStyle(
+            fontSize: FontSizesManager.s14,
             color: value ? colors.textPrimary : colors.textSecondary,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
           ),
         ),
-        subtitle: Text(subtitle, style: TextStyle(color: colors.textDisabled, fontSize: 12)),
+        subtitle: Text(subtitle, style: getRegularTextStyle(fontSize: FontSizesManager.s12, color: colors.textDisabled)),
         value: value,
         onChanged: onChanged,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -365,18 +350,16 @@ class _NumberFieldState extends State<_NumberField> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: colors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colors.borderColor, width: 0.5),
-        boxShadow: colors.cardShadow,
+      decoration: DecorationManager.surfaceCard(
+        colors,
+        radius: BorderRadiusManager.radiusAll16,
       ),
       child: Row(
         children: [
           Expanded(
             child: Text(
               widget.label,
-              style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w600, fontSize: 14),
+              style: getSemiBoldTextStyle(fontSize: FontSizesManager.s14, color: colors.textPrimary),
             ),
           ),
           SizedBox(
@@ -386,28 +369,15 @@ class _NumberFieldState extends State<_NumberField> {
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: getBoldTextStyle(
+                fontSize: FontSizesManager.s15,
                 color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
               ),
-              decoration: InputDecoration(
+              decoration: DecorationManager.inputField(
+                colors,
+                radius: BorderRadiusManager.radiusAll10,
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                filled: true,
-                fillColor: colors.surfaceDark,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: colors.borderColor),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: colors.borderColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                ),
               ),
               onSubmitted: (_) => _submit(),
               onTapOutside: (_) => _submit(),
@@ -429,11 +399,9 @@ class _AboutTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colors.surfaceLight,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.borderColor, width: 0.5),
-        boxShadow: colors.cardShadow,
+      decoration: DecorationManager.surfaceCard(
+        colors,
+        radius: BorderRadiusManager.radiusAll20,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,13 +411,9 @@ class _AboutTile extends StatelessWidget {
               Container(
                 width: 42,
                 height: 42,
-                decoration: BoxDecoration(
-                  color: colors.navyLight,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colors.borderColor),
-                ),
+                decoration: DecorationManager.aboutLogo(colors),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(11),
+                  borderRadius: BorderRadiusManager.radiusAll11,
                   child: Image.asset(AssetsManager.logo, fit: BoxFit.contain),
                 ),
               ),
@@ -459,15 +423,14 @@ class _AboutTile extends StatelessWidget {
                 children: [
                   Text(
                     AppConstants.appName,
-                    style: TextStyle(
+                    style: getBoldTextStyle(
+                      fontSize: FontSizesManager.s16,
                       color: colors.textPrimary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
                     ),
                   ),
                   Text(
                     'v${AppConstants.appVersion}  ·  AI-Powered NIDS',
-                    style: TextStyle(color: colors.textDisabled, fontSize: 12),
+                    style: getRegularTextStyle(fontSize: FontSizesManager.s12, color: colors.textDisabled),
                   ),
                 ],
               ),
@@ -501,28 +464,25 @@ class _LogoutTile extends StatelessWidget {
     final colors = context.appColors;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      decoration: BoxDecoration(
-        color: colors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colors.borderColor, width: 0.5),
-        boxShadow: colors.cardShadow,
+      decoration: DecorationManager.surfaceCard(
+        colors,
+        radius: BorderRadiusManager.radiusAll16,
       ),
       child: ListTile(
         leading: Container(
           width: 36,
           height: 36,
-          decoration: BoxDecoration(
-            color: AppColors.statusDanger.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(10),
+          decoration: DecorationManager.tinted(
+            AppColors.statusDanger,
+            BorderRadiusManager.radiusAll10,
           ),
           child: const Icon(Icons.logout_rounded, color: AppColors.statusDanger, size: 18),
         ),
-        title: const Text(
+        title: Text(
           'Sign Out',
-          style: TextStyle(
+          style: getSemiBoldTextStyle(
+            fontSize: FontSizesManager.s14,
             color: AppColors.statusDanger,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
           ),
         ),
         onTap: () async {
@@ -548,7 +508,7 @@ class _LogoutTile extends StatelessWidget {
             context.read<AuthCubit>().signOut();
           }
         },
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadiusManager.radiusAll16),
       ),
     );
   }
@@ -565,14 +525,13 @@ class _AboutRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         children: [
-          Text(label, style: TextStyle(color: context.appColors.textSecondary, fontSize: 13)),
+          Text(label, style: getRegularTextStyle(fontSize: FontSizesManager.s13, color: context.appColors.textSecondary)),
           const Spacer(),
           Text(
             value,
-            style: const TextStyle(
+            style: getBoldTextStyle(
+              fontSize: FontSizesManager.s13,
               color: AppColors.primary,
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
             ),
           ),
         ],

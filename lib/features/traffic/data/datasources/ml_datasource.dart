@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:Sentri/core/constants/ai_models.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
@@ -14,8 +13,8 @@ class MlDataSource {
       AiModels.bruteForceScalerParams; 
 
   Interpreter? _interpreter;
-  List<double> _means = [0.0, 0.0, 0.0, 0.0];
-  List<double> _stds = [1.0, 1.0, 1.0, 1.0];
+  final List<double> _means = [0.0, 0.0, 0.0, 0.0];
+  final List<double> _stds = [1.0, 1.0, 1.0, 1.0];
   bool _initialized = false;
 
   Future<void> init() async {
@@ -34,9 +33,16 @@ class MlDataSource {
   Future<void> _loadScaler() async {
     try {
       final String jsonString = await rootBundle.loadString(_scalerAsset);
-      final Map<String, dynamic> scalerParams = jsonDecode(jsonString);
-      List<double> means = List<double>.from(scalerParams['mean'] as List);
-      List<double> scales = List<double>.from(scalerParams['scale'] as List);
+      final Map<String, dynamic> root = jsonDecode(jsonString);
+      final Map<String, dynamic> params = root['bruteforce_detection'] as Map<String, dynamic>;
+      final means = List<double>.from(params['mean'] as List);
+      final scales = List<double>.from(params['scale'] as List);
+      _means
+        ..clear()
+        ..addAll(means);
+      _stds
+        ..clear()
+        ..addAll(scales);
       _log.i('Scaler loaded — means: $means  scales: $scales');
     } catch (e) {
       _log.w('scaler_params.json missing or invalid — using identity scaling. $e');

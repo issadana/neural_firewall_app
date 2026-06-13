@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:Sentri/core/resources/border_radius_manager.dart';
+import 'package:Sentri/core/resources/color_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 
 class AddIpDialog extends StatefulWidget {
@@ -19,7 +24,7 @@ class AddIpDialog extends StatefulWidget {
 }
 
 class _AddIpDialogState extends State<AddIpDialog> {
-  final _ipController    = TextEditingController();
+  final _ipController = TextEditingController();
   final _notesController = TextEditingController();
   String? _error;
 
@@ -49,7 +54,7 @@ class _AddIpDialogState extends State<AddIpDialog> {
     return Dialog(
       backgroundColor: colors.surfaceElevated,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadiusManager.radiusAll24,
         side: BorderSide(color: colors.borderColor, width: 0.5),
       ),
       child: Padding(
@@ -63,19 +68,19 @@ class _AddIpDialogState extends State<AddIpDialog> {
                 Container(
                   width: 36,
                   height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
+                  decoration: DecorationManager.tinted(
+                    AppColors.primary,
+                    BorderRadiusManager.radiusAll10,
+                    alpha: 0.15,
                   ),
                   child: const Icon(Icons.dns_rounded, color: AppColors.primary, size: 18),
                 ),
                 const SizedBox(width: 12),
                 Text(
                   widget.title,
-                  style: TextStyle(
+                  style: getBoldTextStyle(
+                    fontSize: FontSizesManager.s18,
                     color: colors.textPrimary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -86,34 +91,18 @@ class _AddIpDialogState extends State<AddIpDialog> {
               controller: _ipController,
               autofocus: true,
               keyboardType: TextInputType.number,
-              style: TextStyle(
+              style: getRegularTextStyle(
+                fontSize: FontSizesManager.s15,
                 color: colors.textPrimary,
-                fontFamily: 'monospace',
-                fontSize: 15,
+                family: 'monospace',
               ),
-              decoration: InputDecoration(
+              decoration: DecorationManager.inputField(
+                colors,
                 hintText: widget.hint,
                 hintStyle: TextStyle(color: colors.textDisabled, fontFamily: 'monospace'),
                 errorText: _error,
-                filled: true,
-                fillColor: colors.surfaceDark,
+                radius: BorderRadiusManager.radiusAll12,
                 prefixIcon: Icon(Icons.router_rounded, color: colors.textDisabled, size: 18),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colors.borderColor),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colors.borderColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.statusDanger),
-                ),
               ),
               onSubmitted: (_) => widget.notesHint == null ? _submit() : null,
             ),
@@ -121,25 +110,12 @@ class _AddIpDialogState extends State<AddIpDialog> {
               const SizedBox(height: 12),
               TextField(
                 controller: _notesController,
-                style: TextStyle(color: colors.textPrimary, fontSize: 14),
-                decoration: InputDecoration(
+                style: getRegularTextStyle(fontSize: FontSizesManager.s14, color: colors.textPrimary),
+                decoration: DecorationManager.inputField(
+                  colors,
                   hintText: widget.notesHint,
-                  hintStyle: TextStyle(color: colors.textDisabled),
-                  filled: true,
-                  fillColor: colors.surfaceDark,
+                  radius: BorderRadiusManager.radiusAll12,
                   prefixIcon: Icon(Icons.notes_rounded, color: colors.textDisabled, size: 18),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: colors.borderColor),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: colors.borderColor),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                  ),
                 ),
                 onSubmitted: (_) => _submit(),
               ),
@@ -155,18 +131,15 @@ class _AddIpDialogState extends State<AddIpDialog> {
                 ),
                 const SizedBox(width: 8),
                 DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF5A8BFF), AppColors.primary],
-                    ),
-                    borderRadius: BorderRadius.circular(20),
+                  decoration: DecorationManager.primaryButtonBox(
+                    radius: BorderRadiusManager.radiusAll20,
                   ),
                   child: ElevatedButton(
                     onPressed: _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      foregroundColor: Colors.white,
-                      shadowColor: Colors.transparent,
+                      backgroundColor: ColorManager.transparent,
+                      foregroundColor: ColorManager.white,
+                      shadowColor: ColorManager.transparent,
                       minimumSize: const Size(80, 40),
                       shape: const StadiumBorder(),
                       elevation: 0,

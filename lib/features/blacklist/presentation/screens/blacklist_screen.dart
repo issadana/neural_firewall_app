@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:Sentri/core/resources/border_radius_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/blacklist/presentation/bloc/blacklist_cubit.dart';
 import '../widgets/add_ip_dialog.dart';
@@ -23,6 +27,7 @@ class BlacklistScreen extends StatelessWidget {
             count: entries.length,
             showClear: entries.isNotEmpty,
             onClear: () => _confirmClearAll(context),
+            onAdd: () => _showAddDialog(context),
           ),
           body: entries.isEmpty
               ? const _EmptyState()
@@ -44,15 +49,6 @@ class BlacklistScreen extends StatelessWidget {
                         .slideX(begin: 0.02, end: 0, duration: 250.ms);
                   },
                 ),
-          floatingActionButton: FloatingActionButton(
-            heroTag: 'blacklist_fab',
-            onPressed: () => _showAddDialog(context),
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            elevation: 4,
-            tooltip: 'Block IP',
-            child: const Icon(Icons.add_rounded),
-          ),
         );
       },
     );
@@ -97,11 +93,13 @@ class _BlacklistAppBar extends StatelessWidget implements PreferredSizeWidget {
   final int count;
   final bool showClear;
   final VoidCallback onClear;
+  final VoidCallback onAdd;
 
   const _BlacklistAppBar({
     required this.count,
     required this.showClear,
     required this.onClear,
+    required this.onAdd,
   });
 
   @override
@@ -125,27 +123,33 @@ class _BlacklistAppBar extends StatelessWidget implements PreferredSizeWidget {
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: AppColors.statusDanger.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(20),
+            decoration: DecorationManager.tinted(
+              AppColors.statusDanger,
+              BorderRadiusManager.radiusAll20,
+              alpha: 0.15,
             ),
             child: Text(
               '$count',
-              style: const TextStyle(
+              style: getBoldTextStyle(
+                fontSize: FontSizesManager.s12,
                 color: AppColors.statusDanger,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
               ),
             ),
           ),
         ],
       ),
       actions: [
+        IconButton(
+          onPressed: onAdd,
+          icon: const Icon(Icons.add_rounded),
+          tooltip: 'Block IP',
+          style: IconButton.styleFrom(foregroundColor: AppColors.primary),
+        ),
         if (showClear)
           TextButton.icon(
             onPressed: onClear,
             icon: const Icon(Icons.delete_sweep_rounded, size: 16),
-            label: const Text('Clear All', style: TextStyle(fontSize: 13)),
+            label: Text('Clear All', style: getRegularTextStyle(fontSize: FontSizesManager.s13)),
             style: TextButton.styleFrom(foregroundColor: AppColors.statusDanger),
           ),
         const SizedBox(width: 4),
@@ -167,10 +171,10 @@ class _EmptyState extends StatelessWidget {
           Container(
             width: 72,
             height: 72,
-            decoration: BoxDecoration(
-              color: colors.surfaceLight,
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: colors.borderColor),
+            decoration: DecorationManager.surfaceCardBare(
+              colors,
+              radius: BorderRadiusManager.radiusAll22,
+              borderWidth: 1.0,
             ),
             child: Icon(
               Icons.verified_user_rounded,
@@ -181,17 +185,16 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             'No blocked IPs',
-            style: TextStyle(
+            style: getBoldTextStyle(
+              fontSize: FontSizesManager.s18,
               color: colors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'IPs are auto-blocked when threats are\ndetected, or tap + to block manually.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: colors.textDisabled, fontSize: 14, height: 1.5),
+            style: getRegularTextStyle(fontSize: FontSizesManager.s14, color: colors.textDisabled, height: 1.5),
           ),
         ],
       )

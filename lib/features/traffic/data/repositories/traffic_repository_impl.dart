@@ -1,9 +1,7 @@
 import 'package:logger/logger.dart';
-
 import 'package:Sentri/core/enums.dart';
 import 'package:Sentri/core/utils/network_utils.dart';
 import 'package:Sentri/features/blacklist/domain/repositories/blacklist_repository.dart';
-import 'package:Sentri/features/acl/domain/repositories/acl_repository.dart';
 import 'package:Sentri/features/vpn/data/datasources/vpn_native_datasource.dart';
 import '../../domain/entities/packet_record.dart';
 import '../../domain/repositories/traffic_repository.dart';
@@ -13,7 +11,6 @@ final _log = Logger();
 
 class TrafficRepositoryImpl implements TrafficRepository {
   final BlacklistRepository _blacklistRepository;
-  final AclRepository _aclRepository;
   final MlDataSource _mlDataSource;
   final VpnNativeDataSource _vpnDataSource;
 
@@ -23,13 +20,11 @@ class TrafficRepositoryImpl implements TrafficRepository {
 
   TrafficRepositoryImpl({
     required BlacklistRepository blacklistRepository,
-    required AclRepository aclRepository,
     required MlDataSource mlDataSource,
     required VpnNativeDataSource vpnDataSource,
     double blockThreshold = 0.20,
     double warnThreshold = 0.10,
   })  : _blacklistRepository = blacklistRepository,
-        _aclRepository = aclRepository,
         _mlDataSource = mlDataSource,
         _vpnDataSource = vpnDataSource,
         _blockThreshold = blockThreshold,
@@ -52,26 +47,6 @@ class TrafficRepositoryImpl implements TrafficRepository {
 
       final protocol = ProtocolHelper.parseProtocol(protocolNum);
 
-      final isAclBlocked = await _aclRepository.isBlocked(srcIp);
-      if (isAclBlocked) {
-        return PacketRecord(
-          id: id,
-          srcIp: srcIp,
-          srcPort: srcPort,
-          dstIp: dstIp,
-          dstPort: dstPort,
-          protocol: protocol,
-          status: PacketStatus.aiBlock,
-          sizeBytes: sizeBytes,
-          bruteForceScore: 1.0,
-          dosScore: 0.0,
-          timestamp: DateTime.now(),
-          isBlacklisted: true,
-          isAclBlocked: true,
-          label: label,
-        );
-      }
-
       final isBlacklisted = await _blacklistRepository.isBlocked(srcIp);
       if (isBlacklisted) {
         return PacketRecord(
@@ -87,7 +62,6 @@ class TrafficRepositoryImpl implements TrafficRepository {
           dosScore: 0.0,
           timestamp: DateTime.now(),
           isBlacklisted: true,
-          isAclBlocked: false,
           label: label,
         );
       }
@@ -107,7 +81,6 @@ class TrafficRepositoryImpl implements TrafficRepository {
           dosScore: 0.0,
           timestamp: DateTime.now(),
           isBlacklisted: false,
-          isAclBlocked: false,
           label: label,
         );
       }
@@ -160,7 +133,6 @@ class TrafficRepositoryImpl implements TrafficRepository {
         dosScore: 0.0,
         timestamp: DateTime.now(),
         isBlacklisted: autoBlacklisted,
-        isAclBlocked: false,
         label: label,
       );
     } catch (e) {
@@ -202,7 +174,6 @@ class TrafficRepositoryImpl implements TrafficRepository {
       dosScore: 0.0,
       timestamp: DateTime.now(),
       isBlacklisted: false,
-      isAclBlocked: false,
     );
   }
 }

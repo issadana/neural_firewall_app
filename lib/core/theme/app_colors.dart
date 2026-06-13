@@ -1,38 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:Sentri/core/resources/color_manager.dart';
 
 class AppColors {
   // ── Brand Palette ──────────────────────────────────────────────────────────
-  static const Color navy = Color(0xFF0d173d);
-  static const Color navyLight = Color(0xFF162767);
+  static const Color navy      = ColorManager.navy;
+  static const Color navyLight = ColorManager.navyLight;
 
   // ── Interactive Accent (same in both themes) ───────────────────────────────
-  static const Color primary = Color(0xFF4175F5);
-  static const Color accent  = Color(0xFF10B981);
+  static const Color primary = ColorManager.accentBlue;
+  static const Color accent  = ColorManager.accentGreen;
 
   // ── Legacy aliases ─────────────────────────────────────────────────────────
   static const Color primaryDark  = navy;
-  static const Color primaryBlack = Color(0xFF040713);
+  static const Color primaryBlack = ColorManager.darkBackground;
   static const Color accentBlue   = primary;
   static const Color accentGreen  = accent;
 
-  // ── Dark Surface System (kept as static for const contexts) ───────────────
-  static const Color background      = Color(0xFF040713);
-  static const Color surfaceLight    = Color(0xFF0C1530);
-  static const Color surfaceDark     = Color(0xFF0A1224);
-  static const Color surfaceElevated = Color(0xFF111E3D);
-  static const Color borderColor     = Color(0xFF1B2D52);
+  // ── Dark Surface System ────────────────────────────────────────────────────
+  static const Color background      = ColorManager.darkBackground;
+  static const Color surfaceLight    = ColorManager.darkSurface;
+  static const Color surfaceDark     = ColorManager.darkSurfaceDark;
+  static const Color surfaceElevated = ColorManager.darkSurfaceElev;
+  static const Color borderColor     = ColorManager.darkBorder;
 
   // ── Text (dark mode) ───────────────────────────────────────────────────────
-  static const Color textPrimary   = Color(0xFFFFFFFF);
-  static const Color textSecondary = Color(0xFFCCCCCC);
-  static const Color textMuted     = Color(0xFF8B9EC7);
-  static const Color textDisabled  = Color(0xFF4A5C80);
+  static const Color textPrimary   = ColorManager.darkTextPrimary;
+  static const Color textSecondary = ColorManager.darkTextSecondary;
+  static const Color textMuted     = ColorManager.darkTextMuted;
+  static const Color textDisabled  = ColorManager.darkTextDisabled;
 
   // ── Status (unchanged across themes) ──────────────────────────────────────
-  static const Color statusNormal   = Color(0xFF10B981);
-  static const Color statusWarning  = Color(0xFFF59E0B);
-  static const Color statusDanger   = Color(0xFFEF4444);
-  static const Color statusCritical = Color(0xFF881337);
+  static const Color statusNormal   = ColorManager.statusNormal;
+  static const Color statusWarning  = ColorManager.statusWarning;
+  static const Color statusDanger   = ColorManager.statusDanger;
+  static const Color statusCritical = ColorManager.statusCritical;
 
   // ── Chart ──────────────────────────────────────────────────────────────────
   static const Color chartLine1      = primary;
@@ -41,14 +42,14 @@ class AppColors {
   static const Color chartBackground = surfaceLight;
 
   // ── VPN Status (unchanged across themes) ──────────────────────────────────
-  static const Color vpnConnected    = Color(0xFF10B981);
-  static const Color vpnDisconnected = Color(0xFF4A5C80);
-  static const Color vpnConnecting   = Color(0xFFF59E0B);
+  static const Color vpnConnected    = ColorManager.vpnConnected;
+  static const Color vpnDisconnected = ColorManager.vpnDisconnected;
+  static const Color vpnConnecting   = ColorManager.vpnConnecting;
 
   // ── Shadows ────────────────────────────────────────────────────────────────
   static const List<BoxShadow> cardShadow = [
-    BoxShadow(color: Color(0x50000000), blurRadius: 24, offset: Offset(0, 8)),
-    BoxShadow(color: Color(0x200d173d), blurRadius: 12, offset: Offset(0, 2)),
+    BoxShadow(color: ColorManager.shadowDark, blurRadius: 24, offset: Offset(0, 8)),
+    BoxShadow(color: ColorManager.shadowNavy, blurRadius: 12, offset: Offset(0, 2)),
   ];
 
   static List<BoxShadow> glowShadow(Color color) => [
@@ -64,7 +65,7 @@ class AppColors {
   static const LinearGradient authBackground = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF080F1F), Color(0xFF040713)],
+    colors: [ColorManager.darkAuthGradStart, ColorManager.darkBackground],
   );
 
   static const LinearGradient brandGradient = LinearGradient(
@@ -76,7 +77,7 @@ class AppColors {
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF5A8BFF), primary],
+    colors: [ColorManager.gradientBlue, primary],
   );
 }
 
@@ -112,46 +113,46 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
   });
 
   factory AppThemeColors.dark() => const AppThemeColors(
-        background: Color(0xFF040713),
-        surfaceLight: Color(0xFF0C1530),
-        surfaceDark: Color(0xFF0A1224),
-        surfaceElevated: Color(0xFF111E3D),
-        borderColor: Color(0xFF1B2D52),
-        textPrimary: Color(0xFFFFFFFF),
-        textSecondary: Color(0xFFCCCCCC),
-        textMuted: Color(0xFF8B9EC7),
-        textDisabled: Color(0xFF4A5C80),
-        navyLight: Color(0xFF162767),
+        background:      ColorManager.darkBackground,
+        surfaceLight:    ColorManager.darkSurface,
+        surfaceDark:     ColorManager.darkSurfaceDark,
+        surfaceElevated: ColorManager.darkSurfaceElev,
+        borderColor:     ColorManager.darkBorder,
+        textPrimary:     ColorManager.darkTextPrimary,
+        textSecondary:   ColorManager.darkTextSecondary,
+        textMuted:       ColorManager.darkTextMuted,
+        textDisabled:    ColorManager.darkTextDisabled,
+        navyLight:       ColorManager.navyLight,
         authBackground: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF080F1F), Color(0xFF040713)],
+          colors: [ColorManager.darkAuthGradStart, ColorManager.darkBackground],
         ),
         cardShadow: [
-          BoxShadow(color: Color(0x50000000), blurRadius: 24, offset: Offset(0, 8)),
-          BoxShadow(color: Color(0x200d173d), blurRadius: 12, offset: Offset(0, 2)),
+          BoxShadow(color: ColorManager.shadowDark, blurRadius: 24, offset: Offset(0, 8)),
+          BoxShadow(color: ColorManager.shadowNavy, blurRadius: 12, offset: Offset(0, 2)),
         ],
       );
 
   factory AppThemeColors.light() => const AppThemeColors(
-        background: Color(0xFFF8FAFF),
-        surfaceLight: Color(0xFFFFFFFF),
-        surfaceDark: Color(0xFFEEF2FC),
-        surfaceElevated: Color(0xFFFFFFFF),
-        borderColor: Color(0xFFD0DCF0),
-        textPrimary: Color(0xFF0D173D),
-        textSecondary: Color(0xFF2D4080),
-        textMuted: Color(0xFF5B6F9E),
-        textDisabled: Color(0xFF8FA3CC),
-        navyLight: Color(0xFF162767),
+        background:      ColorManager.lightBackground,
+        surfaceLight:    ColorManager.lightSurface,
+        surfaceDark:     ColorManager.lightSurfaceDark,
+        surfaceElevated: ColorManager.lightSurface,
+        borderColor:     ColorManager.lightBorder,
+        textPrimary:     ColorManager.lightTextPrimary,
+        textSecondary:   ColorManager.lightTextSecondary,
+        textMuted:       ColorManager.lightTextMuted,
+        textDisabled:    ColorManager.lightTextDisabled,
+        navyLight:       ColorManager.navyLight,
         authBackground: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFEEF3FF), Color(0xFFF8FAFF)],
+          colors: [ColorManager.lightAuthGradStart, ColorManager.lightBackground],
         ),
         cardShadow: [
-          BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
-          BoxShadow(color: Color(0x0A4175F5), blurRadius: 8, offset: Offset(0, 2)),
+          BoxShadow(color: ColorManager.shadowSoft, blurRadius: 12, offset: Offset(0, 4)),
+          BoxShadow(color: ColorManager.shadowBlue, blurRadius: 8,  offset: Offset(0, 2)),
         ],
       );
 
@@ -171,36 +172,36 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
     List<BoxShadow>? cardShadow,
   }) =>
       AppThemeColors(
-        background: background ?? this.background,
-        surfaceLight: surfaceLight ?? this.surfaceLight,
-        surfaceDark: surfaceDark ?? this.surfaceDark,
+        background:      background      ?? this.background,
+        surfaceLight:    surfaceLight    ?? this.surfaceLight,
+        surfaceDark:     surfaceDark     ?? this.surfaceDark,
         surfaceElevated: surfaceElevated ?? this.surfaceElevated,
-        borderColor: borderColor ?? this.borderColor,
-        textPrimary: textPrimary ?? this.textPrimary,
-        textSecondary: textSecondary ?? this.textSecondary,
-        textMuted: textMuted ?? this.textMuted,
-        textDisabled: textDisabled ?? this.textDisabled,
-        navyLight: navyLight ?? this.navyLight,
-        authBackground: authBackground ?? this.authBackground,
-        cardShadow: cardShadow ?? this.cardShadow,
+        borderColor:     borderColor     ?? this.borderColor,
+        textPrimary:     textPrimary     ?? this.textPrimary,
+        textSecondary:   textSecondary   ?? this.textSecondary,
+        textMuted:       textMuted       ?? this.textMuted,
+        textDisabled:    textDisabled    ?? this.textDisabled,
+        navyLight:       navyLight       ?? this.navyLight,
+        authBackground:  authBackground  ?? this.authBackground,
+        cardShadow:      cardShadow      ?? this.cardShadow,
       );
 
   @override
   AppThemeColors lerp(AppThemeColors? other, double t) {
     if (other == null) return this;
     return AppThemeColors(
-      background: Color.lerp(background, other.background, t)!,
-      surfaceLight: Color.lerp(surfaceLight, other.surfaceLight, t)!,
-      surfaceDark: Color.lerp(surfaceDark, other.surfaceDark, t)!,
+      background:      Color.lerp(background,      other.background,      t)!,
+      surfaceLight:    Color.lerp(surfaceLight,    other.surfaceLight,    t)!,
+      surfaceDark:     Color.lerp(surfaceDark,     other.surfaceDark,     t)!,
       surfaceElevated: Color.lerp(surfaceElevated, other.surfaceElevated, t)!,
-      borderColor: Color.lerp(borderColor, other.borderColor, t)!,
-      textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
-      textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
-      textMuted: Color.lerp(textMuted, other.textMuted, t)!,
-      textDisabled: Color.lerp(textDisabled, other.textDisabled, t)!,
-      navyLight: Color.lerp(navyLight, other.navyLight, t)!,
-      authBackground: t < 0.5 ? authBackground : other.authBackground,
-      cardShadow: t < 0.5 ? cardShadow : other.cardShadow,
+      borderColor:     Color.lerp(borderColor,     other.borderColor,     t)!,
+      textPrimary:     Color.lerp(textPrimary,     other.textPrimary,     t)!,
+      textSecondary:   Color.lerp(textSecondary,   other.textSecondary,   t)!,
+      textMuted:       Color.lerp(textMuted,       other.textMuted,       t)!,
+      textDisabled:    Color.lerp(textDisabled,     other.textDisabled,    t)!,
+      navyLight:       Color.lerp(navyLight,        other.navyLight,       t)!,
+      authBackground:  t < 0.5 ? authBackground  : other.authBackground,
+      cardShadow:      t < 0.5 ? cardShadow      : other.cardShadow,
     );
   }
 }

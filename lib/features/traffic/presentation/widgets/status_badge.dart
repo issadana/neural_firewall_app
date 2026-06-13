@@ -1,4 +1,8 @@
 import 'package:Sentri/core/enums.dart';
+import 'package:Sentri/core/resources/color_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -13,23 +17,18 @@ class StatusBadge extends StatelessWidget {
       PacketStatus.warn    => ('WARN',   AppColors.statusWarning),
       PacketStatus.safe    => ('SAFE',   AppColors.statusNormal),
       PacketStatus.tcp     => ('TCP',    AppColors.accentBlue),
-      PacketStatus.quic    => ('QUIC',   const Color(0xFFAA77FF)),
+      PacketStatus.quic    => ('QUIC',   ColorManager.quicPurple),
       PacketStatus.ping    => ('PING',   AppColors.statusWarning),
       PacketStatus.err     => ('ERR',    context.appColors.textDisabled),
     };
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.3), width: 0.5),
-      ),
+      decoration: DecorationManager.statusBadge(color),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
+        style: getBoldTextStyle(
+          fontSize: FontSizesManager.s10,
           color: color,
           letterSpacing: 0.8,
         ),

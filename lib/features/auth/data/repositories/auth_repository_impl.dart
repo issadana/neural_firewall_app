@@ -12,13 +12,24 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<String?> getSessionEmail() async => _dataSource.getSessionEmail();
 
   @override
+  Future<String?> getSessionUsername() async => _dataSource.getSessionUsername();
+
+  @override
   Future<void> signIn(String email, String password) =>
       _dataSource.signIn(email, password);
 
   @override
-  Future<void> signUp(String email, String password) =>
-      _dataSource.signUp(email, password);
+  Future<void> signUp(String email, String username, String password) =>
+      _dataSource.signUp(email, username, password);
 
   @override
   Future<void> signOut() => _dataSource.signOut();
+
+  @override
+  Future<void> updateProfile({String? username, String? newPassword, String? currentPassword}) =>
+      _dataSource.updateProfile(
+        username: username,
+        newPassword: newPassword,
+        currentPassword: currentPassword,
+      );
 }

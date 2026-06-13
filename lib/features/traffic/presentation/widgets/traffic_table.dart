@@ -4,6 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
 
 import 'package:Sentri/core/enums.dart';
+import 'package:Sentri/core/resources/border_radius_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
+import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/traffic/presentation/bloc/traffic_bloc.dart';
 import 'package:Sentri/features/vpn/presentation/bloc/vpn_cubit.dart';
@@ -57,10 +61,10 @@ class _EmptyState extends StatelessWidget {
               Container(
                 width: 56,
                 height: 56,
-                decoration: BoxDecoration(
-                  color: colors.surfaceLight,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: colors.borderColor),
+                decoration: DecorationManager.surfaceCardBare(
+                  colors,
+                  radius: BorderRadiusManager.radiusAll16,
+                  borderWidth: 1.0,
                 ),
                 child: Icon(
                   Icons.wifi_tethering_off_outlined,
@@ -71,16 +75,15 @@ class _EmptyState extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 'No traffic captured',
-                style: TextStyle(
+                style: getSemiBoldTextStyle(
+                  fontSize: FontSizesManager.s15,
                   color: colors.textSecondary,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
                 'Tap START to begin monitoring',
-                style: TextStyle(color: colors.textDisabled, fontSize: 13),
+                style: getRegularTextStyle(fontSize: FontSizesManager.s13, color: colors.textDisabled),
               ),
             ],
           )
@@ -110,9 +113,9 @@ class _ShimmerCards extends StatelessWidget {
         itemBuilder: (_, _) => Container(
           height: 70,
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-          decoration: BoxDecoration(
-            color: colors.surfaceLight,
-            borderRadius: BorderRadius.circular(12),
+          decoration: DecorationManager.surfaceCardBare(
+            colors,
+            radius: BorderRadiusManager.radiusAll12,
           ),
         ),
       ),

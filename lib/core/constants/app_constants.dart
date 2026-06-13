@@ -15,7 +15,6 @@ class AppConstants {
   static const Duration cacheExpiration = Duration(hours: 24);
 
   static const String blacklistBox = 'blacklist_box';
-  static const String aclBox = 'acl_box';
   static const double defaultBlockThreshold = 0.80;
   static const double defaultWarnThreshold = 0.60;
   static const int maxTrafficEntries = 200;
