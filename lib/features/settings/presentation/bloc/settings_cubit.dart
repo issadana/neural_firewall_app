@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:Sentri/core/constants/app_constants.dart';
+import 'package:Sentri/features/settings/presentation/models/ai_model_catalog.dart';
 import 'settings_state.dart';
 
 export 'settings_state.dart';
@@ -13,16 +14,19 @@ class SettingsCubit extends Cubit<SettingsState> {
     _load();
   }
 
+  static String _modelKey(String id) => 'model_$id';
+
   void _load() {
+    final models = <String, bool>{
+      for (final m in kAiModelCatalog)
+        m.id: _prefs.getBool(_modelKey(m.id)) ?? true,
+    };
     emit(SettingsState(
-      blockThreshold: _prefs.getDouble('blockThreshold') ?? AppConstants.defaultBlockThreshold,
-      warnThreshold: _prefs.getDouble('warnThreshold') ?? AppConstants.defaultWarnThreshold,
-      floodDetection: _prefs.getBool('floodDetection') ?? true,
-      synFloodDetection: _prefs.getBool('synFloodDetection') ?? true,
-      floodPktPerSec: _prefs.getInt('floodPktPerSec') ?? 1000,
-      synFloodPerSec: _prefs.getInt('synFloodPerSec') ?? 100,
-      bfModelEnabled: _prefs.getBool('bfModelEnabled') ?? true,
-      dosModelEnabled: _prefs.getBool('dosModelEnabled') ?? true,
+      blockThreshold:
+          _prefs.getDouble('blockThreshold') ?? AppConstants.defaultBlockThreshold,
+      warnThreshold:
+          _prefs.getDouble('warnThreshold') ?? AppConstants.defaultWarnThreshold,
+      models: models,
       maxLogEntries: _prefs.getInt('maxLogEntries') ?? 200,
       darkMode: _prefs.getBool('darkMode') ?? true,
     ));
@@ -38,34 +42,9 @@ class SettingsCubit extends Cubit<SettingsState> {
     emit(state.copyWith(warnThreshold: v));
   }
 
-  Future<void> toggleFloodDetection(bool v) async {
-    await _prefs.setBool('floodDetection', v);
-    emit(state.copyWith(floodDetection: v));
-  }
-
-  Future<void> toggleSynFloodDetection(bool v) async {
-    await _prefs.setBool('synFloodDetection', v);
-    emit(state.copyWith(synFloodDetection: v));
-  }
-
-  Future<void> setFloodPktPerSec(int v) async {
-    await _prefs.setInt('floodPktPerSec', v);
-    emit(state.copyWith(floodPktPerSec: v));
-  }
-
-  Future<void> setSynFloodPerSec(int v) async {
-    await _prefs.setInt('synFloodPerSec', v);
-    emit(state.copyWith(synFloodPerSec: v));
-  }
-
-  Future<void> toggleBfModel(bool v) async {
-    await _prefs.setBool('bfModelEnabled', v);
-    emit(state.copyWith(bfModelEnabled: v));
-  }
-
-  Future<void> toggleDosModel(bool v) async {
-    await _prefs.setBool('dosModelEnabled', v);
-    emit(state.copyWith(dosModelEnabled: v));
+  Future<void> toggleModel(String id, bool v) async {
+    await _prefs.setBool(_modelKey(id), v);
+    emit(state.copyWith(models: {...state.models, id: v}));
   }
 
   Future<void> setMaxLogEntries(int v) async {

@@ -18,6 +18,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 // Intent: used to receive the start/stop command from MainActivity
 import android.content.Intent
+// Context: needed to reach SharedPreferences for persisting the blocklist
+import android.content.Context
 // ServiceInfo: needed to declare the foreground service type on Android 14+
 import android.content.pm.ServiceInfo
 // VpnService: Android's base class for all VPN implementations
@@ -79,23 +81,84 @@ class NeuralVpnService : VpnService() {
         // blockedIps holds the set of IP addresses that must be silently dropped.
         // ConcurrentHashMap.newKeySet() gives us a thread-safe Set: the read loop and
         // MainActivity (MethodChannel thread) can both access it simultaneously.
+        //
+        // This set is ALSO persisted to SharedPreferences (see persistBlockedIps).
+        // That is what makes the firewall "always-on": if Android kills our process
+        // under memory pressure, START_STICKY restarts the service with a null Intent,
+        // and onStartCommand() reloads this set from disk — so known threats stay
+        // blocked the instant the service comes back, even before the Flutter UI has
+        // reconnected to push them again.
         private val blockedIps = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+        // appContext is the APPLICATION context, captured in onStartCommand().
+        // The block API below is static yet needs a Context to reach SharedPreferences.
+        // We deliberately hold the application context (a process-lifetime singleton),
+        // never an Activity/Service, so this reference cannot leak anything meaningful.
+        @Volatile private var appContext: Context? = null
+
+        // SharedPreferences coordinates for the persisted blocklist.
+        private const val PREFS_NAME = "neural_fw_prefs"
+        private const val KEY_BLOCKED_IPS = "blocked_ips"
+
+        // instance is a reference to the currently-running service.
+        // The block API below is static (called from MainActivity), but enforcing a
+        // block on EXISTING TCP connections requires reaching into the live instance's
+        // connection map.  We set this in onStartCommand() and null it in onDestroy().
+        // @Volatile so the MethodChannel thread sees the latest value immediately.
+        @Volatile private var instance: NeuralVpnService? = null
 
         // setEventSink() is called by MainActivity when Flutter's EventChannel opens or closes.
         // Passing null disconnects the sink (stops sending data to Flutter).
         fun setEventSink(sink: ((Any) -> Unit)?) { eventSink = sink }
 
-        // blockIp() adds an IP to the blocked set.
-        // All future packets from this IP will be silently dropped (not forwarded).
-        fun blockIp(ip: String) { blockedIps.add(ip) }
+        // persistBlockedIps() writes the current set to disk.
+        // We store a COPY (HashSet) because SharedPreferences keeps a reference to the
+        // set it is handed and must never see it mutated underneath it afterwards.
+        // apply() flushes asynchronously off the calling thread.
+        private fun persistBlockedIps() {
+            appContext?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                ?.edit()
+                ?.putStringSet(KEY_BLOCKED_IPS, HashSet(blockedIps))
+                ?.apply()
+        }
 
-        // unblockIp() removes an IP from the blocked set so it can communicate again.
-        fun unblockIp(ip: String) { blockedIps.remove(ip) }
+        // loadBlockedIps() repopulates the in-memory set from disk.
+        // Called from onStartCommand() so blocks are enforced the instant the service
+        // (re)starts — including a START_STICKY restart after the OS killed our process.
+        // addAll copies the elements out; we never retain the prefs-owned set.
+        private fun loadBlockedIps() {
+            val saved = appContext
+                ?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                ?.getStringSet(KEY_BLOCKED_IPS, emptySet()) ?: return
+            blockedIps.addAll(saved)
+        }
+
+        // blockIp() adds an IP, persists the change, and immediately enforces it.
+        // Adding to the set stops all FUTURE packets to/from this IP (the read loop
+        // checks the set per packet).  But a TCP connection that is already open has
+        // its own relay coroutine pumping server data independently of the read loop,
+        // so we must also tear those down right now — otherwise an in-flight attack
+        // would keep flowing until it finished on its own.
+        fun blockIp(ip: String) {
+            blockedIps.add(ip)
+            persistBlockedIps()               // survive a process / START_STICKY restart
+            instance?.tearDownConnectionsTo(ip)
+        }
+
+        // unblockIp() removes an IP (and persists the removal) so it can talk again.
+        fun unblockIp(ip: String) {
+            blockedIps.remove(ip)
+            persistBlockedIps()
+        }
 
         // isIpBlocked() lets other parts of the service check the set.
         fun isIpBlocked(ip: String): Boolean = blockedIps.contains(ip)
 
-        // clearBlockedIps() wipes the entire set (e.g. when VPN stops).
+        // clearBlockedIps() wipes ONLY the in-memory set — it deliberately leaves the
+        // persisted copy intact.  When the user explicitly stops the VPN we free the
+        // RAM, but the known-threat list is reloaded from disk on the next start, so a
+        // malicious IP never silently becomes allowed again just because the VPN was
+        // toggled off and on.  (To actually forget threats, call unblockIp per IP.)
         fun clearBlockedIps() { blockedIps.clear() }
     }
 
@@ -139,11 +202,36 @@ class NeuralVpnService : VpnService() {
     private fun tcpKey(srcIp: String, srcPort: Int, dstIp: String, dstPort: Int) =
         "$srcIp:$srcPort->$dstIp:$dstPort"
 
+    // tearDownConnectionsTo() force-closes every live TCP connection whose remote
+    // endpoint (the destination) is the given IP.  Called by blockIp() so that
+    // blocking a threat tears down anything already in flight, not just future packets.
+    //
+    // The key format is "srcIp:srcPort->dstIp:dstPort", so the destination IP is the
+    // text after "->" and before the final ":port".  For each match we cancel the
+    // relay coroutine (stops server→device data) and close the real socket.
+    private fun tearDownConnectionsTo(ip: String) {
+        // Iterate over a snapshot of the keys; we mutate the map inside the loop.
+        for (key in tcpConnections.keys.toList()) {
+            val dstIp = key.substringAfter("->").substringBeforeLast(":")
+            if (dstIp == ip) {
+                val state = tcpConnections.remove(key)
+                state?.relayJob?.cancel()              // stop the server→device relay
+                runCatching { state?.socket?.close() } // close the real socket
+            }
+        }
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
 
     // onStartCommand() is called by Android when the service receives a start Intent.
     // This is the entry point — MainActivity sends an Intent to start the VPN.
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        instance = this                           // expose this instance to the static block API
+        appContext = applicationContext           // for SharedPreferences-backed block persistence
+        loadBlockedIps()                          // restore blocks from disk BEFORE capture starts —
+                                                  // a START_STICKY restart arrives with a null Intent
+                                                  // and no Flutter connection, so this is the only way
+                                                  // known threats stay blocked across a process kill
         isRunning = true                          // signal all threads that the VPN is running
         startForegroundNotification()             // required by Android: show a persistent notification
         scope.launch { startCapture() }           // launch the TUN setup on a background thread
@@ -268,10 +356,16 @@ class NeuralVpnService : VpnService() {
 
                 if (parsed != null) {
                     // ── IP Block check ───────────────────────────────────────────
-                    // If Flutter's AI model has flagged this source IP, drop the packet
-                    // immediately — don't forward it and don't notify Flutter again.
+                    // If Flutter's AI model has flagged either endpoint of this packet,
+                    // drop it immediately — don't forward it and don't notify Flutter again.
                     // This is the real network-level block: the packet simply goes nowhere.
-                    if (isIpBlocked(parsed.srcIp)) continue
+                    //
+                    // We MUST check dstIp, not just srcIp.  Packets read from TUN are
+                    // OUTBOUND (device → internet), so their srcIp is always the device's
+                    // own TUN address (10.0.0.2) and the flagged threat is the dstIp.
+                    // Checking only srcIp would mean the block never matched anything.
+                    // We check both so the rule also holds if directions are ever mixed.
+                    if (isIpBlocked(parsed.srcIp) || isIpBlocked(parsed.dstIp)) continue
 
                     // Update the flow tracker with this packet's timestamp.
                     // flowTracker.update() returns fresh IAT statistics for this flow.
@@ -426,6 +520,13 @@ class NeuralVpnService : VpnService() {
                         try {
                             // Keep relaying until the coroutine is cancelled or the socket closes
                             while (isActive && !sock.isClosed) {
+                                // Block enforcement (belt-and-suspenders): if this server's IP
+                                // was flagged while the connection was live, stop relaying its
+                                // data immediately.  tearDownConnectionsTo() also cancels this
+                                // job, but this guard guarantees we never inject one more
+                                // attacker packet even in a race.
+                                if (isIpBlocked(parsed.dstIp)) break
+
                                 // Blocking read from the real server's socket.
                                 // Returns the number of bytes read, or -1 on EOF (server closed).
                                 val n = sock.inputStream.read(buf)
@@ -882,7 +983,9 @@ class NeuralVpnService : VpnService() {
     // We must release all resources here to avoid memory leaks and fd leaks.
     override fun onDestroy() {
         isRunning = false               // signal the read loop to stop on its next iteration
-        clearBlockedIps()               // reset the block list for the next VPN session
+        instance = null                 // the static block API has no live instance to act on
+        clearBlockedIps()               // free the in-memory set only — the persisted copy on
+                                        // disk survives and is reloaded on the next onStartCommand()
 
         // Remove the foreground notification from the status bar
         stopForeground(STOP_FOREGROUND_REMOVE)

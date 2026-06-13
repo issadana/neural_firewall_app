@@ -25,32 +25,38 @@ class HardwareStatsCard extends StatelessWidget {
             radius: BorderRadiusManager.radiusAll20,
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: _Stat(
                   icon: Icons.memory,
                   label: 'CPU',
                   value: s != null ? '${s.cpuUsage.toStringAsFixed(1)}%' : '--',
+                  progress: s != null ? s.cpuUsage / 100 : null,
                   color: _cpuColor(s?.cpuUsage ?? 0),
                 ),
               ),
-              _Divider(),
+              SpacesManager.w12,
               Expanded(
                 child: _Stat(
                   icon: Icons.storage,
                   label: 'RAM',
-                  value: s != null ? '${s.ramUsedPercent.toStringAsFixed(0)}%' : '--',
-                  subtitle: s != null ? '${s.ramUsedMb} / ${s.ramTotalMb} MB' : null,
+                  value:
+                      s != null ? '${s.ramUsedPercent.toStringAsFixed(0)}%' : '--',
+                  subtitle:
+                      s != null ? '${s.ramUsedMb} / ${s.ramTotalMb} MB' : null,
+                  progress: s != null ? s.ramUsedPercent / 100 : null,
                   color: _ramColor(s?.ramUsedPercent ?? 0),
                 ),
               ),
               if (s?.batteryLevel != null) ...[
-                _Divider(),
+                SpacesManager.w12,
                 Expanded(
                   child: _Stat(
                     icon: Icons.battery_std,
                     label: 'Battery',
                     value: '${s!.batteryLevel!.toStringAsFixed(0)}%',
+                    progress: s.batteryLevel! / 100,
                     color: _batteryColor(s.batteryLevel!),
                   ),
                 ),
@@ -86,6 +92,7 @@ class _Stat extends StatelessWidget {
   final String label;
   final String value;
   final String? subtitle;
+  final double? progress;
   final Color color;
 
   const _Stat({
@@ -93,6 +100,7 @@ class _Stat extends StatelessWidget {
     required this.label,
     required this.value,
     this.subtitle,
+    this.progress,
     required this.color,
   });
 
@@ -100,29 +108,57 @@ class _Stat extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: color, size: 20),
-        SpacesManager.h6,
-        Text(value,
-            style: getBoldTextStyle(fontSize: FontSizesManager.s16, color: color)),
-        if (subtitle != null)
-          Text(subtitle!,
-              style: getRegularTextStyle(fontSize: FontSizesManager.s10, color: colors.textDisabled)),
-        SpacesManager.h2,
-        Text(label, style: getRegularTextStyle(fontSize: FontSizesManager.s11, color: colors.textMuted)),
+        Row(
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: DecorationManager.tinted(
+                color,
+                BorderRadiusManager.radiusAll10,
+                alpha: 0.14,
+              ),
+              child: Icon(icon, color: color, size: 16),
+            ),
+            SpacesManager.w8,
+            Text(
+              label,
+              style: getMediumTextStyle(
+                fontSize: FontSizesManager.s11,
+                color: colors.textMuted,
+              ),
+            ),
+          ],
+        ),
+        SpacesManager.h10,
+        Text(
+          value,
+          style: getBoldTextStyle(fontSize: FontSizesManager.s18, color: color),
+        ),
+        if (subtitle != null) ...[
+          SpacesManager.h2,
+          Text(
+            subtitle!,
+            style: getRegularTextStyle(
+              fontSize: FontSizesManager.s10,
+              color: colors.textDisabled,
+            ),
+          ),
+        ],
+        SpacesManager.h8,
+        if (progress != null)
+          ClipRRect(
+            borderRadius: BorderRadiusManager.radiusAll4,
+            child: LinearProgressIndicator(
+              value: progress!.clamp(0.0, 1.0),
+              minHeight: 4,
+              backgroundColor: color.withValues(alpha: 0.14),
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
       ],
-    );
-  }
-}
-
-class _Divider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 0.5,
-      height: 50,
-      margin: PaddingManager.paddingHorizontal8,
-      color: context.appColors.borderColor,
     );
   }
 }

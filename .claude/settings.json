@@ -3,7 +3,9 @@
     "allow": [
       "Bash(flutter pub *)",
       "Bash(cat > *)",
-      "Bash(dart analyze *)"
+      "Bash(dart analyze *)",
+      "Bash(grep -E \"\\\\.\\(dart|json\\)$\")",
+      "Bash(timeout 280 ./gradlew :app:compileDebugKotlin -q)"
     ],
     "additionalDirectories": [
       "/tmp"

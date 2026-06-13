@@ -125,8 +125,10 @@ class _PremiumNavBar extends StatelessWidget {
       builder: (context, blacklist) {
         final blockedCount = blacklist.entries.length;
         final bottomInset = MediaQuery.of(context).padding.bottom;
-        return Padding(
+        return Container(
+          decoration: DecorationManager.navBarScrim(colors),
           padding: EdgeInsets.only(
+            top: PaddingManager.spacing2000.h,
             left: PaddingManager.p26.w,
             right: PaddingManager.p26.w,
             bottom: bottomInset + PaddingManager.spacing800.h,
@@ -140,32 +142,37 @@ class _PremiumNavBar extends StatelessWidget {
                   child: Padding(
                     padding: PaddingManager.paddingAll6,
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _NavItem(
-                          index: 0,
-                          currentIndex: currentIndex,
-                          icon: Icons.home_outlined,
-                          activeIcon: Icons.home_rounded,
-                          label: 'Dashboard',
-                          onTap: onTap,
+                        Expanded(
+                          child: _NavItem(
+                            index: 0,
+                            currentIndex: currentIndex,
+                            icon: Icons.home_outlined,
+                            activeIcon: Icons.home_rounded,
+                            label: 'Dashboard',
+                            onTap: onTap,
+                          ),
                         ),
-                        _NavItemWithBadge(
-                          index: 1,
-                          currentIndex: currentIndex,
-                          icon: Icons.block_outlined,
-                          activeIcon: Icons.block_rounded,
-                          label: 'Blacklist',
-                          badgeCount: blockedCount,
-                          onTap: onTap,
+                        Expanded(
+                          child: _NavItemWithBadge(
+                            index: 1,
+                            currentIndex: currentIndex,
+                            icon: Icons.block_outlined,
+                            activeIcon: Icons.block_rounded,
+                            label: 'Blacklist',
+                            badgeCount: blockedCount,
+                            onTap: onTap,
+                          ),
                         ),
-                        _NavItem(
-                          index: 2,
-                          currentIndex: currentIndex,
-                          icon: Icons.settings_outlined,
-                          activeIcon: Icons.settings_rounded,
-                          label: 'Settings',
-                          onTap: onTap,
+                        Expanded(
+                          child: _NavItem(
+                            index: 2,
+                            currentIndex: currentIndex,
+                            icon: Icons.settings_outlined,
+                            activeIcon: Icons.settings_rounded,
+                            label: 'Settings',
+                            onTap: onTap,
+                          ),
                         ),
                       ],
                     ),
@@ -287,10 +294,12 @@ class _NavItemBase extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
+        width: double.infinity,
         padding: PaddingManager.paddingH12V6,
         decoration: DecorationManager.navItem(isActive),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             customIcon ??
                 Icon(

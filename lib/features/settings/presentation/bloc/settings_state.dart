@@ -5,49 +5,41 @@ import 'package:Sentri/core/constants/app_constants.dart';
 class SettingsState extends Equatable {
   final double blockThreshold;
   final double warnThreshold;
-  final bool floodDetection;
-  final bool synFloodDetection;
-  final int floodPktPerSec;
-  final int synFloodPerSec;
-  final bool bfModelEnabled;
-  final bool dosModelEnabled;
+
+  /// Enabled state per AI model, keyed by [AiModelInfo.id].
+  /// A missing key is treated as enabled (see [isModelEnabled]).
+  final Map<String, bool> models;
+
   final int maxLogEntries;
   final bool darkMode;
 
   const SettingsState({
     this.blockThreshold = AppConstants.defaultBlockThreshold,
     this.warnThreshold = AppConstants.defaultWarnThreshold,
-    this.floodDetection = true,
-    this.synFloodDetection = true,
-    this.floodPktPerSec = 1000,
-    this.synFloodPerSec = 100,
-    this.bfModelEnabled = true,
-    this.dosModelEnabled = true,
+    this.models = const {},
     this.maxLogEntries = 200,
     this.darkMode = true,
   });
 
+  /// Whether a given model is switched on. Defaults to `true` when unknown so
+  /// freshly-added models are protective out of the box.
+  bool isModelEnabled(String id) => models[id] ?? true;
+
+  /// How many models in [ids] are currently enabled.
+  int activeModelCount(Iterable<String> ids) =>
+      ids.where(isModelEnabled).length;
+
   SettingsState copyWith({
     double? blockThreshold,
     double? warnThreshold,
-    bool? floodDetection,
-    bool? synFloodDetection,
-    int? floodPktPerSec,
-    int? synFloodPerSec,
-    bool? bfModelEnabled,
-    bool? dosModelEnabled,
+    Map<String, bool>? models,
     int? maxLogEntries,
     bool? darkMode,
   }) {
     return SettingsState(
       blockThreshold: blockThreshold ?? this.blockThreshold,
       warnThreshold: warnThreshold ?? this.warnThreshold,
-      floodDetection: floodDetection ?? this.floodDetection,
-      synFloodDetection: synFloodDetection ?? this.synFloodDetection,
-      floodPktPerSec: floodPktPerSec ?? this.floodPktPerSec,
-      synFloodPerSec: synFloodPerSec ?? this.synFloodPerSec,
-      bfModelEnabled: bfModelEnabled ?? this.bfModelEnabled,
-      dosModelEnabled: dosModelEnabled ?? this.dosModelEnabled,
+      models: models ?? this.models,
       maxLogEntries: maxLogEntries ?? this.maxLogEntries,
       darkMode: darkMode ?? this.darkMode,
     );
@@ -57,12 +49,7 @@ class SettingsState extends Equatable {
   List<Object?> get props => [
         blockThreshold,
         warnThreshold,
-        floodDetection,
-        synFloodDetection,
-        floodPktPerSec,
-        synFloodPerSec,
-        bfModelEnabled,
-        dosModelEnabled,
+        models,
         maxLogEntries,
         darkMode,
       ];

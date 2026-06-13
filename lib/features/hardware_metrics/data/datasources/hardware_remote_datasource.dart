@@ -1,4 +1,5 @@
 import 'package:Sentri/core/api/api_consumer.dart';
+import 'package:Sentri/core/constants/api_constants.dart';
 import '../../domain/entities/hardware_snapshot.dart';
 
 class HardwareRemoteDataSource {
@@ -6,7 +7,7 @@ class HardwareRemoteDataSource {
   HardwareRemoteDataSource(this._api);
 
   Future<void> postSnapshot(HardwareSnapshot snapshot) async {
-    await _api.post('/hardware-metrics', body: snapshot.toJson());
+    await _api.post(ApiConstants.metricsEndpoint, body: snapshot.toJson());
   }
 
   Future<List<HardwareSnapshot>> getHistory({
@@ -17,7 +18,8 @@ class HardwareRemoteDataSource {
       if (fromDate != null) 'from_date': fromDate.toIso8601String(),
       if (toDate != null) 'to_date': toDate.toIso8601String(),
     };
-    final response = await _api.get('/hardware-metrics', queryParameters: params);
+    final response =
+        await _api.get(ApiConstants.metricsEndpoint, queryParameters: params);
     return (response as List<dynamic>)
         .map((e) => HardwareSnapshot.fromJson(e as Map<String, dynamic>))
         .toList();

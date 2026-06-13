@@ -2,9 +2,18 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'core/api/dio_consumer.dart';
 import 'core/constants/api_constants.dart';
 import 'core/constants/app_constants.dart';
+import 'core/interceptors/error_interceptor.dart';
+import 'core/interceptors/logging_interceptor.dart';
 import 'core/widgets/navigation_bar/app.dart';
+import 'features/hardware_metrics/data/datasources/hardware_local_datasource.dart';
+import 'features/hardware_metrics/data/datasources/hardware_remote_datasource.dart';
+import 'features/hardware_metrics/data/repositories/hardware_metrics_repository_impl.dart';
+import 'features/hardware_metrics/domain/usecases/collect_snapshot_usecase.dart';
+import 'features/hardware_metrics/domain/usecases/sync_snapshot_usecase.dart';
+import 'features/hardware_metrics/presentation/bloc/hardware_metrics_cubit.dart';
 import 'features/chatbot/data/datasources/chatbot_remote_datasource.dart';
 import 'features/chatbot/data/repositories/chatbot_repository_impl.dart';
 import 'features/chatbot/domain/usecases/delete_session_usecase.dart';
@@ -99,6 +108,27 @@ void main() async {
     blacklistCubit: blacklistCubit,
   );
 
+  // ── Hardware metrics ─────────────────────────────────────────────────────────
+  // Shared API client used to POST snapshots to the backend.
+  final apiDio = Dio(
+    BaseOptions(
+      baseUrl: ApiConstants.baseUrl,
+      connectTimeout: AppConstants.connectTimeout,
+      receiveTimeout: AppConstants.receiveTimeout,
+      sendTimeout: AppConstants.sendTimeout,
+    ),
+  );
+  final apiConsumer = DioConsumer(apiDio, ErrorInterceptor(), LoggingInterceptor());
+
+  final hardwareRepo = HardwareMetricsRepositoryImpl(
+    local: HardwareLocalDataSource(),
+    remote: HardwareRemoteDataSource(apiConsumer),
+  );
+  final hardwareMetricsCubit = HardwareMetricsCubit(
+    collect: CollectSnapshotUseCase(hardwareRepo),
+    sync: SyncSnapshotUseCase(hardwareRepo),
+  )..startPeriodicSync();
+
   // ── Nova chatbot ─────────────────────────────────────────────────────────────
   final chatDio = Dio(
     BaseOptions(
@@ -133,6 +163,7 @@ void main() async {
         BlocProvider.value(value: dashboardCubit),
         BlocProvider.value(value: blacklistCubit),
         BlocProvider(create: (_) => SettingsCubit(prefs)),
+        BlocProvider.value(value: hardwareMetricsCubit),
         BlocProvider.value(value: chatCubit),
       ],
       child: const SentriApp(),

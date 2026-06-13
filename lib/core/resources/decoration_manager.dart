@@ -35,22 +35,51 @@ class DecorationManager {
 
   static const List<BoxShadow> glassShadow = [
     BoxShadow(color: ColorManager.shadowLight, blurRadius: 2),
-    BoxShadow(color: ColorManager.shadowGlass, offset: Offset(0, 1), blurRadius: 8),
+    BoxShadow(
+      color: ColorManager.shadowGlass,
+      offset: Offset(0, 1),
+      blurRadius: 8,
+    ),
   ];
 
   static const List<BoxShadow> softCardShadow = [
-    BoxShadow(color: ColorManager.shadowSubtle, blurRadius: 24, offset: Offset(0, 8)),
-    BoxShadow(color: ColorManager.shadowFaint, blurRadius: 4, offset: Offset(0, 2)),
+    BoxShadow(
+      color: ColorManager.shadowSubtle,
+      blurRadius: 24,
+      offset: Offset(0, 8),
+    ),
+    BoxShadow(
+      color: ColorManager.shadowFaint,
+      blurRadius: 4,
+      offset: Offset(0, 2),
+    ),
   ];
 
   static const List<BoxShadow> toastShadow = [
-    BoxShadow(color: ColorManager.shadowMedium, blurRadius: 28, offset: Offset(0, 10)),
-    BoxShadow(color: ColorManager.shadowSoft, blurRadius: 6, offset: Offset(0, 2)),
+    BoxShadow(
+      color: ColorManager.shadowMedium,
+      blurRadius: 28,
+      offset: Offset(0, 10),
+    ),
+    BoxShadow(
+      color: ColorManager.shadowSoft,
+      blurRadius: 6,
+      offset: Offset(0, 2),
+    ),
   ];
 
   static const List<BoxShadow> frostedPillHalo = [
-    BoxShadow(color: ColorManager.shadowSoft, blurRadius: 24, spreadRadius: -2, offset: Offset(0, 6)),
-    BoxShadow(color: ColorManager.shadowFaint, blurRadius: 12, spreadRadius: -4),
+    BoxShadow(
+      color: ColorManager.shadowSoft,
+      blurRadius: 24,
+      spreadRadius: -2,
+      offset: Offset(0, 6),
+    ),
+    BoxShadow(
+      color: ColorManager.shadowFaint,
+      blurRadius: 12,
+      spreadRadius: -4,
+    ),
   ];
 
   // ─── GRADIENTS ─────────────────────────────────────────────────────────────
@@ -71,13 +100,13 @@ class DecorationManager {
 
   /// Below-bar area gradient for the threat sparkline chart.
   static LinearGradient get threatSparkline => LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          AppColors.statusDanger.withValues(alpha: 0.25),
-          AppColors.statusDanger.withValues(alpha: 0.02),
-        ],
-      );
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      AppColors.statusDanger.withValues(alpha: 0.25),
+      AppColors.statusDanger.withValues(alpha: 0.02),
+    ],
+  );
 
   // ─── SHADOWS ───────────────────────────────────────────────────────────────
 
@@ -101,91 +130,103 @@ class DecorationManager {
 
   /// Circular Nova AI launcher beside the nav bar — gradient fill with brand glow.
   static BoxDecoration get novaFab => BoxDecoration(
-        gradient: primaryButton,
-        shape: BoxShape.circle,
-        boxShadow: AppColors.glowShadow(AppColors.primary),
-      );
+    gradient: primaryButton,
+    shape: BoxShape.circle,
+    boxShadow: AppColors.glowShadow(AppColors.primary),
+  );
 
   /// Gradient avatar disc for Nova (chat header / empty state).
-  static BoxDecoration get novaAvatar => const BoxDecoration(
-        gradient: primaryButton,
-        shape: BoxShape.circle,
-      );
+  static BoxDecoration get novaAvatar =>
+      const BoxDecoration(gradient: primaryButton, shape: BoxShape.circle);
 
   /// Thin vertical bar decoration used in gradient section headers.
   static BoxDecoration get sectionAccentBar => BoxDecoration(
-        gradient: sectionAccent,
-        borderRadius: BorderRadiusManager.radiusAll2,
-      );
+    gradient: sectionAccent,
+    borderRadius: BorderRadiusManager.radiusAll2,
+  );
 
   /// Suggestion chip in the chat screen.
   static BoxDecoration get suggestionChip => BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.10),
-        borderRadius: BorderRadiusManager.radiusAll18,
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25), width: 0.5),
-      );
+    color: AppColors.primary.withValues(alpha: 0.10),
+    borderRadius: BorderRadiusManager.radiusAll18,
+    border: Border.all(
+      color: AppColors.primary.withValues(alpha: 0.25),
+      width: 0.5,
+    ),
+  );
 
   /// User-side chat bubble with primary tint.
   static BoxDecoration get userChatBubble => BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.18),
-        borderRadius: BorderRadiusManager.chatBubbleUser,
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 0.5),
-      );
+    color: AppColors.primary.withValues(alpha: 0.18),
+    borderRadius: BorderRadiusManager.chatBubbleUser,
+    border: Border.all(
+      color: AppColors.primary.withValues(alpha: 0.3),
+      width: 0.5,
+    ),
+  );
 
   /// Protocol label chip (TCP, UDP…) in traffic rows.
   static BoxDecoration get protoChip => BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadiusManager.radiusAll4,
-      );
+    color: AppColors.primary.withValues(alpha: 0.1),
+    borderRadius: BorderRadiusManager.radiusAll4,
+  );
 
   /// Service-name chip in traffic rows (cyan accent).
   static BoxDecoration get serviceChip => BoxDecoration(
-        color: ColorManager.serviceCyan.withValues(alpha: 0.12),
-        borderRadius: BorderRadiusManager.radiusAll4,
-        border: Border.all(color: ColorManager.serviceCyan.withValues(alpha: 0.3), width: 0.5),
-      );
+    color: ColorManager.serviceCyan.withValues(alpha: 0.12),
+    borderRadius: BorderRadiusManager.radiusAll4,
+    border: Border.all(
+      color: ColorManager.serviceCyan.withValues(alpha: 0.3),
+      width: 0.5,
+    ),
+  );
 
   // ─── COLOR-PARAMETERISED DECORATIONS ───────────────────────────────────────
 
   /// Filled circle with a matching glow — VPN status dot.
   static BoxDecoration colorDot(Color color) => BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-        boxShadow: AppColors.glowShadow(color),
-      );
+    shape: BoxShape.circle,
+    color: color,
+    boxShadow: AppColors.glowShadow(color),
+  );
 
   /// Rounded pill with glow — Start / Stop VPN button.
-  static BoxDecoration colorButton(Color color, {BorderRadius? radius}) => BoxDecoration(
+  static BoxDecoration colorButton(Color color, {BorderRadius? radius}) =>
+      BoxDecoration(
         color: color,
         borderRadius: radius ?? BorderRadiusManager.radiusAll20,
         boxShadow: AppColors.glowShadow(color),
       );
 
   /// Thin solid-colour bar — action/status accent bars and left-edge indicators.
-  static BoxDecoration colorBar(Color color, {BorderRadius? radius}) => BoxDecoration(
+  static BoxDecoration colorBar(Color color, {BorderRadius? radius}) =>
+      BoxDecoration(
         color: color,
         borderRadius: radius ?? BorderRadiusManager.radiusAll3,
       );
 
   /// Thinking-dot circle with variable opacity — streaming AI bubble loader.
   static BoxDecoration thinkingDot(double alpha) => BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.primary.withValues(alpha: alpha),
-      );
+    shape: BoxShape.circle,
+    color: AppColors.primary.withValues(alpha: alpha),
+  );
 
   /// Status badge pill — tinted fill + matching border (BLOCK, WARN, SAFE…).
   static BoxDecoration statusBadge(Color color) => BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadiusManager.radiusAll6,
-        border: Border.all(color: color.withValues(alpha: 0.3), width: 0.5),
-      );
+    color: color.withValues(alpha: 0.12),
+    borderRadius: BorderRadiusManager.radiusAll6,
+    border: Border.all(color: color.withValues(alpha: 0.3), width: 0.5),
+  );
 
   /// Simple tinted container without border — icon backgrounds, loaders, dots.
-  static BoxDecoration tinted(Color color, BorderRadius radius, {double alpha = 0.12}) =>
-      BoxDecoration(
-        color: color.withValues(alpha: alpha),
-        borderRadius: radius,
-      );
+  static BoxDecoration tinted(
+    Color color,
+    BorderRadius radius, {
+    double alpha = 0.12,
+  }) => BoxDecoration(
+    color: color.withValues(alpha: alpha),
+    borderRadius: radius,
+  );
 
   /// Tinted container with a soft matching border — chips, badges, count pills.
   static BoxDecoration coloredChip(
@@ -194,43 +235,53 @@ class DecorationManager {
     double fillAlpha = 0.12,
     double borderAlpha = 0.3,
     double borderWidth = 0.5,
-  }) =>
-      BoxDecoration(
-        color: color.withValues(alpha: fillAlpha),
-        borderRadius: radius,
-        border: Border.all(color: color.withValues(alpha: borderAlpha), width: borderWidth),
-      );
+  }) => BoxDecoration(
+    color: color.withValues(alpha: fillAlpha),
+    borderRadius: radius,
+    border: Border.all(
+      color: color.withValues(alpha: borderAlpha),
+      width: borderWidth,
+    ),
+  );
 
   /// Tinted circle icon disc — toast leading icon.
-  static BoxDecoration circleIcon(Color color, {double alpha = 0.12}) => BoxDecoration(
+  static BoxDecoration circleIcon(Color color, {double alpha = 0.12}) =>
+      BoxDecoration(
         color: color.withValues(alpha: alpha),
         shape: BoxShape.circle,
       );
 
   /// Nav-item pill — active gets primary tint, inactive is transparent.
   static BoxDecoration navItem(bool isActive) => BoxDecoration(
-        color: isActive ? AppColors.primary.withValues(alpha: 0.12) : ColorManager.transparent,
-        borderRadius: BorderRadiusManager.radiusAll32,
-      );
+    color: isActive
+        ? AppColors.primary.withValues(alpha: 0.12)
+        : ColorManager.transparent,
+    borderRadius: BorderRadiusManager.radiusAll32,
+  );
 
   /// Gradient button box for primary CTA (auth button, dialog confirm).
-  static BoxDecoration primaryButtonBox({BorderRadius? radius, bool glow = false}) => BoxDecoration(
-        gradient: primaryButton,
-        borderRadius: radius ?? BorderRadiusManager.radiusAll28,
-        boxShadow: glow ? AppColors.glowShadow(AppColors.primary) : null,
-      );
+  static BoxDecoration primaryButtonBox({
+    BorderRadius? radius,
+    bool glow = false,
+  }) => BoxDecoration(
+    gradient: primaryButton,
+    borderRadius: radius ?? BorderRadiusManager.radiusAll28,
+    boxShadow: glow ? AppColors.glowShadow(AppColors.primary) : null,
+  );
 
   /// Solid-colour button box with optional border — AppPrimaryButton.
   static BoxDecoration solidButton({
     Color? color,
     Color? borderColor,
     BorderRadius? radius,
-  }) =>
-      BoxDecoration(
-        color: color ?? ColorManager.primary,
-        borderRadius: radius ?? BorderRadiusManager.radiusAll24,
-        border: Border.all(color: borderColor ?? ColorManager.transparent, width: 1),
-      );
+  }) => BoxDecoration(
+    color: color ?? ColorManager.primary,
+    borderRadius: radius ?? BorderRadiusManager.radiusAll24,
+    border: Border.all(
+      color: borderColor ?? ColorManager.transparent,
+      width: 1,
+    ),
+  );
 
   // ─── THEME-DEPENDENT DECORATIONS ───────────────────────────────────────────
 
@@ -240,28 +291,27 @@ class DecorationManager {
     BorderRadius? radius,
     bool shadow = true,
     double borderWidth = 0.5,
-  }) =>
-      BoxDecoration(
-        color: colors.surfaceLight,
-        borderRadius: radius ?? BorderRadiusManager.radiusAll20,
-        border: Border.all(color: colors.borderColor, width: borderWidth),
-        boxShadow: shadow ? colors.cardShadow : null,
-      );
+  }) => BoxDecoration(
+    color: colors.surfaceLight,
+    borderRadius: radius ?? BorderRadiusManager.radiusAll20,
+    border: Border.all(color: colors.borderColor, width: borderWidth),
+    boxShadow: shadow ? colors.cardShadow : null,
+  );
 
   /// Surface card without shadow — detail sections, bare lists.
   static BoxDecoration surfaceCardBare(
     AppThemeColors colors, {
     BorderRadius? radius,
     double borderWidth = 0.5,
-  }) =>
-      BoxDecoration(
-        color: colors.surfaceLight,
-        borderRadius: radius ?? BorderRadiusManager.radiusAll12,
-        border: Border.all(color: colors.borderColor, width: borderWidth),
-      );
+  }) => BoxDecoration(
+    color: colors.surfaceLight,
+    borderRadius: radius ?? BorderRadiusManager.radiusAll12,
+    border: Border.all(color: colors.borderColor, width: borderWidth),
+  );
 
   /// Traffic-row container — dynamic background (block-tinted or surface).
-  static BoxDecoration trafficRow(Color bgColor, AppThemeColors colors) => BoxDecoration(
+  static BoxDecoration trafficRow(Color bgColor, AppThemeColors colors) =>
+      BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadiusManager.radiusAll12,
         border: Border.all(color: colors.borderColor, width: 0.5),
@@ -269,85 +319,105 @@ class DecorationManager {
 
   /// AI-side chat bubble.
   static BoxDecoration aiBubble(AppThemeColors colors) => BoxDecoration(
-        color: colors.surfaceLight,
-        borderRadius: BorderRadiusManager.chatBubbleAi,
-        border: Border.all(color: colors.borderColor, width: 0.5),
-      );
+    color: colors.surfaceLight,
+    borderRadius: BorderRadiusManager.chatBubbleAi,
+    border: Border.all(color: colors.borderColor, width: 0.5),
+  );
 
   /// Container with a single top border — chat input bar.
   static BoxDecoration topBorder(AppThemeColors colors) => BoxDecoration(
-        color: colors.surfaceLight,
-        border: Border(top: BorderSide(color: colors.borderColor, width: 0.5)),
-      );
+    color: colors.surfaceLight,
+    border: Border(top: BorderSide(color: colors.borderColor, width: 0.5)),
+  );
 
   /// Container with a single bottom border — control bar.
   static BoxDecoration bottomBorder(AppThemeColors colors) => BoxDecoration(
-        color: colors.surfaceLight,
-        border: Border(bottom: BorderSide(color: colors.borderColor, width: 0.5)),
-      );
+    color: colors.surfaceLight,
+    border: Border(bottom: BorderSide(color: colors.borderColor, width: 0.5)),
+  );
 
   /// Brand logo container on auth screens.
   static BoxDecoration brandLogo(AppThemeColors colors) => BoxDecoration(
-        color: colors.surfaceLight,
-        borderRadius: BorderRadiusManager.radiusAll20,
-        border: Border.all(color: colors.borderColor),
-        boxShadow: colors.cardShadow,
-      );
+    color: colors.surfaceLight,
+    borderRadius: BorderRadiusManager.radiusAll20,
+    border: Border.all(color: colors.borderColor),
+    boxShadow: colors.cardShadow,
+  );
 
   /// App-info logo container in Settings → About.
   static BoxDecoration aboutLogo(AppThemeColors colors) => BoxDecoration(
-        color: colors.navyLight,
-        borderRadius: BorderRadiusManager.radiusAll12,
-        border: Border.all(color: colors.borderColor),
-      );
+    color: colors.navyLight,
+    borderRadius: BorderRadiusManager.radiusAll12,
+    border: Border.all(color: colors.borderColor),
+  );
 
   /// Floating navigation bar container.
   static BoxDecoration navBar(AppThemeColors colors) => BoxDecoration(
-        color: colors.surfaceLight,
-        borderRadius: BorderRadiusManager.radiusAll40,
-        boxShadow: navBarShadow,
-      );
+    color: colors.surfaceLight,
+    borderRadius: BorderRadiusManager.radiusAll40,
+    boxShadow: navBarShadow,
+  );
+
+  /// Vertical scrim behind the floating nav bar — fades scrolling page content
+  /// into the background colour instead of letting it cut off abruptly.
+  static BoxDecoration navBarScrim(AppThemeColors colors) => BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        colors.background.withValues(alpha: 0.0),
+        colors.background.withValues(alpha: 0.85),
+        colors.background,
+      ],
+      stops: const [0.0, 0.55, 1.0],
+    ),
+  );
 
   /// Clear-button background pill.
   static BoxDecoration clearButton(AppThemeColors colors) => BoxDecoration(
-        color: colors.borderColor.withValues(alpha: 0.6),
-        borderRadius: BorderRadiusManager.radiusAll8,
-      );
+    color: colors.borderColor.withValues(alpha: 0.6),
+    borderRadius: BorderRadiusManager.radiusAll8,
+  );
 
   /// Toggle-tile icon container — primary tint when active, muted border when off.
-  static BoxDecoration toggleIcon(AppThemeColors colors, {required bool active}) => BoxDecoration(
-        color: active
-            ? AppColors.primary.withValues(alpha: 0.15)
-            : colors.borderColor.withValues(alpha: 0.6),
-        borderRadius: BorderRadiusManager.radiusAll10,
-      );
+  static BoxDecoration toggleIcon(
+    AppThemeColors colors, {
+    required bool active,
+  }) => BoxDecoration(
+    color: active
+        ? AppColors.primary.withValues(alpha: 0.15)
+        : colors.borderColor.withValues(alpha: 0.6),
+    borderRadius: BorderRadiusManager.radiusAll10,
+  );
 
   /// Filter chip — tinted + bordered when selected, plain surface when idle.
   static BoxDecoration filterChip(
     AppThemeColors colors,
     Color color, {
     required bool selected,
-  }) =>
-      BoxDecoration(
-        color: selected ? color.withValues(alpha: 0.18) : colors.surfaceLight,
-        borderRadius: BorderRadiusManager.radiusAll20,
-        border: Border.all(
-          color: selected ? color : colors.borderColor,
-          width: selected ? 1.5 : 0.5,
-        ),
-      );
+  }) => BoxDecoration(
+    color: selected ? color.withValues(alpha: 0.18) : colors.surfaceLight,
+    borderRadius: BorderRadiusManager.radiusAll20,
+    border: Border.all(
+      color: selected ? color : colors.borderColor,
+      width: selected ? 1.5 : 0.5,
+    ),
+  );
 
   /// Bottom-sheet drag handle.
   static BoxDecoration sheetHandle(AppThemeColors colors) => BoxDecoration(
-        color: colors.borderColor,
-        borderRadius: BorderRadiusManager.radiusAll2,
-      );
+    color: colors.borderColor,
+    borderRadius: BorderRadiusManager.radiusAll2,
+  );
 
   /// Animated glow wrapper for focused text fields.
-  static BoxDecoration inputFocusGlow(BorderRadius radius, {required bool focused}) => BoxDecoration(
-        borderRadius: radius,
-        boxShadow: focused ? AppColors.glowShadow(AppColors.primary) : null,
-      );
+  static BoxDecoration inputFocusGlow(
+    BorderRadius radius, {
+    required bool focused,
+  }) => BoxDecoration(
+    borderRadius: radius,
+    boxShadow: focused ? AppColors.glowShadow(AppColors.primary) : null,
+  );
 
   // ─── INPUT DECORATION ──────────────────────────────────────────────────────
 
@@ -377,8 +447,18 @@ class DecorationManager {
       contentPadding: contentPadding,
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
-      hintStyle: hintStyle ?? getRegularTextStyle(fontSize: FontSizesManager.s14, color: colors.textDisabled),
-      labelStyle: labelStyle ?? getRegularTextStyle(fontSize: FontSizesManager.s14, color: colors.textMuted),
+      hintStyle:
+          hintStyle ??
+          getRegularTextStyle(
+            fontSize: FontSizesManager.s14,
+            color: colors.textDisabled,
+          ),
+      labelStyle:
+          labelStyle ??
+          getRegularTextStyle(
+            fontSize: FontSizesManager.s14,
+            color: colors.textMuted,
+          ),
       border: OutlineInputBorder(
         borderRadius: r,
         borderSide: BorderSide(color: colors.borderColor, width: borderWidth),

@@ -11,6 +11,7 @@ import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import '../bloc/auth_cubit.dart';
+import '../widgets/auth_background.dart';
 import '../widgets/auth_button.dart';
 import '../widgets/auth_text_field.dart';
 
@@ -50,8 +51,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: colors.authBackground),
+      body: AuthBackground(
         child: BlocConsumer<AuthCubit, AuthState>(
           listener: (context, state) {
             if (state.status == AuthStatus.authenticated) {
@@ -97,16 +97,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Column(
       children: [
         Container(
-          width: 72,
-          height: 72,
-          decoration: DecorationManager.brandLogo(colors),
-          child: ClipRRect(
+          decoration: BoxDecoration(
             borderRadius: BorderRadiusManager.radiusAll19,
-            child: Image.asset(
-              AssetsManager.logo,
-              width: 72,
-              height: 72,
-              fit: BoxFit.contain,
+            boxShadow: AppColors.glowShadow(AppColors.primary),
+          ),
+          child: Container(
+            width: 72,
+            height: 72,
+            decoration: DecorationManager.brandLogo(colors),
+            child: ClipRRect(
+              borderRadius: BorderRadiusManager.radiusAll19,
+              child: Image.asset(
+                AssetsManager.logo,
+                width: 72,
+                height: 72,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),
@@ -220,13 +226,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
               isLoading: isLoading,
               onPressed: () => _submit(context),
             ),
-          ],
+          ]
+              .animate(interval: 55.ms, delay: 260.ms)
+              .fadeIn(duration: 360.ms, curve: Curves.easeOut)
+              .slideY(begin: 0.16, end: 0, curve: Curves.easeOut),
         ),
       ),
-    )
-        .animate()
-        .fadeIn(duration: 700.ms, delay: 200.ms, curve: Curves.easeOut)
-        .slideY(begin: 0.06, end: 0, duration: 700.ms, delay: 200.ms, curve: Curves.easeOut);
+    ).animate().fadeIn(duration: 500.ms, delay: 100.ms, curve: Curves.easeOut);
   }
 
   Widget _buildSignInLink(BuildContext context, AppThemeColors colors) {

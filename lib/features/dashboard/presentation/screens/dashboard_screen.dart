@@ -177,11 +177,20 @@ class _StatCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 20),
-          SpacesManager.h6,
+          Container(
+            width: 34,
+            height: 34,
+            decoration: DecorationManager.tinted(
+              color,
+              BorderRadiusManager.radiusAll10,
+              alpha: 0.14,
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          SpacesManager.h8,
           Text(value,
               style: getBoldTextStyle(
-                  fontSize: FontSizesManager.s16, color: colors.textPrimary)),
+                  fontSize: FontSizesManager.s18, color: color)),
           SpacesManager.h2,
           Text(label,
               style: getRegularTextStyle(fontSize: FontSizesManager.s10, color: colors.textMuted)),
@@ -234,14 +243,20 @@ class _BlockedRow extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 5,
+            width: 36,
             height: 36,
-            decoration: DecorationManager.colorBar(
+            decoration: DecorationManager.tinted(
               AppColors.statusDanger,
-              radius: BorderRadiusManager.radiusAll3,
+              BorderRadiusManager.radiusAll10,
+              alpha: 0.14,
+            ),
+            child: const Icon(
+              Icons.block_rounded,
+              color: AppColors.statusDanger,
+              size: 18,
             ),
           ),
-          SpacesManager.w10,
+          SpacesManager.w12,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -262,10 +277,14 @@ class _BlockedRow extends StatelessWidget {
             ),
           ),
           if (log.selectedModel.isNotEmpty)
-            Text(
-              log.selectedModel,
-              style: getSemiBoldTextStyle(
-                  fontSize: FontSizesManager.s11, color: AppColors.statusDanger),
+            Container(
+              padding: PaddingManager.paddingH8V3,
+              decoration: DecorationManager.statusBadge(AppColors.statusDanger),
+              child: Text(
+                log.selectedModel,
+                style: getSemiBoldTextStyle(
+                    fontSize: FontSizesManager.s11, color: AppColors.statusDanger),
+              ),
             ),
         ],
       ),
@@ -281,8 +300,8 @@ class _ActiveModelsRow extends StatelessWidget {
     return Padding(
       padding: PaddingManager.paddingHorizontal16,
       child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
+        spacing: PaddingManager.p8,
+        runSpacing: PaddingManager.p8,
         children: _models
             .map((m) => Container(
                   padding: PaddingManager.paddingH12V7,
@@ -293,8 +312,12 @@ class _ActiveModelsRow extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, size: 12, color: AppColors.primary),
-                      SpacesManager.w5,
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: DecorationManager.colorDot(AppColors.accent),
+                      ),
+                      SpacesManager.w6,
                       Text(m,
                           style: getSemiBoldTextStyle(
                               fontSize: FontSizesManager.s12, color: AppColors.primary)),
