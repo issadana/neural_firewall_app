@@ -1,4 +1,5 @@
 import 'package:Sentri/core/constants/assets_manager.dart';
+import 'package:Sentri/core/resources/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -95,7 +96,7 @@ class SettingsScreen extends StatelessWidget {
               const _Divider(),
               _SectionHeader(label: 'Account'),
               const _LogoutTile(),
-              SpacesManager.h40,
+              SpacesManager.h150,
             ],
           ),
         );
@@ -451,20 +452,10 @@ class _AiModelCard extends StatelessWidget {
                         ),
                       ),
                       SpacesManager.h6,
-                      Row(
-                        children: [
-                          _MiniStat(
-                            icon: Icons.verified_rounded,
-                            label: '${model.accuracy} accuracy',
-                            color: accent,
-                          ),
-                          SpacesManager.w6,
-                          _MiniStat(
-                            icon: Icons.memory_rounded,
-                            label: 'On-device',
-                            color: colors.textMuted,
-                          ),
-                        ],
+                      _MiniStat(
+                        icon: Icons.verified_rounded,
+                        label: '${model.accuracy} accuracy',
+                        color: accent,
                       ),
                     ],
                   ),
@@ -474,6 +465,9 @@ class _AiModelCard extends StatelessWidget {
                   value: enabled,
                   onChanged: onChanged,
                   activeTrackColor: accent,
+                  thumbColor: MaterialStateProperty.resolveWith<Color>(
+                    (_) => ColorManager.white,
+                  ),
                 ),
               ],
             ),
@@ -611,12 +605,7 @@ class _AiModelDetailSheet extends StatelessWidget {
                         value: '${model.features}',
                         color: accent,
                       ),
-                      _DetailStat(
-                        icon: Icons.memory_rounded,
-                        label: 'Runs',
-                        value: 'On-device',
-                        color: accent,
-                      ),
+                   
                     ],
                   ),
                   SpacesManager.h20,
