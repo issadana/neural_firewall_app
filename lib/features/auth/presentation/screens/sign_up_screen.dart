@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import '../bloc/auth_cubit.dart';
@@ -70,17 +72,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
             return SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: PaddingManager.paddingHorizontal24,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 56),
+                    SpacesManager.h56,
                     _buildBrand(colors),
-                    const SizedBox(height: 36),
+                    SpacesManager.h36,
                     _buildCard(context, isLoading, colors),
-                    const SizedBox(height: 28),
+                    SpacesManager.h28,
                     _buildSignInLink(context, colors),
-                    const SizedBox(height: 32),
+                    SpacesManager.h32,
                   ],
                 ),
               ),
@@ -108,7 +110,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        SpacesManager.h20,
         Text(
           'Sentri',
           style: getBoldTextStyle(
@@ -117,7 +119,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             letterSpacing: -1.2,
           ),
         ),
-        const SizedBox(height: 12),
+        SpacesManager.h12,
         Image.asset(
           'assets/images/branding/sentri-slogan.png',
           height: 22,
@@ -138,7 +140,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Widget _buildCard(BuildContext context, bool isLoading, AppThemeColors colors) {
     return Container(
-      padding: const EdgeInsets.all(28),
+      padding: PaddingManager.paddingAll28,
       decoration: DecorationManager.surfaceCard(
         colors,
         radius: BorderRadiusManager.radiusAll28,
@@ -157,12 +159,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 letterSpacing: -0.4,
               ),
             ),
-            const SizedBox(height: 4),
+            SpacesManager.h4,
             Text(
               'Protect your network from day one',
               style: getRegularTextStyle(fontSize: FontSizesManager.s13, color: colors.textMuted),
             ),
-            const SizedBox(height: 24),
+            SpacesManager.h24,
             AuthTextField(
               label: 'Full Name',
               hint: 'John Doe',
@@ -174,7 +176,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            SpacesManager.h16,
             AuthTextField(
               label: 'Email',
               hint: 'you@example.com',
@@ -187,7 +189,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            SpacesManager.h16,
             AuthTextField(
               label: 'Password',
               controller: _passwordCtrl,
@@ -199,7 +201,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            SpacesManager.h16,
             AuthTextField(
               label: 'Confirm Password',
               controller: _confirmCtrl,
@@ -212,7 +214,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 28),
+            SpacesManager.h28,
             AuthButton(
               label: 'Create Account',
               isLoading: isLoading,
@@ -239,7 +241,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           onPressed: () => Navigator.of(context).pop(),
           style: TextButton.styleFrom(
             foregroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: PaddingManager.paddingHorizontal8,
           ),
           child: Text(
             'Sign In',

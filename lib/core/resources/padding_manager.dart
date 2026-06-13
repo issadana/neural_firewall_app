@@ -96,6 +96,128 @@ class PaddingManager {
   static const double p4 = 4;
   static const double p8 = 8;
   static const double p2 = 2;
+  static const double p1 = 1;
+  static const double p3 = 3;
+  static const double p5 = 5;
+  static const double p6 = 6;
+  static const double p7 = 7;
+  static const double p9 = 9;
+  static const double p10 = 10;
+  static const double p18 = 18;
+  static const double p26 = 26;
+  static const double p28 = 28;
+  static const double p32 = 32;
+  static const double p48 = 48;
+  static const double p80 = 80;
+
+  // ── Symmetric horizontal paddings ────────────────────────────────────
+  static EdgeInsets paddingHorizontal2 =
+      const EdgeInsets.symmetric(horizontal: 2).w;
+  static EdgeInsets paddingHorizontal5 =
+      const EdgeInsets.symmetric(horizontal: 5).w;
+  static EdgeInsets paddingHorizontal8 =
+      const EdgeInsets.symmetric(horizontal: 8).w;
+  static EdgeInsets paddingHorizontal12 =
+      const EdgeInsets.symmetric(horizontal: 12).w;
+  static EdgeInsets paddingHorizontal14 =
+      const EdgeInsets.symmetric(horizontal: 14).w;
+  static EdgeInsets paddingHorizontal16 =
+      const EdgeInsets.symmetric(horizontal: 16).w;
+  static EdgeInsets paddingHorizontal24 =
+      const EdgeInsets.symmetric(horizontal: 24).w;
+
+  // ── Symmetric vertical paddings ──────────────────────────────────────
+  static EdgeInsets paddingVertical5 =
+      const EdgeInsets.symmetric(vertical: 5).h;
+  static EdgeInsets paddingVertical16 =
+      const EdgeInsets.symmetric(vertical: 16).h;
+  static EdgeInsets paddingVertical40 =
+      const EdgeInsets.symmetric(vertical: 40).h;
+
+  // ── All-side paddings ────────────────────────────────────────────────
+  static EdgeInsets paddingAll3p5 = const EdgeInsets.all(3.5).w;
+  static EdgeInsets paddingAll6 = const EdgeInsets.all(6).w;
+  static EdgeInsets paddingAll12 = const EdgeInsets.all(12).w;
+  static EdgeInsets paddingAll16 = const EdgeInsets.all(16).w;
+  static EdgeInsets paddingAll24 = const EdgeInsets.all(24).w;
+  static EdgeInsets paddingAll28 = const EdgeInsets.all(28).w;
+
+  // ── Symmetric horizontal + vertical paddings ─────────────────────────
+  static EdgeInsets paddingH6V1 =
+      const EdgeInsets.symmetric(horizontal: 6, vertical: 1).w;
+  static EdgeInsets paddingH7V2 =
+      const EdgeInsets.symmetric(horizontal: 7, vertical: 2).w;
+  static EdgeInsets paddingH8V2 =
+      const EdgeInsets.symmetric(horizontal: 8, vertical: 2).w;
+  static EdgeInsets paddingH8V3 =
+      const EdgeInsets.symmetric(horizontal: 8, vertical: 3).w;
+  static EdgeInsets paddingH12V3 =
+      const EdgeInsets.symmetric(horizontal: 12, vertical: 3).w;
+  static EdgeInsets paddingH16V3 =
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 3).w;
+  static EdgeInsets paddingH8V8 =
+      const EdgeInsets.symmetric(horizontal: 8, vertical: 8).w;
+  static EdgeInsets paddingH8V14 =
+      const EdgeInsets.symmetric(horizontal: 8, vertical: 14).w;
+  static EdgeInsets paddingH10V3 =
+      const EdgeInsets.symmetric(horizontal: 10, vertical: 3).w;
+  static EdgeInsets paddingH10V4 =
+      const EdgeInsets.symmetric(horizontal: 10, vertical: 4).w;
+  static EdgeInsets paddingH10V6 =
+      const EdgeInsets.symmetric(horizontal: 10, vertical: 6).w;
+  static EdgeInsets paddingH12V6 =
+      const EdgeInsets.symmetric(horizontal: 12, vertical: 6).w;
+  static EdgeInsets paddingH12V7 =
+      const EdgeInsets.symmetric(horizontal: 12, vertical: 7).w;
+  static EdgeInsets paddingH12V9 =
+      const EdgeInsets.symmetric(horizontal: 12, vertical: 9).w;
+  static EdgeInsets paddingH14V6 =
+      const EdgeInsets.symmetric(horizontal: 14, vertical: 6).w;
+  static EdgeInsets paddingH14V7 =
+      const EdgeInsets.symmetric(horizontal: 14, vertical: 7).w;
+  static EdgeInsets paddingH14V10 =
+      const EdgeInsets.symmetric(horizontal: 14, vertical: 10).w;
+  static EdgeInsets paddingH16V4 =
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 4).w;
+  static EdgeInsets paddingH16V5 =
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 5).w;
+  static EdgeInsets paddingH16V8 =
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 8).w;
+  static EdgeInsets paddingH16V12 =
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 12).w;
+  static EdgeInsets paddingH18V16 =
+      const EdgeInsets.symmetric(horizontal: 18, vertical: 16).w;
+
+  // ── fromLTRB paddings ────────────────────────────────────────────────
+  static EdgeInsets paddingLTRB16_8_16_4 =
+      EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 4.h);
+  static EdgeInsets paddingLTRB16_0_16_12 =
+      EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h);
+  static EdgeInsets paddingLTRB16_12_12_8 =
+      EdgeInsets.fromLTRB(16.w, 12.h, 12.w, 8.h);
+  static EdgeInsets paddingLTRB20_12_20_32 =
+      EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 32.h);
+  static EdgeInsets paddingLTRB16_16_16_8 =
+      EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h);
+  static EdgeInsets paddingLTRB16_20_16_8 =
+      EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 8.h);
+  static EdgeInsets paddingLTRB16_4_16_8 =
+      EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 8.h);
+  static EdgeInsets paddingLTRB16_8_16_8 =
+      EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h);
+  static EdgeInsets paddingLTRB16_14_16_10 =
+      EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 10.h);
+
+  // ── Single / multi-edge paddings ─────────────────────────────────────
+  static EdgeInsets paddingTop4Bottom16 =
+      const EdgeInsets.only(top: 4, bottom: 16).h;
+  static EdgeInsets paddingTop4Bottom24 =
+      const EdgeInsets.only(top: 4, bottom: 24).h;
+  static EdgeInsets paddingBottom32 = const EdgeInsets.only(bottom: 32).h;
+  static EdgeInsets paddingRight8 = const EdgeInsets.only(right: 8).w;
+  static EdgeInsets paddingRight24 = const EdgeInsets.only(right: 24).w;
+  static EdgeInsets bubbleMargin =
+      EdgeInsets.only(top: 4.h, bottom: 4.h, left: 16.w, right: 48.w);
 
   // ── Figma spacing tokens (8pt grid) ──────────────────────────────────
   // Mirrors Spacing/{Non,400,800,...} variables from the NAM design file.

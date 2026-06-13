@@ -2,6 +2,7 @@ import 'package:Sentri/core/enums.dart';
 import 'package:Sentri/core/resources/color_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,7 @@ class StatusBadge extends StatelessWidget {
     };
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      padding: PaddingManager.paddingH7V2,
       decoration: DecorationManager.statusBadge(color),
       child: Text(
         label,

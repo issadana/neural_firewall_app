@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
+import 'package:Sentri/core/widgets/pressable_buttons/app_pressable.dart';
 
 class ThreatFilterBar extends StatelessWidget {
   final String? selectedAction;
@@ -22,7 +25,7 @@ class ThreatFilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: PaddingManager.paddingHorizontal16,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
@@ -32,9 +35,9 @@ class ThreatFilterBar extends StatelessWidget {
             color: AppColors.primary,
             onTap: () => onActionChanged(null),
           ),
-          const SizedBox(width: 8),
+          SpacesManager.w8,
           ..._actions.map((a) => Padding(
-                padding: const EdgeInsets.only(right: 8),
+                padding: PaddingManager.paddingRight8,
                 child: _FilterChip(
                   label: _label(a),
                   selected: selectedAction == a,
@@ -78,11 +81,11 @@ class _FilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    return GestureDetector(
-      onTap: onTap,
+    return AppPressable(
+      onPressed: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: PaddingManager.paddingH14V6,
         decoration: DecorationManager.filterChip(colors, color, selected: selected),
         child: Text(
           label,

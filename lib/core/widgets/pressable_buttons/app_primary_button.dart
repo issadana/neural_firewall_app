@@ -2,11 +2,11 @@ import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/color_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
 import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/widgets/pressable_buttons/app_pressable.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 const double _kDisabledOpacity = 0.45;
@@ -44,7 +44,7 @@ class AppPrimaryButton extends StatelessWidget {
         child: Container(
           height: customHeight ?? 48.h,
           alignment: Alignment.center,
-          padding: EdgeInsets.symmetric(horizontal: 5.w),
+          padding: PaddingManager.paddingHorizontal5,
           decoration: DecorationManager.solidButton(
             color: backgroundColor,
             borderColor: borderColor,
@@ -59,27 +59,27 @@ class AppPrimaryButton extends StatelessWidget {
                   ),
                 )
               : customIcon != null
-                  ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        customIcon!,
-                        SpacesManager.w5,
-                        Text(
-                          label,
-                          style: getMediumTextStyle(
-                            fontSize: FontSizesManager.s16,
-                            color: textColor ?? ColorManager.white,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Text(
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    customIcon!,
+                    SpacesManager.w5,
+                    Text(
                       label,
                       style: getMediumTextStyle(
                         fontSize: FontSizesManager.s16,
                         color: textColor ?? ColorManager.white,
                       ),
                     ),
+                  ],
+                )
+              : Text(
+                  label,
+                  style: getMediumTextStyle(
+                    fontSize: FontSizesManager.s16,
+                    color: textColor ?? ColorManager.white,
+                  ),
+                ),
         ),
       ),
     );

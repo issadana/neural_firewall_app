@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import '../../domain/entities/chat_message.dart';
@@ -45,8 +46,8 @@ class _StreamingBubbleState extends State<StreamingBubble>
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.78,
         ),
-        margin: const EdgeInsets.only(top: 4, bottom: 4, left: 16, right: 48),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        margin: PaddingManager.bubbleMargin,
+        padding: PaddingManager.paddingH14V10,
         decoration: DecorationManager.aiBubble(colors),
         child: content.isEmpty && isStreaming
             ? _ThinkingDots()
@@ -118,7 +119,7 @@ class _ThinkingDotsState extends State<_ThinkingDots>
           children: List.generate(
             3,
             (i) => Container(
-              margin: const EdgeInsets.symmetric(horizontal: 2),
+              margin: PaddingManager.paddingHorizontal2,
               width: 6,
               height: 6,
               decoration: DecorationManager.thinkingDot(dot == i ? 0.9 : 0.3),

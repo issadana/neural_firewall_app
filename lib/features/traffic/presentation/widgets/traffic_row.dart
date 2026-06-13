@@ -7,8 +7,11 @@ import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/color_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
+import 'package:Sentri/core/widgets/pressable_buttons/app_pressable.dart';
 import 'package:Sentri/features/traffic/domain/entities/packet_record.dart';
 
 final _timeFmt   = DateFormat('h:mm a');
@@ -23,10 +26,10 @@ class TrafficRow extends StatelessWidget {
     final statusColor = _statusColor(record.status, colors);
     final bgColor     = _cardBackground(record.status, colors);
 
-    return GestureDetector(
-      onTap: () => _showDetail(context),
+    return AppPressable(
+      onPressed: () => _showDetail(context),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+        margin: PaddingManager.paddingH12V3,
         decoration: DecorationManager.trafficRow(bgColor, colors),
         child: IntrinsicHeight(
           child: Row(
@@ -41,14 +44,14 @@ class TrafficRow extends StatelessWidget {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                  padding: PaddingManager.paddingH12V9,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _headerRow(colors),
-                      const SizedBox(height: 5),
+                      SpacesManager.h5,
                       _addressRow(colors),
-                      const SizedBox(height: 5),
+                      SpacesManager.h5,
                       _metaRow(colors),
                     ],
                   ),
@@ -65,7 +68,7 @@ class TrafficRow extends StatelessWidget {
         children: [
           StatusBadge(record.status),
           if (record.label.isNotEmpty) ...[
-            const SizedBox(width: 6),
+            SpacesManager.w6,
             _ServiceChip(record.label),
           ],
           const Spacer(),
@@ -94,7 +97,7 @@ class TrafficRow extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: PaddingManager.paddingHorizontal8,
             child: Icon(Icons.arrow_forward_rounded, size: 11, color: colors.textDisabled),
           ),
           Expanded(
@@ -115,14 +118,14 @@ class TrafficRow extends StatelessWidget {
   Widget _metaRow(AppThemeColors colors) => Row(
         children: [
           _ProtoChip(_protocolName(record.protocol)),
-          const SizedBox(width: 8),
+          SpacesManager.w8,
           Text(
             _formatSize(record.sizeBytes),
             style: getRegularTextStyle(fontSize: FontSizesManager.s11, color: colors.textDisabled),
           ),
           const Spacer(),
           _ScoreTag('BF', record.bruteForceScore * 100, colors),
-          const SizedBox(width: 8),
+          SpacesManager.w8,
           _ScoreTag('DoS', record.dosScore * 100, colors),
         ],
       );
@@ -176,7 +179,7 @@ class _ProtoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      padding: PaddingManager.paddingH6V1,
       decoration: DecorationManager.protoChip,
       child: Text(
         label,
@@ -197,7 +200,7 @@ class _ServiceChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      padding: PaddingManager.paddingH6V1,
       decoration: DecorationManager.serviceChip,
       child: Text(
         label,
@@ -229,7 +232,7 @@ class _ScoreTag extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text('$label:', style: getRegularTextStyle(fontSize: FontSizesManager.s10, color: colors.textDisabled)),
-        const SizedBox(width: 2),
+        SpacesManager.w2,
         Text(
           '${pct.toStringAsFixed(0)}%',
           style: pct >= 10

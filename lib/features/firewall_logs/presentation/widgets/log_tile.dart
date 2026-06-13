@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import '../../domain/entities/firewall_log.dart';
@@ -17,8 +19,8 @@ class LogTile extends StatelessWidget {
     final actionColor = _actionColor(log.action);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.all(12),
+      margin: PaddingManager.paddingH16V4,
+      padding: PaddingManager.paddingAll12,
       decoration: DecorationManager.surfaceCard(
         colors,
         radius: BorderRadiusManager.radiusAll14,
@@ -33,7 +35,7 @@ class LogTile extends StatelessWidget {
               radius: BorderRadiusManager.radiusAll3,
             ),
           ),
-          const SizedBox(width: 12),
+          SpacesManager.w12,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,26 +55,26 @@ class LogTile extends StatelessWidget {
                     _ActionChip(action: log.action, color: actionColor),
                   ],
                 ),
-                const SizedBox(height: 4),
+                SpacesManager.h4,
                 Row(
                   children: [
                     if (log.serviceName.isNotEmpty) ...[
                       Icon(Icons.public, size: 11, color: colors.textDisabled),
-                      const SizedBox(width: 3),
+                      SpacesManager.w3,
                       Text(log.serviceName,
                           style: getRegularTextStyle(fontSize: FontSizesManager.s11, color: colors.textMuted)),
-                      const SizedBox(width: 10),
+                      SpacesManager.w10,
                     ],
                     if (log.appName.isNotEmpty) ...[
                       Icon(Icons.apps, size: 11, color: colors.textDisabled),
-                      const SizedBox(width: 3),
+                      SpacesManager.w3,
                       Text(log.appName,
                           style: getRegularTextStyle(fontSize: FontSizesManager.s11, color: colors.textMuted)),
-                      const SizedBox(width: 10),
+                      SpacesManager.w10,
                     ],
                     if (log.selectedModel.isNotEmpty) ...[
                       Icon(Icons.memory, size: 11, color: colors.textDisabled),
-                      const SizedBox(width: 3),
+                      SpacesManager.w3,
                       Text(
                         '${log.selectedModel} ${(log.selectedScore * 100).toStringAsFixed(0)}%',
                         style: getRegularTextStyle(fontSize: FontSizesManager.s11, color: colors.textMuted),
@@ -105,7 +107,7 @@ class _ActionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: PaddingManager.paddingH8V3,
       decoration: DecorationManager.tinted(color, BorderRadiusManager.radiusAll8, alpha: 0.14),
       child: Text(
         action.toUpperCase(),

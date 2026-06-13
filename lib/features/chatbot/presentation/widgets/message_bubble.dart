@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import '../../domain/entities/chat_message.dart';
@@ -22,12 +23,12 @@ class MessageBubble extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.78,
         ),
         margin: EdgeInsets.only(
-          top: 4,
-          bottom: 4,
-          left: _isUser ? 48 : 16,
-          right: _isUser ? 16 : 48,
+          top: PaddingManager.p4,
+          bottom: PaddingManager.p4,
+          left: _isUser ? PaddingManager.p48 : PaddingManager.spacing800,
+          right: _isUser ? PaddingManager.spacing800 : PaddingManager.p48,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: PaddingManager.paddingH14V10,
         decoration: _isUser
             ? DecorationManager.userChatBubble
             : DecorationManager.aiBubble(colors),

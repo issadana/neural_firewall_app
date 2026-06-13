@@ -2,18 +2,23 @@ import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:Sentri/core/constants/app_constants.dart';
 import 'package:Sentri/core/constants/assets_manager.dart';
 import 'package:Sentri/core/resources/color_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/core/theme/app_theme.dart';
+import 'package:Sentri/core/widgets/pressable_buttons/app_pressable.dart';
 import 'package:Sentri/features/auth/presentation/bloc/auth_cubit.dart';
 import 'package:Sentri/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:Sentri/features/blacklist/presentation/bloc/blacklist_cubit.dart';
 import 'package:Sentri/features/blacklist/presentation/screens/blacklist_screen.dart';
+import 'package:Sentri/features/chatbot/presentation/screens/nova_chat_screen.dart';
 import 'package:Sentri/features/settings/presentation/bloc/settings_cubit.dart';
 import 'package:Sentri/features/settings/presentation/screens/settings_screen.dart';
 import 'package:Sentri/features/traffic/presentation/screens/home_screen.dart';
@@ -61,7 +66,7 @@ class _SplashLoader extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(AssetsManager.logo, width: 56, height: 56),
-            const SizedBox(height: 24),
+            SpacesManager.h24,
             SizedBox(
               width: 24,
               height: 24,
@@ -121,42 +126,55 @@ class _PremiumNavBar extends StatelessWidget {
         final blockedCount = blacklist.entries.length;
         final bottomInset = MediaQuery.of(context).padding.bottom;
         return Padding(
-          padding: EdgeInsets.only(left: 26, right: 80, bottom: bottomInset + 16),
-          child: Container(
-            decoration: DecorationManager.navBar(colors),
-            child: Padding(
-              padding: const EdgeInsets.all(6.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _NavItem(
-                    index: 0,
-                    currentIndex: currentIndex,
-                    icon: Icons.home_outlined,
-                    activeIcon: Icons.home_rounded,
-                    label: 'Dashboard',
-                    onTap: onTap,
+          padding: EdgeInsets.only(
+            left: PaddingManager.p26.w,
+            right: PaddingManager.p26.w,
+            bottom: bottomInset + PaddingManager.spacing800.h,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: DecorationManager.navBar(colors),
+                  child: Padding(
+                    padding: PaddingManager.paddingAll6,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _NavItem(
+                          index: 0,
+                          currentIndex: currentIndex,
+                          icon: Icons.home_outlined,
+                          activeIcon: Icons.home_rounded,
+                          label: 'Dashboard',
+                          onTap: onTap,
+                        ),
+                        _NavItemWithBadge(
+                          index: 1,
+                          currentIndex: currentIndex,
+                          icon: Icons.block_outlined,
+                          activeIcon: Icons.block_rounded,
+                          label: 'Blacklist',
+                          badgeCount: blockedCount,
+                          onTap: onTap,
+                        ),
+                        _NavItem(
+                          index: 2,
+                          currentIndex: currentIndex,
+                          icon: Icons.settings_outlined,
+                          activeIcon: Icons.settings_rounded,
+                          label: 'Settings',
+                          onTap: onTap,
+                        ),
+                      ],
+                    ),
                   ),
-                  _NavItemWithBadge(
-                    index: 1,
-                    currentIndex: currentIndex,
-                    icon: Icons.block_outlined,
-                    activeIcon: Icons.block_rounded,
-                    label: 'Blacklist',
-                    badgeCount: blockedCount,
-                    onTap: onTap,
-                  ),
-                  _NavItem(
-                    index: 2,
-                    currentIndex: currentIndex,
-                    icon: Icons.settings_outlined,
-                    activeIcon: Icons.settings_rounded,
-                    label: 'Settings',
-                    onTap: onTap,
-                  ),
-                ],
+                ),
               ),
-            ),
+              SpacesManager.w12,
+              const _NovaFab(),
+            ],
           ),
         );
       },
@@ -221,11 +239,14 @@ class _NavItemWithBadge extends StatelessWidget {
       showBadge: badgeCount > 0,
       badgeContent: Text(
         badgeCount > 99 ? '99+' : '$badgeCount',
-        style: getBoldTextStyle(fontSize: FontSizesManager.s9, color: ColorManager.white),
+        style: getBoldTextStyle(
+          fontSize: FontSizesManager.s9,
+          color: ColorManager.white,
+        ),
       ),
-      badgeStyle: const badges.BadgeStyle(
+      badgeStyle: badges.BadgeStyle(
         badgeColor: AppColors.statusDanger,
-        padding: EdgeInsets.all(3.5),
+        padding: PaddingManager.paddingAll3p5,
       ),
       child: Icon(
         isActive ? activeIcon : icon,
@@ -261,13 +282,12 @@ class _NavItemBase extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
+    return AppPressable(
+      onPressed: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: PaddingManager.paddingH12V6,
         decoration: DecorationManager.navItem(isActive),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -278,16 +298,78 @@ class _NavItemBase extends StatelessWidget {
                   size: 20,
                   color: isActive ? AppColors.primary : colors.textDisabled,
                 ),
-            const SizedBox(height: 2),
+            SpacesManager.h2,
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
               style: isActive
-                  ? getSemiBoldTextStyle(fontSize: FontSizesManager.s10, color: AppColors.primary)
-                  : getRegularTextStyle(fontSize: FontSizesManager.s10, color: colors.textDisabled),
+                  ? getSemiBoldTextStyle(
+                      fontSize: FontSizesManager.s10,
+                      color: AppColors.primary,
+                    )
+                  : getRegularTextStyle(
+                      fontSize: FontSizesManager.s10,
+                      color: colors.textDisabled,
+                    ),
               child: Text(label),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Circular launcher for Nova — the Sentri AI assistant. Sits at the
+/// bottom-right of the floating nav bar and opens an instant chat.
+class _NovaFab extends StatelessWidget {
+  const _NovaFab();
+
+  static const double _size = 58;
+
+  void _openNova(BuildContext context) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 300),
+        reverseTransitionDuration: const Duration(milliseconds: 250),
+        pageBuilder: (_, animation, _) => const NovaChatScreen(),
+        transitionsBuilder: (_, animation, _, child) {
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          );
+          return FadeTransition(
+            opacity: curved,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.06),
+                end: Offset.zero,
+              ).animate(curved),
+              child: child,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppPressable(
+      onPressed: () => _openNova(context),
+      child: Container(
+        width: _size.r,
+        height: _size.r,
+        alignment: Alignment.center,
+        decoration: DecorationManager.novaFab,
+        child:
+            Icon(
+                  Icons.auto_awesome_rounded,
+                  color: ColorManager.white,
+                  size: 26.r,
+                )
+                .animate(onPlay: (c) => c.repeat())
+                .shimmer(duration: 2400.ms, color: ColorManager.white)
+                .then(delay: 1600.ms),
       ),
     );
   }

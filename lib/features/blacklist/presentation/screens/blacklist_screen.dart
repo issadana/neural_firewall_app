@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/blacklist/presentation/bloc/blacklist_cubit.dart';
@@ -32,7 +34,7 @@ class BlacklistScreen extends StatelessWidget {
           body: entries.isEmpty
               ? const _EmptyState()
               : ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: PaddingManager.paddingVertical12,
                   physics: const BouncingScrollPhysics(),
                   itemCount: entries.length,
                   itemBuilder: (context, i) {
@@ -119,10 +121,10 @@ class _BlacklistAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Row(
         children: [
           const Text('Blacklist'),
-          const SizedBox(width: 10),
+          SpacesManager.w10,
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: PaddingManager.paddingH8V3,
             decoration: DecorationManager.tinted(
               AppColors.statusDanger,
               BorderRadiusManager.radiusAll20,
@@ -152,7 +154,7 @@ class _BlacklistAppBar extends StatelessWidget implements PreferredSizeWidget {
             label: Text('Clear All', style: getRegularTextStyle(fontSize: FontSizesManager.s13)),
             style: TextButton.styleFrom(foregroundColor: AppColors.statusDanger),
           ),
-        const SizedBox(width: 4),
+        SpacesManager.w4,
       ],
     );
   }
@@ -182,7 +184,7 @@ class _EmptyState extends StatelessWidget {
               color: AppColors.accent.withValues(alpha: 0.7),
             ),
           ),
-          const SizedBox(height: 20),
+          SpacesManager.h20,
           Text(
             'No blocked IPs',
             style: getBoldTextStyle(
@@ -190,7 +192,7 @@ class _EmptyState extends StatelessWidget {
               color: colors.textPrimary,
             ),
           ),
-          const SizedBox(height: 8),
+          SpacesManager.h8,
           Text(
             'IPs are auto-blocked when threats are\ndetected, or tap + to block manually.',
             textAlign: TextAlign.center,

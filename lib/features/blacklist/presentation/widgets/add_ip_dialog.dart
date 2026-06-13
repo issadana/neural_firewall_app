@@ -4,6 +4,8 @@ import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/color_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 
@@ -58,7 +60,7 @@ class _AddIpDialogState extends State<AddIpDialog> {
         side: BorderSide(color: colors.borderColor, width: 0.5),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: PaddingManager.paddingAll24,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +77,7 @@ class _AddIpDialogState extends State<AddIpDialog> {
                   ),
                   child: const Icon(Icons.dns_rounded, color: AppColors.primary, size: 18),
                 ),
-                const SizedBox(width: 12),
+                SpacesManager.w12,
                 Text(
                   widget.title,
                   style: getBoldTextStyle(
@@ -86,7 +88,7 @@ class _AddIpDialogState extends State<AddIpDialog> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            SpacesManager.h20,
             TextField(
               controller: _ipController,
               autofocus: true,
@@ -107,7 +109,7 @@ class _AddIpDialogState extends State<AddIpDialog> {
               onSubmitted: (_) => widget.notesHint == null ? _submit() : null,
             ),
             if (widget.notesHint != null) ...[
-              const SizedBox(height: 12),
+              SpacesManager.h12,
               TextField(
                 controller: _notesController,
                 style: getRegularTextStyle(fontSize: FontSizesManager.s14, color: colors.textPrimary),
@@ -120,7 +122,7 @@ class _AddIpDialogState extends State<AddIpDialog> {
                 onSubmitted: (_) => _submit(),
               ),
             ],
-            const SizedBox(height: 24),
+            SpacesManager.h24,
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -129,7 +131,7 @@ class _AddIpDialogState extends State<AddIpDialog> {
                   style: TextButton.styleFrom(foregroundColor: colors.textMuted),
                   child: const Text('Cancel'),
                 ),
-                const SizedBox(width: 8),
+                SpacesManager.w8,
                 DecoratedBox(
                   decoration: DecorationManager.primaryButtonBox(
                     radius: BorderRadiusManager.radiusAll20,

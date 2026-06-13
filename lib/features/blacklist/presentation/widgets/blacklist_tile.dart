@@ -4,8 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
+import 'package:Sentri/core/widgets/pressable_buttons/app_pressable.dart';
 import 'package:Sentri/features/blacklist/domain/entities/blacklist_entry.dart';
 
 class BlacklistTile extends StatelessWidget {
@@ -22,7 +25,7 @@ class BlacklistTile extends StatelessWidget {
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
+        padding: PaddingManager.paddingRight24,
         decoration: DecorationManager.tinted(
           AppColors.statusDanger,
           BorderRadiusManager.radiusAll16,
@@ -53,13 +56,13 @@ class BlacklistTile extends StatelessWidget {
       },
       onDismissed: (_) => onDelete(),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+        margin: PaddingManager.paddingH16V5,
         decoration: DecorationManager.surfaceCard(
           colors,
           radius: BorderRadiusManager.radiusAll16,
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: PaddingManager.paddingH16V12,
           child: Row(
             children: [
               Container(
@@ -71,7 +74,7 @@ class BlacklistTile extends StatelessWidget {
                 ),
                 child: const Icon(Icons.block_rounded, color: AppColors.statusDanger, size: 18),
               ),
-              const SizedBox(width: 12),
+              SpacesManager.w12,
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,11 +88,11 @@ class BlacklistTile extends StatelessWidget {
                         letterSpacing: 0.3,
                       ),
                     ),
-                    const SizedBox(height: 5),
+                    SpacesManager.h5,
                     Row(
                       children: [
                         _ReasonBadge(reason: entry.reason),
-                        const SizedBox(width: 8),
+                        SpacesManager.w8,
                         Text(
                           DateFormat('MM/dd  HH:mm').format(entry.addedAt),
                           style: getRegularTextStyle(fontSize: FontSizesManager.s11, color: colors.textDisabled),
@@ -101,10 +104,10 @@ class BlacklistTile extends StatelessWidget {
               ),
               if (entry.bruteForceScore != null || entry.dosScore != null) ...[
                 _ScoreBadges(bf: entry.bruteForceScore, dos: entry.dosScore),
-                const SizedBox(width: 8),
+                SpacesManager.w8,
               ],
-              GestureDetector(
-                onTap: onDelete,
+              AppPressable(
+                onPressed: onDelete,
                 child: Container(
                   width: 30,
                   height: 30,
@@ -139,7 +142,7 @@ class _ReasonBadge extends StatelessWidget {
     final label = isManual ? 'Manual' : 'AI Block';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: PaddingManager.paddingH8V3,
       decoration: DecorationManager.tinted(color, BorderRadiusManager.radiusAll6),
       child: Text(
         label,

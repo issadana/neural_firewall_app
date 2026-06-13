@@ -99,6 +99,19 @@ class DecorationManager {
     shape: BoxShape.circle,
   );
 
+  /// Circular Nova AI launcher beside the nav bar — gradient fill with brand glow.
+  static BoxDecoration get novaFab => BoxDecoration(
+        gradient: primaryButton,
+        shape: BoxShape.circle,
+        boxShadow: AppColors.glowShadow(AppColors.primary),
+      );
+
+  /// Gradient avatar disc for Nova (chat header / empty state).
+  static BoxDecoration get novaAvatar => const BoxDecoration(
+        gradient: primaryButton,
+        shape: BoxShape.circle,
+      );
+
   /// Thin vertical bar decoration used in gradient section headers.
   static BoxDecoration get sectionAccentBar => BoxDecoration(
         gradient: sectionAccent,

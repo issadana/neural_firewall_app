@@ -7,6 +7,8 @@ import 'package:Sentri/core/constants/app_constants.dart';
 import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/auth/presentation/bloc/auth_cubit.dart';
@@ -33,7 +35,7 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           body: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: PaddingManager.paddingVertical8,
             physics: const BouncingScrollPhysics(),
             children: [
               _SectionHeader(label: 'Appearance'),
@@ -119,7 +121,7 @@ class SettingsScreen extends StatelessWidget {
               const _Divider(),
               _SectionHeader(label: 'Account'),
               const _LogoutTile(),
-              const SizedBox(height: 40),
+              SpacesManager.h40,
             ],
           ),
         );
@@ -136,7 +138,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+      padding: PaddingManager.paddingLTRB16_20_16_8,
       child: Row(
         children: [
           Container(
@@ -144,7 +146,7 @@ class _SectionHeader extends StatelessWidget {
             height: 14,
             decoration: DecorationManager.sectionAccentBar,
           ),
-          const SizedBox(width: 8),
+          SpacesManager.w8,
           Text(
             label.toUpperCase(),
             style: getBoldTextStyle(
@@ -166,7 +168,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 0.5,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: PaddingManager.paddingHorizontal16,
       color: context.appColors.borderColor,
     );
   }
@@ -191,8 +193,8 @@ class _ThresholdSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+      margin: PaddingManager.paddingH16V5,
+      padding: PaddingManager.paddingLTRB16_14_16_10,
       decoration: DecorationManager.surfaceCard(
         colors,
         radius: BorderRadiusManager.radiusAll20,
@@ -211,7 +213,7 @@ class _ThresholdSlider extends StatelessWidget {
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: PaddingManager.paddingH10V4,
                 decoration: DecorationManager.tinted(
                   color,
                   BorderRadiusManager.radiusAll20,
@@ -268,7 +270,7 @@ class _ToggleTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      margin: PaddingManager.paddingH16V5,
       decoration: DecorationManager.surfaceCard(
         colors,
         radius: BorderRadiusManager.radiusAll16,
@@ -295,7 +297,7 @@ class _ToggleTile extends StatelessWidget {
         subtitle: Text(subtitle, style: getRegularTextStyle(fontSize: FontSizesManager.s12, color: colors.textDisabled)),
         value: value,
         onChanged: onChanged,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        contentPadding: PaddingManager.paddingH16V4,
       ),
     );
   }
@@ -348,8 +350,8 @@ class _NumberFieldState extends State<_NumberField> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: PaddingManager.paddingH16V5,
+      padding: PaddingManager.paddingH16V12,
       decoration: DecorationManager.surfaceCard(
         colors,
         radius: BorderRadiusManager.radiusAll16,
@@ -377,7 +379,7 @@ class _NumberFieldState extends State<_NumberField> {
                 colors,
                 radius: BorderRadiusManager.radiusAll10,
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                contentPadding: PaddingManager.paddingH8V8,
               ),
               onSubmitted: (_) => _submit(),
               onTapOutside: (_) => _submit(),
@@ -397,8 +399,8 @@ class _AboutTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      padding: const EdgeInsets.all(16),
+      margin: PaddingManager.paddingH16V5,
+      padding: PaddingManager.paddingAll16,
       decoration: DecorationManager.surfaceCard(
         colors,
         radius: BorderRadiusManager.radiusAll20,
@@ -417,7 +419,7 @@ class _AboutTile extends StatelessWidget {
                   child: Image.asset(AssetsManager.logo, fit: BoxFit.contain),
                 ),
               ),
-              const SizedBox(width: 12),
+              SpacesManager.w12,
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -436,9 +438,9 @@ class _AboutTile extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SpacesManager.h16,
           Container(height: 0.5, color: colors.borderColor),
-          const SizedBox(height: 12),
+          SpacesManager.h12,
           _AboutRow(label: 'BF Model features', value: '4'),
           _AboutRow(label: 'DoS Model features', value: '5'),
           _AboutRow(
@@ -463,7 +465,7 @@ class _LogoutTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      margin: PaddingManager.paddingH16V5,
       decoration: DecorationManager.surfaceCard(
         colors,
         radius: BorderRadiusManager.radiusAll16,
@@ -522,7 +524,7 @@ class _AboutRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+      padding: PaddingManager.paddingVertical5,
       child: Row(
         children: [
           Text(label, style: getRegularTextStyle(fontSize: FontSizesManager.s13, color: context.appColors.textSecondary)),

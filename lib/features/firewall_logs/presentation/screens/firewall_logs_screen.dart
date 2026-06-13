@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import '../bloc/firewall_logs_cubit.dart';
@@ -56,14 +58,14 @@ class _FirewallLogsScreenState extends State<FirewallLogsScreen> {
         builder: (context, state) {
           return Column(
             children: [
-              const SizedBox(height: 8),
+              SpacesManager.h8,
               ThreatFilterBar(
                 selectedAction: state.filterAction,
                 onActionChanged: (action) =>
                     context.read<FirewallLogsCubit>().applyFilters(action: action),
                 onClear: () => context.read<FirewallLogsCubit>().clearFilters(),
               ),
-              const SizedBox(height: 8),
+              SpacesManager.h8,
               Expanded(child: _buildBody(context, state)),
             ],
           );
@@ -84,10 +86,10 @@ class _FirewallLogsScreenState extends State<FirewallLogsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.error_outline, color: AppColors.statusDanger, size: 40),
-            const SizedBox(height: 12),
+            SpacesManager.h12,
             Text(state.errorMessage ?? 'Failed to load logs',
                 style: TextStyle(color: context.appColors.textMuted)),
-            const SizedBox(height: 16),
+            SpacesManager.h16,
             TextButton(
               onPressed: () => context.read<FirewallLogsCubit>().loadLogs(refresh: true),
               child: const Text('Retry'),
@@ -103,7 +105,7 @@ class _FirewallLogsScreenState extends State<FirewallLogsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.shield_outlined, color: context.appColors.textDisabled, size: 48),
-            const SizedBox(height: 12),
+            SpacesManager.h12,
             Text('No logs found',
                 style: getRegularTextStyle(fontSize: FontSizesManager.s15, color: context.appColors.textMuted)),
           ],
@@ -116,13 +118,13 @@ class _FirewallLogsScreenState extends State<FirewallLogsScreen> {
       child: ListView.builder(
         controller: _scrollCtrl,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.only(top: 4, bottom: 24),
+        padding: PaddingManager.paddingTop4Bottom24,
         itemCount: state.logs.length + (state.hasMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == state.logs.length) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            return Padding(
+              padding: PaddingManager.paddingVertical16,
+              child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
             );
           }
           return LogTile(log: state.logs[index]);

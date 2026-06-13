@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/color_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'app_colors.dart';
 
@@ -109,7 +110,7 @@ class AppTheme {
         ),
         labelStyle: getRegularTextStyle(fontSize: FontSizesManager.s14, color: ColorManager.darkTextMuted),
         hintStyle:  getRegularTextStyle(fontSize: FontSizesManager.s14, color: ColorManager.darkTextDisabled),
-        contentPadding:  const EdgeInsets.all(16),
+        contentPadding:  EdgeInsets.all(PaddingManager.spacing800),
         prefixIconColor: ColorManager.darkTextDisabled,
         suffixIconColor: ColorManager.darkTextMuted,
       ),
@@ -283,7 +284,7 @@ class AppTheme {
         ),
         labelStyle: getRegularTextStyle(fontSize: FontSizesManager.s14, color: ColorManager.lightTextMuted),
         hintStyle:  getRegularTextStyle(fontSize: FontSizesManager.s14, color: ColorManager.lightTextDisabled),
-        contentPadding:  const EdgeInsets.all(16),
+        contentPadding:  EdgeInsets.all(PaddingManager.spacing800),
         prefixIconColor: ColorManager.lightTextDisabled,
         suffixIconColor: ColorManager.lightTextMuted,
       ),

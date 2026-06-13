@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import '../widgets/control_bar.dart';
@@ -18,19 +20,19 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: context.appColors.background,
       body: SafeArea(
-        child: const Column(
+        child: Column(
           children: [
-            ControlBar(),
+            const ControlBar(),
             Expanded(
               child: SingleChildScrollView(
-                physics: BouncingScrollPhysics(),
+                physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
-                    StatsRow(),
-                    ThreatSparkline(),
-                    _TrafficHeader(),
-                    TrafficTable(),
-                    SizedBox(height: 24),
+                    const StatsRow(),
+                    const ThreatSparkline(),
+                    const _TrafficHeader(),
+                    const TrafficTable(),
+                    SpacesManager.h24,
                   ],
                 ),
               ),
@@ -48,7 +50,7 @@ class _TrafficHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: PaddingManager.paddingLTRB16_8_16_4,
       child: Row(
         children: [
           Container(
@@ -59,7 +61,7 @@ class _TrafficHeader extends StatelessWidget {
               radius: BorderRadiusManager.radiusAll2,
             ),
           ),
-          const SizedBox(width: 8),
+          SpacesManager.w8,
           Text(
             'TRAFFIC LOG',
             style: getBoldTextStyle(

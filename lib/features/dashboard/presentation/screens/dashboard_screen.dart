@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/dashboard/presentation/bloc/dashboard_cubit.dart';
@@ -49,16 +51,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         },
         child: ListView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 32),
+          padding: PaddingManager.paddingBottom32,
           children: [
-            const SizedBox(height: 8),
+            SpacesManager.h8,
             const HardwareStatsCard(),
-            const SizedBox(height: 8),
+            SpacesManager.h8,
             _StatsRow(),
-            const SizedBox(height: 16),
+            SpacesManager.h16,
             _SectionHeader(title: 'Recent Blocked'),
             _RecentBlockedList(),
-            const SizedBox(height: 16),
+            SpacesManager.h16,
             _SectionHeader(title: 'Active Models'),
             _ActiveModelsRow(),
           ],
@@ -76,7 +78,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      padding: PaddingManager.paddingLTRB16_4_16_8,
       child: Row(
         children: [
           Container(
@@ -84,7 +86,7 @@ class _SectionHeader extends StatelessWidget {
             height: 14,
             decoration: DecorationManager.sectionAccentBar,
           ),
-          const SizedBox(width: 8),
+          SpacesManager.w8,
           Text(
             title.toUpperCase(),
             style: getBoldTextStyle(
@@ -105,7 +107,7 @@ class _StatsRow extends StatelessWidget {
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: PaddingManager.paddingHorizontal16,
           child: Row(
             children: [
               Expanded(
@@ -116,7 +118,7 @@ class _StatsRow extends StatelessWidget {
                   color: AppColors.primary,
                 ),
               ),
-              const SizedBox(width: 8),
+              SpacesManager.w8,
               Expanded(
                 child: _StatCard(
                   label: 'Blocked',
@@ -125,7 +127,7 @@ class _StatsRow extends StatelessWidget {
                   color: AppColors.statusDanger,
                 ),
               ),
-              const SizedBox(width: 8),
+              SpacesManager.w8,
               Expanded(
                 child: _StatCard(
                   label: 'Warned',
@@ -134,7 +136,7 @@ class _StatsRow extends StatelessWidget {
                   color: AppColors.statusWarning,
                 ),
               ),
-              const SizedBox(width: 8),
+              SpacesManager.w8,
               Expanded(
                 child: _StatCard(
                   label: 'Blacklisted',
@@ -168,7 +170,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      padding: PaddingManager.paddingH8V14,
       decoration: DecorationManager.surfaceCard(
         colors,
         radius: BorderRadiusManager.radiusAll16,
@@ -176,11 +178,11 @@ class _StatCard extends StatelessWidget {
       child: Column(
         children: [
           Icon(icon, color: color, size: 20),
-          const SizedBox(height: 6),
+          SpacesManager.h6,
           Text(value,
               style: getBoldTextStyle(
                   fontSize: FontSizesManager.s16, color: colors.textPrimary)),
-          const SizedBox(height: 2),
+          SpacesManager.h2,
           Text(label,
               style: getRegularTextStyle(fontSize: FontSizesManager.s10, color: colors.textMuted)),
         ],
@@ -201,7 +203,7 @@ class _RecentBlockedList extends StatelessWidget {
 
         if (blocked.isEmpty) {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: PaddingManager.paddingH16V8,
             child: Text('No blocked IPs yet',
                 style: getRegularTextStyle(fontSize: FontSizesManager.s13, color: context.appColors.textDisabled)),
           );
@@ -223,8 +225,8 @@ class _BlockedRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      margin: PaddingManager.paddingH16V3,
+      padding: PaddingManager.paddingH14V10,
       decoration: DecorationManager.surfaceCardBare(
         colors,
         radius: BorderRadiusManager.radiusAll12,
@@ -239,7 +241,7 @@ class _BlockedRow extends StatelessWidget {
               radius: BorderRadiusManager.radiusAll3,
             ),
           ),
-          const SizedBox(width: 10),
+          SpacesManager.w10,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,13 +279,13 @@ class _ActiveModelsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: PaddingManager.paddingHorizontal16,
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
         children: _models
             .map((m) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                  padding: PaddingManager.paddingH12V7,
                   decoration: DecorationManager.coloredChip(
                     AppColors.primary,
                     BorderRadiusManager.radiusAll10,
@@ -292,7 +294,7 @@ class _ActiveModelsRow extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.check_circle, size: 12, color: AppColors.primary),
-                      const SizedBox(width: 5),
+                      SpacesManager.w5,
                       Text(m,
                           style: getSemiBoldTextStyle(
                               fontSize: FontSizesManager.s12, color: AppColors.primary)),

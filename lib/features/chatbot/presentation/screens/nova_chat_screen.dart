@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:Sentri/core/resources/color_manager.dart';
+import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import '../bloc/chat_cubit.dart';
@@ -8,16 +12,16 @@ import '../widgets/chat_input_bar.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/streaming_bubble.dart';
 import '../widgets/suggestion_chips.dart';
-import 'chat_history_screen.dart';
 
-class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+/// Instant chat with Nova — the Sentri AI assistant.
+class NovaChatScreen extends StatefulWidget {
+  const NovaChatScreen({super.key});
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  State<NovaChatScreen> createState() => _NovaChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _NovaChatScreenState extends State<NovaChatScreen> {
   final _scrollCtrl = ScrollController();
 
   @override
@@ -54,23 +58,40 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: colors.background,
         elevation: 0,
         centerTitle: false,
-        title: const Text('Neural Assistant'),
+        titleSpacing: 0,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const _NovaAvatar(size: 34),
+            SpacesManager.w10,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Nova',
+                  style: getBoldTextStyle(fontSize: FontSizesManager.s16, color: colors.textPrimary),
+                ),
+                Text(
+                  'Sentri AI Assistant',
+                  style: getRegularTextStyle(fontSize: FontSizesManager.s11, color: AppColors.accent),
+                ),
+              ],
+            ),
+          ],
+        ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(0.5),
           child: Container(height: 0.5, color: colors.borderColor),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.history_rounded),
-            onPressed: () => Scaffold.of(context).openEndDrawer(),
-          ),
-          IconButton(
             icon: const Icon(Icons.add_comment_outlined),
+            tooltip: 'New chat',
             onPressed: () => context.read<ChatCubit>().startNewChat(),
           ),
         ],
       ),
-      endDrawer: const ChatHistoryScreen(),
       body: BlocConsumer<ChatCubit, ChatState>(
         listener: (context, state) => _scrollToBottom(),
         builder: (context, state) {
@@ -82,7 +103,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     : ListView.builder(
                         controller: _scrollCtrl,
                         physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: PaddingManager.paddingVertical12,
                         itemCount: state.messages.length,
                         itemBuilder: (context, index) {
                           final msg = state.messages[index];
@@ -94,12 +115,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
               ),
               if (!state.isStreaming && state.suggestions.isNotEmpty) ...[
-                const SizedBox(height: 4),
+                SpacesManager.h4,
                 SuggestionChips(
                   suggestions: state.suggestions,
                   onTap: (text) => context.read<ChatCubit>().sendMessage(text),
                 ),
-                const SizedBox(height: 4),
+                SpacesManager.h4,
               ],
               ChatInputBar(
                 disabled: state.isStreaming,
@@ -118,22 +139,44 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.shield_outlined, size: 52, color: colors.textDisabled),
-          const SizedBox(height: 16),
-          Text(
-            'Your AI Security Assistant',
-            style: getSemiBoldTextStyle(fontSize: FontSizesManager.s16, color: colors.textPrimary),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Ask anything about your network activity',
-            style: getRegularTextStyle(fontSize: FontSizesManager.s13, color: colors.textMuted),
-          ),
-        ],
+      child: Padding(
+        padding: PaddingManager.paddingHorizontal24,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const _NovaAvatar(size: 72),
+            SpacesManager.h16,
+            Text(
+              "Hi, I'm Nova",
+              style: getBoldTextStyle(fontSize: FontSizesManager.s18, color: colors.textPrimary),
+            ),
+            SpacesManager.h8,
+            Text(
+              'Your Sentri security assistant. Ask me about threats, blocked IPs, or anything in your network activity.',
+              textAlign: TextAlign.center,
+              style: getRegularTextStyle(fontSize: FontSizesManager.s13, color: colors.textMuted),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+/// Gradient avatar disc with a sparkle — Nova's identity mark.
+class _NovaAvatar extends StatelessWidget {
+  const _NovaAvatar({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: DecorationManager.novaAvatar,
+      child: Icon(Icons.auto_awesome_rounded, color: ColorManager.white, size: size * 0.5),
     );
   }
 }

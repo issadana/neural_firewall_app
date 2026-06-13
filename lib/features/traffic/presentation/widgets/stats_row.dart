@@ -5,6 +5,8 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/dashboard/presentation/bloc/dashboard_cubit.dart';
@@ -17,7 +19,7 @@ class StatsRow extends StatelessWidget {
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, stats) {
         return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: PaddingManager.paddingLTRB16_16_16_8,
           child: Column(
             children: [
               Row(
@@ -29,7 +31,7 @@ class StatsRow extends StatelessWidget {
                     icon: Icons.analytics_rounded,
                     color: AppColors.primary,
                   ),
-                  const SizedBox(width: 12),
+                  SpacesManager.w12,
                   _StatCard(
                     label: 'Blocked',
                     value: stats.ipsBlacklisted.toString(),
@@ -39,7 +41,7 @@ class StatsRow extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              SpacesManager.h12,
               _ThreatGaugeCard(threatPercent: stats.maxThreatPercent),
             ],
           ),
@@ -69,7 +71,7 @@ class _StatCard extends StatelessWidget {
     final colors = context.appColors;
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: PaddingManager.paddingAll16,
         decoration: DecorationManager.surfaceCard(
           colors,
           radius: BorderRadiusManager.radiusAll20,
@@ -91,7 +93,7 @@ class _StatCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: PaddingManager.paddingH8V2,
                   decoration: DecorationManager.tinted(
                     color,
                     BorderRadiusManager.radiusAll20,
@@ -108,7 +110,7 @@ class _StatCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SpacesManager.h12,
             Text(
               value,
               style: getBoldTextStyle(
@@ -117,7 +119,7 @@ class _StatCard extends StatelessWidget {
                 letterSpacing: -1,
               ),
             ),
-            const SizedBox(height: 2),
+            SpacesManager.h2,
             Text(
               subtitle,
               style: getRegularTextStyle(
@@ -151,7 +153,7 @@ class _ThreatGaugeCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: PaddingManager.paddingAll16,
       decoration: DecorationManager.surfaceCard(
         colors,
         radius: BorderRadiusManager.radiusAll20,
@@ -175,7 +177,7 @@ class _ThreatGaugeCard extends StatelessWidget {
             animation: true,
             animationDuration: 600,
           ),
-          const SizedBox(width: 16),
+          SpacesManager.w16,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +185,7 @@ class _ThreatGaugeCard extends StatelessWidget {
                 Row(
                   children: [
                     Icon(Icons.security_rounded, size: 14, color: color),
-                    const SizedBox(width: 6),
+                    SpacesManager.w6,
                     Text(
                       'THREAT LEVEL',
                       style: getBoldTextStyle(
@@ -194,9 +196,9 @@ class _ThreatGaugeCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                SpacesManager.h6,
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  padding: PaddingManager.paddingH10V3,
                   decoration: DecorationManager.tinted(color, BorderRadiusManager.radiusAll20),
                   child: Text(
                     levelLabel,
@@ -207,7 +209,7 @@ class _ThreatGaugeCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 4),
+                SpacesManager.h4,
                 Text(
                   'Highest score detected',
                   style: getRegularTextStyle(fontSize: FontSizesManager.s12, color: colors.textDisabled),

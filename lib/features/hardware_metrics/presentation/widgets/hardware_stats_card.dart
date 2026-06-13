@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import '../bloc/hardware_metrics_cubit.dart';
@@ -16,8 +18,8 @@ class HardwareStatsCard extends StatelessWidget {
       builder: (context, state) {
         final s = state.latest;
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: const EdgeInsets.all(16),
+          margin: PaddingManager.paddingH16V8,
+          padding: PaddingManager.paddingAll16,
           decoration: DecorationManager.surfaceCard(
             context.appColors,
             radius: BorderRadiusManager.radiusAll20,
@@ -100,13 +102,13 @@ class _Stat extends StatelessWidget {
     return Column(
       children: [
         Icon(icon, color: color, size: 20),
-        const SizedBox(height: 6),
+        SpacesManager.h6,
         Text(value,
             style: getBoldTextStyle(fontSize: FontSizesManager.s16, color: color)),
         if (subtitle != null)
           Text(subtitle!,
               style: getRegularTextStyle(fontSize: FontSizesManager.s10, color: colors.textDisabled)),
-        const SizedBox(height: 2),
+        SpacesManager.h2,
         Text(label, style: getRegularTextStyle(fontSize: FontSizesManager.s11, color: colors.textMuted)),
       ],
     );
@@ -119,7 +121,7 @@ class _Divider extends StatelessWidget {
     return Container(
       width: 0.5,
       height: 50,
-      margin: const EdgeInsets.symmetric(horizontal: 8),
+      margin: PaddingManager.paddingHorizontal8,
       color: context.appColors.borderColor,
     );
   }

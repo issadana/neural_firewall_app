@@ -7,6 +7,8 @@ import 'package:Sentri/core/enums.dart';
 import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/traffic/presentation/bloc/traffic_bloc.dart';
@@ -25,7 +27,7 @@ class TrafficTable extends StatelessWidget {
         }
         final records = traffic.records.toList();
         return ListView.builder(
-          padding: const EdgeInsets.only(top: 4, bottom: 16),
+          padding: PaddingManager.paddingTop4Bottom16,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: records.length,
@@ -54,7 +56,7 @@ class _EmptyState extends StatelessWidget {
           return const _ShimmerCards();
         }
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 40),
+          padding: PaddingManager.paddingVertical40,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -72,7 +74,7 @@ class _EmptyState extends StatelessWidget {
                   color: colors.textDisabled,
                 ),
               ),
-              const SizedBox(height: 16),
+              SpacesManager.h16,
               Text(
                 'No traffic captured',
                 style: getSemiBoldTextStyle(
@@ -80,7 +82,7 @@ class _EmptyState extends StatelessWidget {
                   color: colors.textSecondary,
                 ),
               ),
-              const SizedBox(height: 6),
+              SpacesManager.h6,
               Text(
                 'Tap START to begin monitoring',
                 style: getRegularTextStyle(fontSize: FontSizesManager.s13, color: colors.textDisabled),
@@ -106,13 +108,13 @@ class _ShimmerCards extends StatelessWidget {
       baseColor: colors.surfaceLight,
       highlightColor: colors.borderColor,
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: PaddingManager.paddingVertical8,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: 7,
         itemBuilder: (_, _) => Container(
           height: 70,
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+          margin: PaddingManager.paddingH12V3,
           decoration: DecorationManager.surfaceCardBare(
             colors,
             radius: BorderRadiusManager.radiusAll12,

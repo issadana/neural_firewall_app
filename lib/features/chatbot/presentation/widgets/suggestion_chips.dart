@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
+import 'package:Sentri/core/widgets/pressable_buttons/app_pressable.dart';
 
 class SuggestionChips extends StatelessWidget {
   final List<String> suggestions;
@@ -21,15 +24,15 @@ class SuggestionChips extends StatelessWidget {
       height: 36,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: PaddingManager.paddingHorizontal16,
         itemCount: suggestions.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => SpacesManager.w8,
         itemBuilder: (_, index) {
           final text = suggestions[index];
-          return GestureDetector(
-            onTap: () => onTap(text),
+          return AppPressable(
+            onPressed: () => onTap(text),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              padding: PaddingManager.paddingH14V7,
               decoration: DecorationManager.suggestionChip,
               child: Text(
                 text,

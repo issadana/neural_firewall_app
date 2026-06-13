@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/core/constants/assets_manager.dart';
@@ -61,17 +63,17 @@ class _SignInScreenState extends State<SignInScreen> {
 
             return SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: PaddingManager.paddingHorizontal24,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 64),
+                    SpacesManager.h64,
                     _buildBrand(colors),
-                    const SizedBox(height: 44),
+                    SpacesManager.h44,
                     _buildCard(context, isLoading, colors),
-                    const SizedBox(height: 28),
+                    SpacesManager.h28,
                     _buildSignUpLink(context, colors),
-                    const SizedBox(height: 32),
+                    SpacesManager.h32,
                   ],
                 ),
               ),
@@ -99,7 +101,7 @@ class _SignInScreenState extends State<SignInScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        SpacesManager.h20,
         Text(
           'Sentri',
           style: getBoldTextStyle(
@@ -117,7 +119,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   Widget _buildCard(BuildContext context, bool isLoading, AppThemeColors colors) {
     return Container(
-      padding: const EdgeInsets.all(28),
+      padding: PaddingManager.paddingAll28,
       decoration: DecorationManager.surfaceCard(
         colors,
         radius: BorderRadiusManager.radiusAll28,
@@ -136,12 +138,12 @@ class _SignInScreenState extends State<SignInScreen> {
                 letterSpacing: -0.4,
               ),
             ),
-            const SizedBox(height: 4),
+            SpacesManager.h4,
             Text(
               'Sign in to your account',
               style: getRegularTextStyle(fontSize: FontSizesManager.s13, color: colors.textMuted),
             ),
-            const SizedBox(height: 24),
+            SpacesManager.h24,
             AuthTextField(
               label: 'Email',
               hint: 'you@example.com',
@@ -154,7 +156,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            SpacesManager.h16,
             AuthTextField(
               label: 'Password',
               controller: _passwordCtrl,
@@ -167,7 +169,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 28),
+            SpacesManager.h28,
             AuthButton(
               label: 'Unlock',
               isLoading: isLoading,
@@ -205,7 +207,7 @@ class _SignInScreenState extends State<SignInScreen> {
           },
           style: TextButton.styleFrom(
             foregroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: PaddingManager.paddingHorizontal8,
           ),
           child: Text(
             'Sign Up',

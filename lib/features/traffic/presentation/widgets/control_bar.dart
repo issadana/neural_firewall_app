@@ -7,8 +7,11 @@ import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/color_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
+import 'package:Sentri/core/widgets/pressable_buttons/app_pressable.dart';
 import 'package:Sentri/features/traffic/presentation/bloc/traffic_bloc.dart';
 import 'package:Sentri/features/vpn/presentation/bloc/vpn_cubit.dart';
 
@@ -24,12 +27,12 @@ class ControlBar extends StatelessWidget {
         final isStarting = vpn.status == VpnStatus.starting;
 
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: PaddingManager.paddingH16V12,
           decoration: DecorationManager.bottomBorder(colors),
           child: Row(
             children: [
               _VpnStatusDot(status: vpn.status),
-              const SizedBox(width: 10),
+              SpacesManager.w10,
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,7 +57,7 @@ class ControlBar extends StatelessWidget {
                 ),
               ),
               _ClearButton(),
-              const SizedBox(width: 8),
+              SpacesManager.w8,
               _StartStopButton(isRunning: isRunning, isStarting: isStarting),
             ],
           ),
@@ -126,16 +129,16 @@ class _ClearButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    return GestureDetector(
-      onTap: () => context.read<TrafficBloc>().add(const ClearLogsEvent()),
+    return AppPressable(
+      onPressed: () => context.read<TrafficBloc>().add(const ClearLogsEvent()),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: PaddingManager.paddingH10V6,
         decoration: DecorationManager.clearButton(colors),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.clear_all_rounded, size: 14, color: colors.textDisabled),
-            const SizedBox(width: 4),
+            SpacesManager.w4,
             Text(
               'Clear',
               style: getMediumTextStyle(
@@ -179,8 +182,8 @@ class _StartStopButton extends StatelessWidget {
     final label = isRunning ? 'Stop' : 'Start';
     final icon = isRunning ? Icons.stop_rounded : Icons.play_arrow_rounded;
 
-    return GestureDetector(
-      onTap: () {
+    return AppPressable(
+      onPressed: () {
         if (isRunning) {
           context.read<VpnCubit>().stop();
           context.read<TrafficBloc>().add(const StopListeningEvent());
@@ -191,13 +194,13 @@ class _StartStopButton extends StatelessWidget {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: PaddingManager.paddingH16V8,
         decoration: DecorationManager.colorButton(bgColor, radius: BorderRadiusManager.radiusAll20),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 16, color: ColorManager.white),
-            const SizedBox(width: 4),
+            SpacesManager.w4,
             Text(
               label,
               style: getBoldTextStyle(

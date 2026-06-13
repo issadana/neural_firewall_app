@@ -3,8 +3,11 @@ import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/color_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
+import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
+import 'package:Sentri/core/widgets/pressable_buttons/app_pressable.dart';
 
 class ChatInputBar extends StatefulWidget {
   final bool disabled;
@@ -40,7 +43,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: PaddingManager.paddingLTRB16_8_16_8,
       decoration: DecorationManager.topBorder(colors),
       child: SafeArea(
         top: false,
@@ -60,17 +63,17 @@ class _ChatInputBarState extends State<ChatInputBar> {
                   hintText: 'Ask about your security…',
                   radius: BorderRadiusManager.radiusAll20,
                   isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  contentPadding: PaddingManager.paddingH14V10,
                   borderWidth: 0.5,
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            SpacesManager.w8,
             AnimatedOpacity(
               opacity: widget.disabled ? 0.4 : 1.0,
               duration: const Duration(milliseconds: 200),
-              child: GestureDetector(
-                onTap: widget.disabled ? null : _submit,
+              child: AppPressable(
+                onPressed: widget.disabled ? null : _submit,
                 child: Container(
                   width: 40,
                   height: 40,

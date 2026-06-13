@@ -1,7 +1,17 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'core/constants/api_constants.dart';
+import 'core/constants/app_constants.dart';
 import 'core/widgets/navigation_bar/app.dart';
+import 'features/chatbot/data/datasources/chatbot_remote_datasource.dart';
+import 'features/chatbot/data/repositories/chatbot_repository_impl.dart';
+import 'features/chatbot/domain/usecases/delete_session_usecase.dart';
+import 'features/chatbot/domain/usecases/get_digest_usecase.dart';
+import 'features/chatbot/domain/usecases/get_session_messages_usecase.dart';
+import 'features/chatbot/domain/usecases/send_message_usecase.dart';
+import 'features/chatbot/presentation/bloc/chat_cubit.dart';
 import 'features/auth/data/datasources/auth_local_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/usecases/check_auth_status_usecase.dart';
@@ -89,6 +99,23 @@ void main() async {
     blacklistCubit: blacklistCubit,
   );
 
+  // ── Nova chatbot ─────────────────────────────────────────────────────────────
+  final chatDio = Dio(
+    BaseOptions(
+      baseUrl: ApiConstants.baseUrl,
+      connectTimeout: AppConstants.connectTimeout,
+      receiveTimeout: AppConstants.receiveTimeout,
+      sendTimeout: AppConstants.sendTimeout,
+    ),
+  );
+  final chatbotRepo = ChatbotRepositoryImpl(ChatbotRemoteDataSource(chatDio));
+  final chatCubit = ChatCubit(
+    sendMessage: SendMessageUseCase(chatbotRepo),
+    getDigest: GetDigestUseCase(chatbotRepo),
+    getSessionMessages: GetSessionMessagesUseCase(chatbotRepo),
+    deleteSession: DeleteSessionUseCase(chatbotRepo),
+  );
+
   runApp(
     MultiBlocProvider(
       providers: [
@@ -106,6 +133,7 @@ void main() async {
         BlocProvider.value(value: dashboardCubit),
         BlocProvider.value(value: blacklistCubit),
         BlocProvider(create: (_) => SettingsCubit(prefs)),
+        BlocProvider.value(value: chatCubit),
       ],
       child: const SentriApp(),
     ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:Sentri/core/resources/border_radius_manager.dart';
 import 'package:Sentri/core/resources/decoration_manager.dart';
 import 'package:Sentri/core/resources/font_manager.dart';
+import 'package:Sentri/core/resources/padding_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 
@@ -75,7 +76,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
           labelText: widget.label,
           hintText: widget.hint,
           radius: BorderRadiusManager.radiusAll14,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          contentPadding: PaddingManager.paddingH18V16,
           labelStyle: getRegularTextStyle(
             fontSize: FontSizesManager.s14,
             color: _isFocused ? AppColors.primary : colors.textMuted,
