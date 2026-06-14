@@ -87,9 +87,21 @@ class ThreatSparkline extends StatelessWidget {
             spots: spots,
             isCurved: true,
             curveSmoothness: 0.35,
-            color: AppColors.statusDanger,
-            barWidth: 2,
-            dotData: const FlDotData(show: false),
+            gradient: const LinearGradient(
+              colors: [AppColors.statusWarning, AppColors.statusDanger],
+            ),
+            barWidth: 2.5,
+            dotData: FlDotData(
+              show: true,
+              // Only the most recent point gets a marker — a live "now" pulse.
+              checkToShowDot: (spot, _) => spot.x == spots.last.x,
+              getDotPainter: (spot, _, _, _) => FlDotCirclePainter(
+                radius: 3,
+                color: AppColors.statusDanger,
+                strokeWidth: 1.5,
+                strokeColor: colors.surfaceLight,
+              ),
+            ),
             belowBarData: BarAreaData(
               show: true,
               gradient: DecorationManager.threatSparkline,

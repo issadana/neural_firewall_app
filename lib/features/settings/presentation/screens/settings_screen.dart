@@ -82,6 +82,16 @@ class SettingsScreen extends StatelessWidget {
                       context.read<SettingsCubit>().toggleModel(model.id, v),
                   onTap: () => _showModelDetails(context, model),
                 ),
+              _ToggleTile(
+                icon: Icons.policy_rounded,
+                label: 'Scan system traffic',
+                subtitle:
+                    'Also run OS & system-app traffic through the AI models. '
+                    'More thorough, uses a little more battery.',
+                value: state.scanSystemTraffic,
+                onChanged: (v) =>
+                    context.read<SettingsCubit>().toggleScanSystemTraffic(v),
+              ),
               const _Divider(),
               _SectionHeader(label: 'Log Settings'),
               _NumberField(

@@ -19,6 +19,7 @@ import 'package:Sentri/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:Sentri/features/blacklist/presentation/bloc/blacklist_cubit.dart';
 import 'package:Sentri/features/blacklist/presentation/screens/blacklist_screen.dart';
 import 'package:Sentri/features/chatbot/presentation/screens/nova_chat_screen.dart';
+import 'package:Sentri/features/dashboard/presentation/screens/dashboard_tabs_screen.dart';
 import 'package:Sentri/features/settings/presentation/bloc/settings_cubit.dart';
 import 'package:Sentri/features/settings/presentation/screens/settings_screen.dart';
 import 'package:Sentri/features/traffic/presentation/screens/home_screen.dart';
@@ -94,6 +95,7 @@ class _AppShellState extends State<_AppShell> {
 
   static const _screens = <Widget>[
     HomeScreen(),
+    DashboardTabsScreen(),
     BlacklistScreen(),
     SettingsScreen(),
   ];
@@ -128,10 +130,10 @@ class _PremiumNavBar extends StatelessWidget {
         return Container(
           decoration: DecorationManager.navBarScrim(colors),
           padding: EdgeInsets.only(
-            top: PaddingManager.spacing2000.h,
-            left: PaddingManager.p26.w,
-            right: PaddingManager.p26.w,
-            bottom: bottomInset + PaddingManager.spacing800.h,
+            top: PaddingManager.spacing1000.h,
+            left: PaddingManager.p10.w,
+            right: PaddingManager.p10.w,
+            bottom: bottomInset + PaddingManager.spacing600.h,
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -149,13 +151,23 @@ class _PremiumNavBar extends StatelessWidget {
                             currentIndex: currentIndex,
                             icon: Icons.home_outlined,
                             activeIcon: Icons.home_rounded,
-                            label: 'Dashboard',
+                            label: 'Home',
+                            onTap: onTap,
+                          ),
+                        ),
+                        Expanded(
+                          child: _NavItem(
+                            index: 1,
+                            currentIndex: currentIndex,
+                            icon: Icons.dashboard_outlined,
+                            activeIcon: Icons.dashboard_rounded,
+                            label: 'Portal',
                             onTap: onTap,
                           ),
                         ),
                         Expanded(
                           child: _NavItemWithBadge(
-                            index: 1,
+                            index: 2,
                             currentIndex: currentIndex,
                             icon: Icons.block_outlined,
                             activeIcon: Icons.block_rounded,
@@ -166,7 +178,7 @@ class _PremiumNavBar extends StatelessWidget {
                         ),
                         Expanded(
                           child: _NavItem(
-                            index: 2,
+                            index: 3,
                             currentIndex: currentIndex,
                             icon: Icons.settings_outlined,
                             activeIcon: Icons.settings_rounded,
@@ -179,7 +191,7 @@ class _PremiumNavBar extends StatelessWidget {
                   ),
                 ),
               ),
-              SpacesManager.w12,
+              SpacesManager.w10,
               const _NovaFab(),
             ],
           ),
@@ -333,7 +345,7 @@ class _NavItemBase extends StatelessWidget {
 class _NovaFab extends StatelessWidget {
   const _NovaFab();
 
-  static const double _size = 58;
+  static const double _size = 50;
 
   void _openNova(BuildContext context) {
     Navigator.of(context).push(

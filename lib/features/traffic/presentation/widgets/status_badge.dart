@@ -17,6 +17,7 @@ class StatusBadge extends StatelessWidget {
       PacketStatus.aiBlock => ('BLOCK',  AppColors.statusDanger),
       PacketStatus.warn    => ('WARN',   AppColors.statusWarning),
       PacketStatus.safe    => ('SAFE',   AppColors.statusNormal),
+      PacketStatus.system  => ('SYSTEM', ColorManager.serviceCyan),
       PacketStatus.tcp     => ('TCP',    AppColors.accentBlue),
       PacketStatus.quic    => ('QUIC',   ColorManager.quicPurple),
       PacketStatus.ping    => ('PING',   AppColors.statusWarning),

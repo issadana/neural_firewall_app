@@ -10,6 +10,11 @@ class SettingsState extends Equatable {
   /// A missing key is treated as enabled (see [isModelEnabled]).
   final Map<String, bool> models;
 
+  /// When true, OS/system-owned traffic is also sent through the ML models
+  /// instead of being fast-tracked with a `System` label. Off by default —
+  /// benign system chatter is bypassed to save battery and reduce noise.
+  final bool scanSystemTraffic;
+
   final int maxLogEntries;
   final bool darkMode;
 
@@ -17,6 +22,7 @@ class SettingsState extends Equatable {
     this.blockThreshold = AppConstants.defaultBlockThreshold,
     this.warnThreshold = AppConstants.defaultWarnThreshold,
     this.models = const {},
+    this.scanSystemTraffic = false,
     this.maxLogEntries = 200,
     this.darkMode = true,
   });
@@ -33,6 +39,7 @@ class SettingsState extends Equatable {
     double? blockThreshold,
     double? warnThreshold,
     Map<String, bool>? models,
+    bool? scanSystemTraffic,
     int? maxLogEntries,
     bool? darkMode,
   }) {
@@ -40,6 +47,7 @@ class SettingsState extends Equatable {
       blockThreshold: blockThreshold ?? this.blockThreshold,
       warnThreshold: warnThreshold ?? this.warnThreshold,
       models: models ?? this.models,
+      scanSystemTraffic: scanSystemTraffic ?? this.scanSystemTraffic,
       maxLogEntries: maxLogEntries ?? this.maxLogEntries,
       darkMode: darkMode ?? this.darkMode,
     );
@@ -50,6 +58,7 @@ class SettingsState extends Equatable {
         blockThreshold,
         warnThreshold,
         models,
+        scanSystemTraffic,
         maxLogEntries,
         darkMode,
       ];

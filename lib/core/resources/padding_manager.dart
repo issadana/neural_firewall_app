@@ -209,6 +209,7 @@ class PaddingManager {
       EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 10.h);
 
   // ── Single / multi-edge paddings ─────────────────────────────────────
+  static EdgeInsets paddingTop4 = const EdgeInsets.only(top: 4).h;
   static EdgeInsets paddingTop4Bottom16 =
       const EdgeInsets.only(top: 4, bottom: 16).h;
   static EdgeInsets paddingTop4Bottom24 =

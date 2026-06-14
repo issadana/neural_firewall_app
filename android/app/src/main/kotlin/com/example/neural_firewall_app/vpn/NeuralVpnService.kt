@@ -178,6 +178,10 @@ class NeuralVpnService : VpnService() {
     // so we can show "YouTube" instead of "142.250.74.78" in the UI.
     private val dnsCache = DnsCache()
 
+    // appResolver maps a connection to its owning app/uid so we can attribute
+    // traffic and flag OS/system flows (used to bypass ML for benign chatter).
+    private val appResolver by lazy { AppResolver(this) }
+
     // ── TCP Connection Tracking ───────────────────────────────────────────────
     //
     // TCP is stateful — each connection needs a persistent socket to the server
@@ -371,6 +375,17 @@ class NeuralVpnService : VpnService() {
                     // flowTracker.update() returns fresh IAT statistics for this flow.
                     val flowStats = flowTracker.update(parsed)
 
+                    // Resolve the owning app/uid of this outbound connection so
+                    // Flutter can attribute the flow and bypass ML for benign
+                    // OS/system traffic. Empty / isSystem=false when unknown.
+                    val owner = appResolver.resolve(
+                        parsed.protocol,
+                        parsed.srcIp,
+                        parsed.srcPort,
+                        parsed.dstIp,
+                        parsed.dstPort,
+                    )
+
                     // Build the enriched map that we send to Flutter.
                     // Flutter receives this as a Map<String, Any> via the EventChannel.
                     val enriched = mapOf(
@@ -387,6 +402,9 @@ class NeuralVpnService : VpnService() {
                         "flowIatStd"   to flowStats.iatStd,    // ML feature: IAT standard deviation
                         "flowDuration" to flowStats.duration,  // how long this flow has been alive
                         "label"        to dnsCache.serviceLabel(parsed.dstIp), // e.g. "YouTube"
+                        "appName"      to owner.appName,       // owning app label, e.g. "Chrome"
+                        "appPackage"   to owner.appPackage,    // owning package, e.g. "com.android.chrome"
+                        "isSystem"     to owner.isSystem,      // true for OS/system-owned traffic
                         "isBlocked"    to false                // not blocked at network level
                     )
 
@@ -551,6 +569,11 @@ class NeuralVpnService : VpnService() {
 
                                 // Also emit this as an INBOUND event to Flutter.
                                 // This lets the UI show traffic flowing from the server TO the device.
+                                // Owner is resolved with the OUTBOUND orientation so it hits the
+                                // flow cache populated by the read loop — no extra binder call.
+                                val owner = appResolver.resolve(
+                                    6, parsed.srcIp, parsed.srcPort, parsed.dstIp, parsed.dstPort,
+                                )
                                 val inboundEvent = mapOf(
                                     "id"           to "in_${System.nanoTime()}",
                                     "srcIp"        to parsed.dstIp,   // server is the source
@@ -564,7 +587,10 @@ class NeuralVpnService : VpnService() {
                                     "flowIatMean"  to 0.0,
                                     "flowIatStd"   to 0.0,
                                     "flowDuration" to 0L,
-                                    "label"        to dnsCache.serviceLabel(parsed.dstIp)
+                                    "label"        to dnsCache.serviceLabel(parsed.dstIp),
+                                    "appName"      to owner.appName,
+                                    "appPackage"   to owner.appPackage,
+                                    "isSystem"     to owner.isSystem
                                 )
                                 withContext(Dispatchers.Main) { eventSink?.invoke(inboundEvent) }
                             }
@@ -711,7 +737,11 @@ class NeuralVpnService : VpnService() {
                 payload = respPayload
             ))
 
-            // Emit an inbound event to Flutter so the UI shows the server's response
+            // Emit an inbound event to Flutter so the UI shows the server's response.
+            // Owner uses the outbound orientation to reuse the cached flow lookup.
+            val owner = appResolver.resolve(
+                17, parsed.srcIp, parsed.srcPort, parsed.dstIp, parsed.dstPort,
+            )
             val inboundEvent = mapOf(
                 "id"           to "in_${System.nanoTime()}",
                 "srcIp"        to parsed.dstIp,   // server is the source
@@ -725,7 +755,10 @@ class NeuralVpnService : VpnService() {
                 "flowIatMean"  to 0.0,
                 "flowIatStd"   to 0.0,
                 "flowDuration" to 0L,
-                "label"        to dnsCache.serviceLabel(parsed.dstIp)
+                "label"        to dnsCache.serviceLabel(parsed.dstIp),
+                "appName"      to owner.appName,
+                "appPackage"   to owner.appPackage,
+                "isSystem"     to owner.isSystem
             )
             withContext(Dispatchers.Main) { eventSink?.invoke(inboundEvent) }
 

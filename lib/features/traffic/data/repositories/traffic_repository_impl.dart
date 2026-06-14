@@ -16,7 +16,22 @@ class TrafficRepositoryImpl implements TrafficRepository {
 
   double _blockThreshold;
   double _warnThreshold;
+  bool _scanSystemTraffic;
   int _packetCounter = 0;
+
+  /// Cheap safety net for the system-traffic bypass: counts packets per
+  /// destination within a 1-second window. If a "trusted" system source starts
+  /// flooding a destination, the bypass is revoked and the flow is sent to ML.
+  final _RateGuard _systemRateGuard = _RateGuard(1000);
+
+  /// Destination ports for ubiquitous, benign OS chatter (DNS, NTP, web,
+  /// push, local discovery). Only system-owned traffic to these is bypassed.
+  static const Set<int> _benignSystemPorts = {
+    53, 67, 68, 80, 123, 443, 853, 1900, 5228, 5353,
+  };
+
+  bool _isBenignSystemDestination(int dstPort) =>
+      _benignSystemPorts.contains(dstPort);
 
   TrafficRepositoryImpl({
     required BlacklistRepository blacklistRepository,
@@ -24,11 +39,13 @@ class TrafficRepositoryImpl implements TrafficRepository {
     required VpnNativeDataSource vpnDataSource,
     double blockThreshold = 0.20,
     double warnThreshold = 0.10,
+    bool scanSystemTraffic = false,
   })  : _blacklistRepository = blacklistRepository,
         _mlDataSource = mlDataSource,
         _vpnDataSource = vpnDataSource,
         _blockThreshold = blockThreshold,
-        _warnThreshold = warnThreshold;
+        _warnThreshold = warnThreshold,
+        _scanSystemTraffic = scanSystemTraffic;
 
   @override
   Future<PacketRecord> processPacket(Map<String, dynamic> rawPacket) async {
@@ -44,6 +61,9 @@ class TrafficRepositoryImpl implements TrafficRepository {
       final sizeBytes = rawPacket['sizeBytes'] as int? ?? 0;
       final flags = rawPacket['flags'] as int? ?? 0;
       final label = rawPacket['label'] as String? ?? '';
+      final appName = rawPacket['appName'] as String? ?? '';
+      final appPackage = rawPacket['appPackage'] as String? ?? '';
+      final isSystem = rawPacket['isSystem'] as bool? ?? false;
 
       final protocol = ProtocolHelper.parseProtocol(protocolNum);
 
@@ -63,6 +83,10 @@ class TrafficRepositoryImpl implements TrafficRepository {
           timestamp: DateTime.now(),
           isBlacklisted: true,
           label: label,
+          serviceName: label,
+          appName: appName,
+          appPackage: appPackage,
+          isSystem: isSystem,
         );
       }
 
@@ -82,6 +106,47 @@ class TrafficRepositoryImpl implements TrafficRepository {
           timestamp: DateTime.now(),
           isBlacklisted: false,
           label: label,
+          serviceName: label,
+          appName: appName,
+          appPackage: appPackage,
+          isSystem: isSystem,
+        );
+      }
+
+      // System-owned traffic to a well-known benign service: skip ML inference
+      // to save battery and cut UI noise. We still run a cheap per-destination
+      // rate heuristic so a compromised system component flooding a target is
+      // not handed a free pass — if it trips, we fall through to full scoring.
+      if (isSystem &&
+          !_scanSystemTraffic &&
+          _isBenignSystemDestination(dstPort)) {
+        final flooding = _systemRateGuard.exceeds(
+          dstIp,
+          DateTime.now().millisecondsSinceEpoch,
+        );
+        if (!flooding) {
+          return PacketRecord(
+            id: id,
+            srcIp: srcIp,
+            srcPort: srcPort,
+            dstIp: dstIp,
+            dstPort: dstPort,
+            protocol: protocol,
+            status: PacketStatus.system,
+            sizeBytes: sizeBytes,
+            bruteForceScore: 0.0,
+            dosScore: 0.0,
+            timestamp: DateTime.now(),
+            isBlacklisted: false,
+            label: label,
+            serviceName: label,
+            appName: appName,
+            appPackage: appPackage,
+            isSystem: true,
+          );
+        }
+        _log.w(
+          'System source $appPackage → $dstIp:$dstPort exceeded rate guard; scoring with ML',
         );
       }
 
@@ -134,6 +199,10 @@ class TrafficRepositoryImpl implements TrafficRepository {
         timestamp: DateTime.now(),
         isBlacklisted: autoBlacklisted,
         label: label,
+        serviceName: label,
+        appName: appName,
+        appPackage: appPackage,
+        isSystem: isSystem,
       );
     } catch (e) {
       _log.e('Error processing packet: $e');
@@ -145,6 +214,11 @@ class TrafficRepositoryImpl implements TrafficRepository {
   void updateThresholds(double blockThreshold, double warnThreshold) {
     _blockThreshold = blockThreshold;
     _warnThreshold = warnThreshold;
+  }
+
+  @override
+  void setScanSystemTraffic(bool enabled) {
+    _scanSystemTraffic = enabled;
   }
 
   PacketStatus? _checkSpecialPackets(Protocol protocol, int flags, int dstPort) {
@@ -175,5 +249,29 @@ class TrafficRepositoryImpl implements TrafficRepository {
       timestamp: DateTime.now(),
       isBlacklisted: false,
     );
+  }
+}
+
+/// Minimal, allocation-light rate guard. Tracks a per-key count inside the
+/// current 1-second window; the map is cleared whenever the window rolls over,
+/// so memory stays bounded without per-entry timestamp bookkeeping.
+class _RateGuard {
+  final int limitPerSec;
+  final Map<String, int> _counts = {};
+  int _windowSec = 0;
+
+  _RateGuard(this.limitPerSec);
+
+  /// Records one hit for [key] and returns true if it crossed [limitPerSec]
+  /// within the current second.
+  bool exceeds(String key, int nowMs) {
+    final sec = nowMs ~/ 1000;
+    if (sec != _windowSec) {
+      _windowSec = sec;
+      _counts.clear();
+    }
+    final count = (_counts[key] ?? 0) + 1;
+    _counts[key] = count;
+    return count > limitPerSec;
   }
 }

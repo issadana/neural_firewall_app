@@ -56,8 +56,6 @@ class ControlBar extends StatelessWidget {
                   ],
                 ),
               ),
-              _ClearButton(),
-              SpacesManager.w8,
               _StartStopButton(isRunning: isRunning, isStarting: isStarting),
             ],
           ),
@@ -101,54 +99,33 @@ class _VpnStatusDot extends StatelessWidget {
       _                  => AppColors.vpnDisconnected,
     };
 
-    final dot = Container(
+    Widget dot = Container(
       width: 10,
       height: 10,
       decoration: DecorationManager.colorDot(color),
     );
 
     if (status == VpnStatus.running) {
-      return dot
+      dot = dot
           .animate(onPlay: (c) => c.repeat())
           .scaleXY(begin: 1.0, end: 1.5, duration: 900.ms, curve: Curves.easeInOut)
           .then()
           .scaleXY(begin: 1.5, end: 1.0, duration: 900.ms, curve: Curves.easeInOut);
-    }
-    if (status == VpnStatus.starting) {
-      return dot
+    } else if (status == VpnStatus.starting) {
+      dot = dot
           .animate(onPlay: (c) => c.repeat())
           .fadeIn(duration: 600.ms)
           .then()
           .fadeOut(duration: 600.ms);
     }
-    return dot;
-  }
-}
 
-class _ClearButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    return AppPressable(
-      onPressed: () => context.read<TrafficBloc>().add(const ClearLogsEvent()),
-      child: Container(
-        padding: PaddingManager.paddingH10V6,
-        decoration: DecorationManager.clearButton(colors),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.clear_all_rounded, size: 14, color: colors.textDisabled),
-            SpacesManager.w4,
-            Text(
-              'Clear',
-              style: getMediumTextStyle(
-                fontSize: FontSizesManager.s12,
-                color: colors.textDisabled,
-              ),
-            ),
-          ],
-        ),
-      ),
+    // Seat the dot inside a soft, status-tinted "radar" disc for more presence.
+    return Container(
+      width: 30,
+      height: 30,
+      alignment: Alignment.center,
+      decoration: DecorationManager.circleIcon(color, alpha: 0.14),
+      child: dot,
     );
   }
 }

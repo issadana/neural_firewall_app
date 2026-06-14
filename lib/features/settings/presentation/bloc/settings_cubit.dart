@@ -27,6 +27,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       warnThreshold:
           _prefs.getDouble('warnThreshold') ?? AppConstants.defaultWarnThreshold,
       models: models,
+      scanSystemTraffic: _prefs.getBool('scanSystemTraffic') ?? false,
       maxLogEntries: _prefs.getInt('maxLogEntries') ?? 200,
       darkMode: _prefs.getBool('darkMode') ?? true,
     ));
@@ -45,6 +46,11 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> toggleModel(String id, bool v) async {
     await _prefs.setBool(_modelKey(id), v);
     emit(state.copyWith(models: {...state.models, id: v}));
+  }
+
+  Future<void> toggleScanSystemTraffic(bool v) async {
+    await _prefs.setBool('scanSystemTraffic', v);
+    emit(state.copyWith(scanSystemTraffic: v));
   }
 
   Future<void> setMaxLogEntries(int v) async {

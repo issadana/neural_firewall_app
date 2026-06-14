@@ -24,44 +24,47 @@ class HardwareStatsCard extends StatelessWidget {
             context.appColors,
             radius: BorderRadiusManager.radiusAll20,
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _Stat(
-                  icon: Icons.memory,
-                  label: 'CPU',
-                  value: s != null ? '${s.cpuUsage.toStringAsFixed(1)}%' : '--',
-                  progress: s != null ? s.cpuUsage / 100 : null,
-                  color: _cpuColor(s?.cpuUsage ?? 0),
-                ),
-              ),
-              SpacesManager.w12,
-              Expanded(
-                child: _Stat(
-                  icon: Icons.storage,
-                  label: 'RAM',
-                  value:
-                      s != null ? '${s.ramUsedPercent.toStringAsFixed(0)}%' : '--',
-                  subtitle:
-                      s != null ? '${s.ramUsedMb} / ${s.ramTotalMb} MB' : null,
-                  progress: s != null ? s.ramUsedPercent / 100 : null,
-                  color: _ramColor(s?.ramUsedPercent ?? 0),
-                ),
-              ),
-              if (s?.batteryLevel != null) ...[
-                SpacesManager.w12,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
                 Expanded(
                   child: _Stat(
-                    icon: Icons.battery_std,
-                    label: 'Battery',
-                    value: '${s!.batteryLevel!.toStringAsFixed(0)}%',
-                    progress: s.batteryLevel! / 100,
-                    color: _batteryColor(s.batteryLevel!),
+                    icon: Icons.memory,
+                    label: 'CPU',
+                    value: s != null ? '${s.cpuUsage.toStringAsFixed(1)}%' : '--',
+                    progress: s != null ? s.cpuUsage / 100 : null,
+                    color: _cpuColor(s?.cpuUsage ?? 0),
                   ),
                 ),
+                SpacesManager.w8,
+                Expanded(
+                  child: _Stat(
+                    icon: Icons.storage,
+                    label: 'RAM',
+                    value: s != null
+                        ? '${s.ramUsedPercent.toStringAsFixed(0)}%'
+                        : '--',
+                    subtitle:
+                        s != null ? '${s.ramUsedMb} / ${s.ramTotalMb} MB' : null,
+                    progress: s != null ? s.ramUsedPercent / 100 : null,
+                    color: _ramColor(s?.ramUsedPercent ?? 0),
+                  ),
+                ),
+                if (s?.batteryLevel != null) ...[
+                  SpacesManager.w8,
+                  Expanded(
+                    child: _Stat(
+                      icon: Icons.battery_std,
+                      label: 'Battery',
+                      value: '${s!.batteryLevel!.toStringAsFixed(0)}%',
+                      progress: s.batteryLevel! / 100,
+                      color: _batteryColor(s.batteryLevel!),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         );
       },
@@ -107,58 +110,74 @@ class _Stat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 30,
-              height: 30,
-              decoration: DecorationManager.tinted(
-                color,
-                BorderRadiusManager.radiusAll10,
-                alpha: 0.14,
+    return Container(
+      padding: PaddingManager.paddingAll12,
+      decoration: BoxDecoration(
+        color: colors.background,
+        borderRadius: BorderRadiusManager.radiusAll14,
+        border: Border.all(color: colors.borderColor, width: 0.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: DecorationManager.tinted(
+                  color,
+                  BorderRadiusManager.radiusAll10,
+                  alpha: 0.14,
+                ),
+                child: Icon(icon, color: color, size: 15),
               ),
-              child: Icon(icon, color: color, size: 16),
+              SpacesManager.w6,
+              Flexible(
+                child: Text(
+                  label,
+                  style: getMediumTextStyle(
+                    fontSize: FontSizesManager.s11,
+                    color: colors.textMuted,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          SpacesManager.h10,
+          Text(
+            value,
+            style: getBoldTextStyle(
+              fontSize: FontSizesManager.s18,
+              color: color,
             ),
-            SpacesManager.w8,
+          ),
+          if (subtitle != null) ...[
+            SpacesManager.h2,
             Text(
-              label,
-              style: getMediumTextStyle(
-                fontSize: FontSizesManager.s11,
-                color: colors.textMuted,
+              subtitle!,
+              style: getRegularTextStyle(
+                fontSize: FontSizesManager.s10,
+                color: colors.textDisabled,
               ),
+              overflow: TextOverflow.ellipsis,
             ),
           ],
-        ),
-        SpacesManager.h10,
-        Text(
-          value,
-          style: getBoldTextStyle(fontSize: FontSizesManager.s18, color: color),
-        ),
-        if (subtitle != null) ...[
-          SpacesManager.h2,
-          Text(
-            subtitle!,
-            style: getRegularTextStyle(
-              fontSize: FontSizesManager.s10,
-              color: colors.textDisabled,
+          const Spacer(),
+          SpacesManager.h8,
+          if (progress != null)
+            ClipRRect(
+              borderRadius: BorderRadiusManager.radiusAll4,
+              child: LinearProgressIndicator(
+                value: progress!.clamp(0.0, 1.0),
+                minHeight: 4,
+                backgroundColor: color.withValues(alpha: 0.14),
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+              ),
             ),
-          ),
         ],
-        SpacesManager.h8,
-        if (progress != null)
-          ClipRRect(
-            borderRadius: BorderRadiusManager.radiusAll4,
-            child: LinearProgressIndicator(
-              value: progress!.clamp(0.0, 1.0),
-              minHeight: 4,
-              backgroundColor: color.withValues(alpha: 0.14),
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-            ),
-          ),
-      ],
+      ),
     );
   }
 }

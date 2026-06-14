@@ -27,7 +27,7 @@ class TrafficTable extends StatelessWidget {
         }
         final records = traffic.records.toList();
         return ListView.builder(
-          padding: PaddingManager.paddingTop4Bottom16,
+          padding: PaddingManager.paddingTop4,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: records.length,

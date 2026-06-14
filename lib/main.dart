@@ -36,8 +36,14 @@ import 'features/blacklist/domain/usecases/add_to_blacklist_usecase.dart';
 import 'features/blacklist/domain/usecases/clear_blacklist_usecase.dart';
 import 'features/blacklist/domain/usecases/get_blacklist_usecase.dart';
 import 'features/blacklist/domain/usecases/remove_from_blacklist_usecase.dart';
+import 'features/blacklist/domain/usecases/watch_blacklist_usecase.dart';
 import 'features/blacklist/presentation/bloc/blacklist_cubit.dart';
 import 'features/dashboard/presentation/bloc/dashboard_cubit.dart';
+import 'features/firewall_logs/data/datasources/firewall_log_remote_datasource.dart';
+import 'features/firewall_logs/data/repositories/firewall_log_repository_impl.dart';
+import 'features/firewall_logs/domain/usecases/get_firewall_logs_usecase.dart';
+import 'features/firewall_logs/domain/usecases/post_firewall_log_usecase.dart';
+import 'features/firewall_logs/presentation/bloc/firewall_logs_cubit.dart';
 import 'features/settings/presentation/bloc/settings_cubit.dart';
 import 'features/traffic/data/datasources/ml_datasource.dart';
 import 'features/traffic/data/repositories/traffic_repository_impl.dart';
@@ -67,6 +73,7 @@ void main() async {
     blacklistRepository: blacklistRepo,
     mlDataSource: mlDs,
     vpnDataSource: vpnDs,
+    scanSystemTraffic: prefs.getBool('scanSystemTraffic') ?? false,
   );
   final vpnRepo = VpnRepositoryImpl(vpnDs);
   final authDs  = AuthLocalDataSource(prefs);
@@ -83,6 +90,7 @@ void main() async {
   final addBlacklist    = AddToBlacklistUseCase(blacklistRepo);
   final removeBlacklist = RemoveFromBlacklistUseCase(blacklistRepo);
   final clearBlacklist  = ClearBlacklistUseCase(blacklistRepo);
+  final watchBlacklist  = WatchBlacklistUseCase(blacklistRepo);
 
   final processPacket   = ProcessPacketUseCase(trafficRepo);
   final getPacketStream = GetPacketStreamUseCase(vpnRepo);
@@ -95,6 +103,7 @@ void main() async {
     addToBlacklist: addBlacklist,
     removeFromBlacklist: removeBlacklist,
     clearBlacklist: clearBlacklist,
+    watchBlacklist: watchBlacklist,
   );
 
   final trafficBloc = TrafficBloc(
@@ -130,6 +139,16 @@ void main() async {
     sync: SyncSnapshotUseCase(hardwareRepo),
   )..startPeriodicSync();
 
+  // ── Firewall logs ────────────────────────────────────────────────────────────
+  // Reuses the shared API client; powers the Dashboard tab (overview + logs).
+  final firewallLogRepo = FirewallLogRepositoryImpl(
+    FirewallLogRemoteDataSource(apiConsumer),
+  );
+  final firewallLogsCubit = FirewallLogsCubit(
+    getLogs: GetFirewallLogsUseCase(firewallLogRepo),
+    postLog: PostFirewallLogUseCase(firewallLogRepo),
+  );
+
   // ── Nova chatbot ─────────────────────────────────────────────────────────────
   final chatDio = Dio(
     BaseOptions(
@@ -145,6 +164,13 @@ void main() async {
     getDigest: GetDigestUseCase(chatbotRepo),
     getSessionMessages: GetSessionMessagesUseCase(chatbotRepo),
     deleteSession: DeleteSessionUseCase(chatbotRepo),
+  );
+
+  // Settings drive the live pipeline: keep the traffic repo's system-traffic
+  // scanning in sync with the user's choice (initial value read above).
+  final settingsCubit = SettingsCubit(prefs);
+  settingsCubit.stream.listen(
+    (s) => trafficRepo.setScanSystemTraffic(s.scanSystemTraffic),
   );
 
   runApp(
@@ -167,8 +193,10 @@ void main() async {
             BlocProvider.value(value: vpnCubit),
             BlocProvider.value(value: trafficBloc),
             BlocProvider.value(value: dashboardCubit),
+            BlocProvider.value(value: hardwareMetricsCubit),
+            BlocProvider.value(value: firewallLogsCubit),
             BlocProvider.value(value: blacklistCubit),
-            BlocProvider(create: (_) => SettingsCubit(prefs)),
+            BlocProvider.value(value: settingsCubit),
             BlocProvider.value(value: chatCubit),
           ],
           child: const SentriApp(),

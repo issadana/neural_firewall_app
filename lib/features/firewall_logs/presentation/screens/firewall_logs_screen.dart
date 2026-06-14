@@ -33,44 +33,33 @@ class _FirewallLogsScreenState extends State<FirewallLogsScreen> {
   }
 
   void _onScroll() {
-    if (_scrollCtrl.position.pixels >= _scrollCtrl.position.maxScrollExtent - 200) {
+    if (_scrollCtrl.position.pixels >=
+        _scrollCtrl.position.maxScrollExtent - 200) {
       context.read<FirewallLogsCubit>().loadLogs();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return Scaffold(
-      backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.background,
-        elevation: 0,
-        centerTitle: false,
-        title: const Text('Firewall Logs'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(0.5),
-          child: Container(height: 0.5, color: colors.borderColor),
-        ),
-      ),
-      body: BlocBuilder<FirewallLogsCubit, FirewallLogsState>(
-        builder: (context, state) {
-          return Column(
-            children: [
-              SpacesManager.h8,
-              ThreatFilterBar(
-                selectedAction: state.filterAction,
-                onActionChanged: (action) =>
-                    context.read<FirewallLogsCubit>().applyFilters(action: action),
-                onClear: () => context.read<FirewallLogsCubit>().clearFilters(),
-              ),
-              SpacesManager.h8,
-              Expanded(child: _buildBody(context, state)),
-            ],
-          );
-        },
-      ),
+    // Embedded as the "Logs" tab inside DashboardTabsScreen, which owns the
+    // surrounding Scaffold/AppBar — so this returns body content only.
+    return BlocBuilder<FirewallLogsCubit, FirewallLogsState>(
+      builder: (context, state) {
+        return Column(
+          children: [
+            SpacesManager.h8,
+            ThreatFilterBar(
+              selectedAction: state.filterAction,
+              onActionChanged: (action) => context
+                  .read<FirewallLogsCubit>()
+                  .applyFilters(action: action),
+              onClear: () => context.read<FirewallLogsCubit>().clearFilters(),
+            ),
+            SpacesManager.h8,
+            Expanded(child: _buildBody(context, state)),
+          ],
+        );
+      },
     );
   }
 
@@ -87,11 +76,14 @@ class _FirewallLogsScreenState extends State<FirewallLogsScreen> {
           children: [
             Icon(Icons.error_outline, color: AppColors.statusDanger, size: 40),
             SpacesManager.h12,
-            Text(state.errorMessage ?? 'Failed to load logs',
-                style: TextStyle(color: context.appColors.textMuted)),
+            Text(
+              state.errorMessage ?? 'Failed to load logs',
+              style: TextStyle(color: context.appColors.textMuted),
+            ),
             SpacesManager.h16,
             TextButton(
-              onPressed: () => context.read<FirewallLogsCubit>().loadLogs(refresh: true),
+              onPressed: () =>
+                  context.read<FirewallLogsCubit>().loadLogs(refresh: true),
               child: const Text('Retry'),
             ),
           ],
@@ -104,17 +96,27 @@ class _FirewallLogsScreenState extends State<FirewallLogsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.shield_outlined, color: context.appColors.textDisabled, size: 48),
+            Icon(
+              Icons.shield_outlined,
+              color: context.appColors.textDisabled,
+              size: 48,
+            ),
             SpacesManager.h12,
-            Text('No logs found',
-                style: getRegularTextStyle(fontSize: FontSizesManager.s15, color: context.appColors.textMuted)),
+            Text(
+              'No logs found',
+              style: getRegularTextStyle(
+                fontSize: FontSizesManager.s15,
+                color: context.appColors.textMuted,
+              ),
+            ),
           ],
         ),
       );
     }
 
     return RefreshIndicator(
-      onRefresh: () => context.read<FirewallLogsCubit>().loadLogs(refresh: true),
+      onRefresh: () =>
+          context.read<FirewallLogsCubit>().loadLogs(refresh: true),
       child: ListView.builder(
         controller: _scrollCtrl,
         physics: const BouncingScrollPhysics(),
@@ -124,7 +126,9 @@ class _FirewallLogsScreenState extends State<FirewallLogsScreen> {
           if (index == state.logs.length) {
             return Padding(
               padding: PaddingManager.paddingVertical16,
-              child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              child: const Center(
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
             );
           }
           return LogTile(log: state.logs[index]);

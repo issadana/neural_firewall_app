@@ -4,6 +4,7 @@ enum PacketStatus {
   aiBlock,
   warn,
   safe,
+  system,
   tcp,
   quic,
   ping,
@@ -27,6 +28,8 @@ extension PacketStatusDisplay on PacketStatus {
         return '⚠️';
       case PacketStatus.safe:
         return '✅';
+      case PacketStatus.system:
+        return '⚙️';
       case PacketStatus.tcp:
         return '🔵';
       case PacketStatus.quic:
@@ -46,6 +49,8 @@ extension PacketStatusDisplay on PacketStatus {
         return 'WARN';
       case PacketStatus.safe:
         return 'SAFE';
+      case PacketStatus.system:
+        return 'SYSTEM';
       case PacketStatus.tcp:
         return 'TCP';
       case PacketStatus.quic:

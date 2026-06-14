@@ -147,6 +147,7 @@ class TrafficRow extends StatelessWidget {
         PacketStatus.aiBlock => AppColors.statusDanger,
         PacketStatus.warn    => AppColors.statusWarning,
         PacketStatus.safe    => AppColors.statusNormal,
+        PacketStatus.system  => ColorManager.serviceCyan,
         PacketStatus.tcp     => AppColors.accentBlue,
         PacketStatus.quic    => ColorManager.quicPurple,
         PacketStatus.ping    => AppColors.statusWarning,
