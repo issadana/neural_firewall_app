@@ -11,6 +11,7 @@ Intrusion Detection System (IDS).
 | [PacketParser.kt](PacketParser.kt)         | Turns raw IPv4 bytes into a structured `ParsedPacket`.    |
 | [FlowTracker.kt](FlowTracker.kt)           | Computes per-connection timing features for the ML model. |
 | [DnsCache.kt](DnsCache.kt)                 | Maps IP addresses → hostnames → friendly service labels.  |
+| [AppResolver.kt](AppResolver.kt)           | Attributes a connection to its owning app (uid → package → label). |
 
 ---
 
@@ -106,10 +107,13 @@ This is the heartbeat. One iteration = one packet:
    TUN are outbound, so their `srcIp` is always the device (`10.0.0.2`) and the
    flagged threat is the `dstIp`.
 5. **Flow stats** — `flowTracker.update(parsed)` returns IAT mean/std/duration.
-6. **Enrich & emit** — build a `Map` of all fields + ML features + DNS label and
-   push it to Flutter on the **main thread** (the EventChannel is not
-   thread-safe, hence `withContext(Dispatchers.Main)`).
-7. **Forward** — dispatch by protocol:
+6. **App attribution** — `appResolver.resolve(...)` maps the connection to its
+   owning app (`appName`, `appPackage`, `isSystem`) so the IDS knows _who_ sent
+   the packet and can bypass ML scoring for benign OS/system chatter.
+7. **Enrich & emit** — build a `Map` of all fields + ML features + DNS label +
+   app owner and push it to Flutter on the **main thread** (the EventChannel is
+   not thread-safe, hence `withContext(Dispatchers.Main)`).
+8. **Forward** — dispatch by protocol:
    - `6` → `handleTcp()`
    - `17` → `handleUdp()`
    - ICMP (`1`) → dropped (a userspace proxy can't relay ping without raw-socket
@@ -404,7 +408,68 @@ from different coroutines.
 
 ---
 
-## 6. End-to-End Example: Opening youtube.com
+## 6. AppResolver.kt — Who Owns This Connection?
+
+This is what lets the UI say a packet came from **"Chrome"** (and flag whether it
+is OS/system traffic) instead of just showing an anonymous flow. It answers a
+single question: _which installed app opened this socket?_
+
+### The core API — `ConnectivityManager.getConnectionOwnerUid()`
+
+Since the service is a userspace proxy, it can't see the originating uid in the
+raw packet. Android API 29+ (Android 10 / `Q`) exposes
+`getConnectionOwnerUid(protocol, local, remote)` — the **supported** way for a VPN
+to attribute a flow. `resolve()` feeds it:
+
+- `protocol` → `IPPROTO_TCP` (6) or `IPPROTO_UDP` (17); anything else returns
+  `unknown`.
+- **local** = `(srcIp, srcPort)` — the device side. Packets read from TUN are
+  **outbound**, so the local side is always the device and the remote side is the
+  destination server. The inbound relay/UDP paths call `resolve()` with the same
+  outbound orientation so they hit the cache (see below) rather than issuing a
+  fresh, mis-oriented lookup.
+- **remote** = `(dstIp, dstPort)` — the real server.
+
+The returned uid is mapped to a package and human label by `ownerForUid()`.
+
+### uid → `ConnectionOwner`
+
+`ownerForUid()` turns a uid into a `ConnectionOwner(appName, appPackage, isSystem)`:
+
+- **uid `< FIRST_APPLICATION_UID`** → kernel / root / `android` system uid; no
+  user-facing package, labelled "Android System" (or "Android (root)").
+- Otherwise `getPackagesForUid()` → take the first package, read its
+  `ApplicationInfo` for the display label, and set `isSystem` from the
+  `FLAG_SYSTEM` / `FLAG_UPDATED_SYSTEM_APP` flags.
+- A missing/uninstalled package degrades to the raw package name or `"UID <n>"`.
+
+### Two caches — because attribution is expensive
+
+`getConnectionOwnerUid()` is a binder call and `PackageManager` lookups cost even
+more, so naïvely resolving every packet would be ruinous. Two `ConcurrentHashMap`s
+guard against that:
+
+| Cache       | Key                          | Why |
+| ----------- | ---------------------------- | --- |
+| `flowCache` | `"$protocol:$srcPort:$dstIp:$dstPort"` | A flow emits many packets; cache the owner per 4-tuple so each flow costs **one** binder call, not one per packet. |
+| `uidCache`  | `uid`                        | uids are stable for the process lifetime, so the (expensive) package lookup is memoised once per uid. |
+
+Design choices worth noting:
+
+- **Only successful results are cached.** A miss (connection already gone, error)
+  returns the shared `unknown` singleton and is **not** cached, so a later packet
+  on the same flow gets retried.
+- **`flowCache` is cleared, not evicted.** Flows churn constantly; above 4096
+  entries the whole map is dropped rather than running an LRU. Simple, bounded,
+  and the hot flows immediately repopulate.
+- **Graceful degradation.** Pre-Android 10, ICMP, a vanished connection, or any
+  thrown exception all collapse to `unknown` (empty strings, `isSystem=false`),
+  which downstream code treats as "not system → score it normally." Attribution
+  is strictly best-effort; it never blocks or breaks the relay.
+
+---
+
+## 7. End-to-End Example: Opening youtube.com
 
 ```
 1. App resolves "youtube.com"
@@ -427,6 +492,7 @@ from different coroutines.
        • is parsed
        • gets flow IAT stats
        • is labelled "YouTube" via dnsCache
+       • is attributed to its owning app via appResolver (e.g. "Chrome")
        • is pushed to Flutter where the AI model scores it
 
 5. If the model flags the IP → blockIp(142.250.x.x)
@@ -440,7 +506,7 @@ from different coroutines.
 
 ---
 
-## 7. Design Trade-offs & Limitations (worth knowing)
+## 8. Design Trade-offs & Limitations (worth knowing)
 
 - **IPv4 only.** All parsing/building assumes 20-byte IPv4 headers; IPv6 packets
   (version 6) are not handled.
@@ -456,10 +522,13 @@ from different coroutines.
 - **UDP checksum set to 0.** Legal for IPv4, so this is fine.
 - **Inbound events use placeholder flow stats** (`flowIatMean = 0.0` etc.) — the
   full ML features are computed only on the outbound path.
+- **App attribution requires Android 10+.** On older devices (or for ICMP, or a
+  flow that has already closed) `appName`/`appPackage` come back empty and
+  `isSystem` is `false`; the IDS then falls back to scoring the flow normally.
 
 ---
 
-## 8. Hardware Metrics — Native Device Sampling
+## 9. Hardware Metrics — Native Device Sampling
 
 > **Scope note:** this logic does **not** live in the `vpn/` package. It sits in
 > [MainActivity.kt](../MainActivity.kt) alongside the VPN MethodChannel, and is
@@ -470,7 +539,7 @@ A second MethodChannel, **`com.sentri.app/hardware`**, lets the Flutter
 it on a **2-minute timer** and POSTs the result to the backend so each user's
 device behaviour can be monitored over time.
 
-### 8.1 The Channel
+### 9.1 The Channel
 
 ```
 Flutter HardwareMetricsCubit (every 2 min)
@@ -492,7 +561,7 @@ would risk an ANR, so it's dispatched to a single-thread `Executor` and the resu
 is marshalled back via `runOnUiThread` (MethodChannel replies must come from the
 main thread).
 
-### 8.2 The Four Fields
+### 9.2 The Four Fields
 
 The returned `Map` keys match exactly what `HardwareLocalDataSource` reads on the
 Dart side:
@@ -507,7 +576,7 @@ Dart side:
 Each field is computed inside its own `try/catch`, so a single failure degrades
 to a default (0, or `null` for battery) instead of taking down the whole snapshot.
 
-### 8.3 CPU Usage — `collectHardwareSnapshot()` + `readProcessCpuJiffies()`
+### 9.3 CPU Usage — `collectHardwareSnapshot()` + `readProcessCpuJiffies()`
 
 Device-wide `/proc/stat` has been **unreadable to apps since Android 8**, so we
 measure **this app's own process CPU** instead — which is the more meaningful
@@ -536,7 +605,7 @@ reports `cpuUsage = 0.0`.
 
 ---
 
-## 9. One-Line Summary per File
+## 10. One-Line Summary per File
 
 - **NeuralVpnService.kt** — a userspace TUN proxy that captures all traffic,
   spoofs the server side of TCP locally, relays real bytes through protected
@@ -548,3 +617,6 @@ reports `cpuUsage = 0.0`.
   the AI can recognise the timing signature of attacks.
 - **DnsCache.kt** — sniffs DNS responses to map IPs to hostnames and turn them
   into human-friendly service labels for the UI.
+- **AppResolver.kt** — attributes each connection to its owning app via
+  `getConnectionOwnerUid()` (uid → package → label), with uid/flow caching, so
+  the IDS knows which app sent a packet and can flag OS/system traffic.
