@@ -10,6 +10,7 @@ import 'package:Sentri/core/resources/padding_manager.dart';
 import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
+import 'package:Sentri/features/settings/presentation/models/ai_model_catalog.dart';
 import 'package:Sentri/features/traffic/domain/entities/packet_record.dart';
 
 final _timeFmtMs = DateFormat('h:mm:ss a');
@@ -54,7 +55,11 @@ class PacketDetailSheet extends StatelessWidget {
             _DetailRow('Source', '${record.srcIp}:${record.srcPort}'),
             _DetailRow('Destination', '${record.dstIp}:${record.dstPort}'),
             if (record.label.isNotEmpty)
-              _DetailRow('Service', record.label, valueColor: ColorManager.serviceCyan),
+              _DetailRow(
+                'Service',
+                record.label,
+                valueColor: ColorManager.serviceCyan,
+              ),
           ], colors),
           SpacesManager.h12,
           _DetailSection('PACKET INFO', [
@@ -62,22 +67,15 @@ class PacketDetailSheet extends StatelessWidget {
             _DetailRow('Size', _formatSize(record.sizeBytes)),
           ], colors),
           SpacesManager.h12,
-          _DetailSection('THREAT SCORES', [
-            _DetailRow(
-              'Brute Force',
-              '${(record.bruteForceScore * 100).toStringAsFixed(1)}%',
-              valueColor: _scoreColor(record.bruteForceScore * 100, colors),
-            ),
-            _DetailRow(
-              'DoS / DDoS',
-              '${(record.dosScore * 100).toStringAsFixed(1)}%',
-              valueColor: _scoreColor(record.dosScore * 100, colors),
-            ),
-          ], colors),
+          _DetailSection('THREAT SCORES', _scoreRows(colors), colors),
           if (record.isBlacklisted) ...[
             SpacesManager.h12,
             _DetailSection('BLOCKS', [
-              _DetailRow('Blacklisted', 'Yes', valueColor: AppColors.statusDanger),
+              _DetailRow(
+                'Blacklisted',
+                'Yes',
+                valueColor: AppColors.statusDanger,
+              ),
             ], colors),
           ],
           SpacesManager.h30,
@@ -86,18 +84,52 @@ class PacketDetailSheet extends StatelessWidget {
     );
   }
 
+  /// One row per model that scored this packet, in catalog (display) order.
+  /// The model that drove the block/warn decision is emphasized. Falls back to
+  /// the legacy Brute Force / DoS rows for records captured before per-model
+  /// scores were tracked.
+  List<Widget> _scoreRows(AppThemeColors colors) {
+    final scores = record.modelScores;
+
+    if (scores.isEmpty) {
+      return [
+        _DetailRow(
+          'Brute Force',
+          '${(record.bruteForceScore * 100).toStringAsFixed(1)}%',
+          valueColor: _scoreColor(record.bruteForceScore * 100, colors),
+        ),
+        _DetailRow(
+          'DoS / DDoS',
+          '${(record.dosScore * 100).toStringAsFixed(1)}%',
+          valueColor: _scoreColor(record.dosScore * 100, colors),
+        ),
+      ];
+    }
+
+    return [
+      for (final model in kAiModelCatalog)
+        if (scores.containsKey(model.id))
+          _DetailRow(
+            model.name,
+            '${(scores[model.id]! * 100).toStringAsFixed(1)}%',
+            valueColor: _scoreColor(scores[model.id]! * 100, colors),
+            emphasize: model.id == record.selectedModel,
+          ),
+    ];
+  }
+
   Color _scoreColor(double pct, AppThemeColors colors) => pct >= 20
       ? AppColors.statusDanger
       : pct >= 10
-          ? AppColors.statusWarning
-          : colors.textDisabled;
+      ? AppColors.statusWarning
+      : colors.textDisabled;
 
   String _protocolName(Protocol protocol) => switch (protocol) {
-        Protocol.tcp     => 'TCP',
-        Protocol.udp     => 'UDP',
-        Protocol.icmp    => 'ICMP',
-        Protocol.unknown => 'OTHER',
-      };
+    Protocol.tcp => 'TCP',
+    Protocol.udp => 'UDP',
+    Protocol.icmp => 'ICMP',
+    Protocol.unknown => 'OTHER',
+  };
 
   String _formatSize(int bytes) {
     if (bytes < 1024) return '${bytes}B';
@@ -132,15 +164,17 @@ class _DetailSection extends StatelessWidget {
           ),
           child: Column(
             children: rows
-                .expand((row) => [
-                      row,
-                      if (row != rows.last)
-                        Container(
-                          height: 0.5,
-                          color: colors.borderColor,
-                          margin: PaddingManager.paddingHorizontal12,
-                        ),
-                    ])
+                .expand(
+                  (row) => [
+                    row,
+                    if (row != rows.last)
+                      Container(
+                        height: 0.5,
+                        color: colors.borderColor,
+                        margin: PaddingManager.paddingHorizontal12,
+                      ),
+                  ],
+                )
                 .toList(),
           ),
         ),
@@ -153,16 +187,45 @@ class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
   final Color? valueColor;
-  const _DetailRow(this.label, this.value, {this.valueColor});
+
+  /// When true the row is highlighted as the decisive one (e.g. the model that
+  /// triggered the block): the label is shown in the value's accent colour with
+  /// a leading dot.
+  final bool emphasize;
+
+  const _DetailRow(
+    this.label,
+    this.value, {
+    this.valueColor,
+    this.emphasize = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final labelColor = emphasize
+        ? (valueColor ?? colors.textPrimary)
+        : colors.textSecondary;
     return Padding(
       padding: PaddingManager.paddingH14V10,
       child: Row(
         children: [
-          Text(label, style: getRegularTextStyle(fontSize: FontSizesManager.s13, color: colors.textSecondary)),
+          if (emphasize) ...[
+            Icon(Icons.circle, size: 7, color: labelColor),
+            SpacesManager.w6,
+          ],
+          Text(
+            label,
+            style: emphasize
+                ? getSemiBoldTextStyle(
+                    fontSize: FontSizesManager.s13,
+                    color: labelColor,
+                  )
+                : getRegularTextStyle(
+                    fontSize: FontSizesManager.s13,
+                    color: labelColor,
+                  ),
+          ),
           const Spacer(),
           Text(
             value,

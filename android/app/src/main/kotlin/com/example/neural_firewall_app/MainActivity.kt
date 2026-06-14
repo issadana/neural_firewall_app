@@ -76,6 +76,11 @@ class MainActivity : FlutterActivity() {
                         val ip = call.argument<String>("ip")
                         result.success(if (ip != null) NeuralVpnService.isIpBlocked(ip) else false)
                     }
+                    // Recovery: forget every block, including the persisted copy.
+                    "clearAllBlockedIps" -> {
+                        NeuralVpnService.clearAllBlockedIps()
+                        result.success(null)
+                    }
 
                     else -> result.notImplemented()
                 }

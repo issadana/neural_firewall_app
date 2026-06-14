@@ -24,7 +24,7 @@ class SettingsState extends Equatable {
     this.models = const {},
     this.scanSystemTraffic = false,
     this.maxLogEntries = 200,
-    this.darkMode = true,
+    this.darkMode = false,
   });
 
   /// Whether a given model is switched on. Defaults to `true` when unknown so

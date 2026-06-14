@@ -11,6 +11,18 @@ class PacketRecord {
   final int sizeBytes;
   final double bruteForceScore;
   final double dosScore;
+
+  /// Score from every enabled model that ran on this packet (catalog id → 0..1).
+  final Map<String, double> modelScores;
+
+  /// Catalog id of the model that produced the highest score (the one the
+  /// block/warn decision is based on); empty if no model ran.
+  final String selectedModel;
+
+  /// The highest score across all enabled models — the value compared against
+  /// the block/warn thresholds.
+  final double selectedScore;
+
   final DateTime timestamp;
   final bool isBlacklisted;
   final String label;
@@ -30,6 +42,9 @@ class PacketRecord {
     required this.sizeBytes,
     required this.bruteForceScore,
     required this.dosScore,
+    this.modelScores = const {},
+    this.selectedModel = '',
+    this.selectedScore = 0.0,
     required this.timestamp,
     required this.isBlacklisted,
     this.label = '',
