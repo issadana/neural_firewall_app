@@ -193,24 +193,40 @@ class TrafficRepositoryImpl implements TrafficRepository {
         'pkt_size_avg': rawPacket['flowPktSizeAvg'] ?? sizeBytes.toDouble(),
       };
 
-      // Run every enabled model and block on the strongest signal.
+      // Pass the packet through every enabled model — all five by default — and
+      // let the single strongest signal decide the verdict:
+      //   • safe  — every model scored below the warn threshold
+      //   • warn  — the highest-scoring model is in [warn, block)
+      //   • block — the highest-scoring model is at or above block
+      // So a packet is "safe" only when it is safe across all five models, and
+      // the chosen ("used") model is always the highest-probability one — the
+      // same rule for the safe, warn and block cases alike.
       final modelScores = await _mlDataSource.predictAll(features, _enabledModels);
 
-      // Pick the highest-scoring model to drive the decision — but only among
-      // models whose features the pipeline actually supplies. Models scored on
-      // mean-defaults (HULK/LOIC/HOIC today) still appear in [modelScores] for
-      // display, yet must not be able to block normal traffic.
+      // Argmax over the models allowed to drive the decision. Only models whose
+      // features the pipeline actually supplies may set the verdict; any model
+      // scored on mean-defaults still appears in [modelScores] for display but
+      // must not be able to block normal traffic. (All five ship fully
+      // supported today, so all five take part in the vote.)
+      //
+      // Start below zero and use a strict `>` so the result is a true argmax:
+      // when every model agrees the packet is safe (scores tie, often 0.0) we
+      // still report the genuine top model in catalog order, not whichever one
+      // happened to be iterated last.
       var selectedModel = '';
-      var selectedScore = 0.0;
+      var selectedScore = -1.0;
       modelScores.forEach((modelId, score) {
         if (!_mlDataSource.hasFullFeatureSupport(modelId, _providedFeatures)) {
           return;
         }
-        if (score >= selectedScore) {
+        if (score > selectedScore) {
           selectedScore = score;
           selectedModel = modelId;
         }
       });
+      // No model could score the packet (none enabled / all errored): treat as
+      // safe with a zero score rather than carrying the -1.0 sentinel forward.
+      if (selectedScore < 0.0) selectedScore = 0.0;
 
       final PacketStatus status;
       bool autoBlacklisted = false;
