@@ -20,7 +20,11 @@ class BlacklistLocalDataSource {
     if (json != null) {
       try {
         final List<dynamic> decoded = jsonDecode(json);
-        _cache.addAll(decoded.map((e) => BlacklistEntry.fromJson(e as Map<String, dynamic>)));
+        _cache.addAll(
+          decoded.map(
+            (e) => BlacklistEntry.fromJson(e as Map<String, dynamic>),
+          ),
+        );
       } catch (e) {
         _log.e('Error loading blacklist: $e');
       }
@@ -30,7 +34,10 @@ class BlacklistLocalDataSource {
 
   Future<void> _persist() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key, jsonEncode(_cache.map((e) => e.toJson()).toList()));
+    await prefs.setString(
+      _key,
+      jsonEncode(_cache.map((e) => e.toJson()).toList()),
+    );
   }
 
   Future<List<BlacklistEntry>> getAll() async {
@@ -43,6 +50,32 @@ class BlacklistLocalDataSource {
     return _cache.any((e) => e.ip == ip);
   }
 
+  Future<BlacklistEntry?> findByIp(String ip) async {
+    await _ensureInit();
+    for (final e in _cache) {
+      if (e.ip == ip) return e;
+    }
+    return null;
+  }
+
+  /// Inserts [entry], replacing any existing entry with the same ip. Used to
+  /// stamp a server id onto a local entry after it syncs.
+  Future<void> upsert(BlacklistEntry entry) async {
+    await _ensureInit();
+    _cache.removeWhere((e) => e.ip == entry.ip);
+    _cache.add(entry);
+    await _persist();
+  }
+
+  /// Replaces the entire cache (used when reconciling with the server list).
+  Future<void> replaceAll(Iterable<BlacklistEntry> entries) async {
+    await _ensureInit();
+    _cache
+      ..clear()
+      ..addAll(entries);
+    await _persist();
+  }
+
   Future<void> add(
     String ip,
     String reason, {
@@ -52,14 +85,16 @@ class BlacklistLocalDataSource {
   }) async {
     await _ensureInit();
     _cache.removeWhere((e) => e.ip == ip);
-    _cache.add(BlacklistEntry(
-      ip: ip,
-      addedAt: DateTime.now(),
-      reason: reason,
-      bruteForceScore: bfScore,
-      dosScore: dosScore,
-      notes: notes,
-    ));
+    _cache.add(
+      BlacklistEntry(
+        ip: ip,
+        addedAt: DateTime.now(),
+        reason: reason,
+        bruteForceScore: bfScore,
+        dosScore: dosScore,
+        notes: notes,
+      ),
+    );
     await _persist();
   }
 

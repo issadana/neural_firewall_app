@@ -25,14 +25,17 @@ class VpnNativeDataSource {
   }
 
   void _initializeStream() {
-    _packetStream = _packetEventChannel.receiveBroadcastStream().map((event) {
-      try {
-        return Map<String, dynamic>.from(event as Map);
-      } catch (e) {
-        _log.e('Error parsing packet: $e');
-        return <String, dynamic>{};
-      }
-    }).where((packet) => packet.isNotEmpty);
+    _packetStream = _packetEventChannel
+        .receiveBroadcastStream()
+        .map((event) {
+          try {
+            return Map<String, dynamic>.from(event as Map);
+          } catch (e) {
+            _log.e('Error parsing packet: $e');
+            return <String, dynamic>{};
+          }
+        })
+        .where((packet) => packet.isNotEmpty);
   }
 
   Future<void> startVpn() async {
@@ -53,7 +56,8 @@ class VpnNativeDataSource {
 
   Future<bool> isVpnRunning() async {
     try {
-      return await _vpnMethodChannel.invokeMethod<bool>('isVPNRunning') ?? false;
+      return await _vpnMethodChannel.invokeMethod<bool>('isVPNRunning') ??
+          false;
     } catch (e) {
       return false;
     }
@@ -62,7 +66,8 @@ class VpnNativeDataSource {
   Future<List<String>> getInterfaces() async {
     try {
       final result =
-          await _vpnMethodChannel.invokeMethod<List>('getNetworkInterfaces') ?? [];
+          await _vpnMethodChannel.invokeMethod<List>('getNetworkInterfaces') ??
+          [];
       return result.cast<String>();
     } catch (e) {
       return [];
@@ -71,7 +76,8 @@ class VpnNativeDataSource {
 
   Future<bool> checkVpnPermission() async {
     try {
-      return await _vpnMethodChannel.invokeMethod<bool>('checkVPNPermission') ?? false;
+      return await _vpnMethodChannel.invokeMethod<bool>('checkVPNPermission') ??
+          false;
     } catch (e) {
       return false;
     }
@@ -126,7 +132,10 @@ class VpnNativeDataSource {
   /// Returns true if [ip] is currently blocked at the network level.
   Future<bool> isIpBlocked(String ip) async {
     try {
-      return await _vpnMethodChannel.invokeMethod<bool>('isIpBlocked', {'ip': ip}) ?? false;
+      return await _vpnMethodChannel.invokeMethod<bool>('isIpBlocked', {
+            'ip': ip,
+          }) ??
+          false;
     } catch (e) {
       return false;
     }

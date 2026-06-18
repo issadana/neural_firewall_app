@@ -154,10 +154,12 @@ class DioConsumer implements ApiConsumer {
   }
 
   @override
-  Future delete(String path) async {
+  Future delete(String path, {String? token}) async {
     try {
-      // Use standard delete method - AuthInterceptor will remove Content-Type header
-      final Response response = await _client.delete(path);
+      final Response response = await _client.delete(
+        path,
+        options: _authOptions(token),
+      );
       // Handle empty response body (204 No Content or empty 200 OK)
       if (response.data == null || response.data.toString().isEmpty) {
         return null;

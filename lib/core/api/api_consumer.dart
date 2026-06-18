@@ -22,5 +22,5 @@ abstract class ApiConsumer {
     Map<String, dynamic>? queryParameters,
     FormData? formData,
   });
-  Future<dynamic> delete(String path);
+  Future<dynamic> delete(String path, {String? token});
 }

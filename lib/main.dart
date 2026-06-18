@@ -34,6 +34,7 @@ import 'features/auth/domain/usecases/sign_up_usecase.dart';
 import 'features/auth/domain/usecases/update_profile_usecase.dart';
 import 'features/auth/presentation/bloc/auth_cubit.dart';
 import 'features/blacklist/data/datasources/blacklist_local_datasource.dart';
+import 'features/blacklist/data/datasources/blacklist_remote_datasource.dart';
 import 'features/blacklist/data/repositories/blacklist_repository_impl.dart';
 import 'features/blacklist/domain/usecases/add_to_blacklist_usecase.dart';
 import 'features/blacklist/domain/usecases/clear_blacklist_usecase.dart';
@@ -102,7 +103,11 @@ void main() async {
   final vpnDs = VpnNativeDataSource();
 
   // ── Repositories ────────────────────────────────────────────────────────────
-  final blacklistRepo = BlacklistRepositoryImpl(blacklistDs, vpnDs);
+  final blacklistRepo = BlacklistRepositoryImpl(
+    blacklistDs,
+    vpnDs,
+    BlacklistRemoteDataSource(apiConsumer, authLocal),
+  );
   final trafficRepo = TrafficRepositoryImpl(
     blacklistRepository: blacklistRepo,
     mlDataSource: mlDs,
@@ -246,7 +251,10 @@ void main() async {
             listenWhen: (prev, curr) =>
                 prev.status != curr.status &&
                 curr.status == AuthStatus.authenticated,
-            listener: (context, state) => settingsCubit.syncFromServer(),
+            listener: (context, state) {
+              settingsCubit.syncFromServer();
+              blacklistRepo.syncFromServer();
+            },
             child: const SentriApp(),
           ),
         );

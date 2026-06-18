@@ -7,6 +7,11 @@ abstract class BlacklistRepository {
   Future<void> remove(String ip);
   Future<void> clearAll();
 
+  /// Reconciles the local list with the backend: pulls the server entries,
+  /// keeps any not-yet-synced local ones, and pushes them up. Best-effort —
+  /// no-ops when signed out or offline.
+  Future<void> syncFromServer();
+
   /// Emits whenever the blacklist is mutated (add/remove/clear) from anywhere —
   /// including auto-blocks triggered by the traffic pipeline. Listeners (e.g.
   /// the BlacklistCubit) reload so the UI reflects the change immediately.

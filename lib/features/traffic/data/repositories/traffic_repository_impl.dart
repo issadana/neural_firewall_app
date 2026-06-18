@@ -235,11 +235,15 @@ class TrafficRepositoryImpl implements TrafficRepository {
         status = PacketStatus.aiBlock;
 
         // Auto-block: persist to blacklist so future packets from this IP
-        // are caught before the ML models even run.
+        // are caught before the ML models even run. The score goes to the
+        // matching field — only the brute-force model maps to bf_score; every
+        // DoS-family model (dos, HULK, LOIC, HOIC) maps to dos_score.
+        final isBruteForce = selectedModel == 'bruteForce';
         await _blacklistRepository.add(
           srcIp,
           'AI flagged by "$selectedModel" (score: ${selectedScore.toStringAsFixed(2)})',
-          bfScore: selectedScore,
+          bfScore: isBruteForce ? selectedScore : null,
+          dosScore: isBruteForce ? null : selectedScore,
         );
         autoBlacklisted = true;
 

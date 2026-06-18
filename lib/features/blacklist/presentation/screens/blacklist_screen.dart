@@ -83,27 +83,28 @@ class _BlacklistScreenState extends State<BlacklistScreen> {
                                 itemCount: filtered.length,
                                 itemBuilder: (context, i) {
                                   final entry = filtered[i];
-                                  final tile = BlacklistTile(
-                                        entry: entry,
-                                        onDelete: () => context
-                                            .read<BlacklistCubit>()
-                                            .remove(entry.ip),
-                                      )
-                                      .animate()
-                                      .fadeIn(
-                                        duration: 250.ms,
-                                        delay: Duration(
-                                          milliseconds: i < 8 ? i * 30 : 0,
-                                        ),
-                                      )
-                                      .slideX(
-                                        begin: 0.02,
-                                        end: 0,
-                                        duration: 250.ms,
-                                      );
+                                  final tile =
+                                      BlacklistTile(
+                                            entry: entry,
+                                            onDelete: () => context
+                                                .read<BlacklistCubit>()
+                                                .remove(entry.ip),
+                                          )
+                                          .animate()
+                                          .fadeIn(
+                                            duration: 250.ms,
+                                            delay: Duration(
+                                              milliseconds: i < 8 ? i * 30 : 0,
+                                            ),
+                                          )
+                                          .slideX(
+                                            begin: 0.02,
+                                            end: 0,
+                                            duration: 250.ms,
+                                          );
                                   if (i == filtered.length - 1) {
                                     return Column(
-                                      children: [tile, SpacesManager.h40],
+                                      children: [tile, SpacesManager.h150],
                                     );
                                   }
                                   return tile;
