@@ -104,6 +104,40 @@ class SettingsScreen extends StatelessWidget {
                     context.read<SettingsCubit>().toggleScanSystemTraffic(v),
               ),
               const _Divider(),
+              _SectionHeader(label: 'Flood Protection'),
+              _ToggleTile(
+                icon: Icons.water_drop_rounded,
+                label: 'Flood Detection',
+                subtitle:
+                    'Flag sources sending more than the allowed packets per second.',
+                value: state.floodDetection,
+                onChanged: (v) =>
+                    context.read<SettingsCubit>().toggleFloodDetection(v),
+              ),
+              if (state.floodDetection)
+                _NumberField(
+                  label: 'Flood packets / sec',
+                  value: state.floodPktPerSec,
+                  onSubmitted: (v) =>
+                      context.read<SettingsCubit>().setFloodPktPerSec(v),
+                ),
+              _ToggleTile(
+                icon: Icons.swap_vert_rounded,
+                label: 'SYN Flood Detection',
+                subtitle:
+                    'Detect half-open SYN-flood attacks by their SYN packet rate.',
+                value: state.synFloodDetection,
+                onChanged: (v) =>
+                    context.read<SettingsCubit>().toggleSynFloodDetection(v),
+              ),
+              if (state.synFloodDetection)
+                _NumberField(
+                  label: 'SYN packets / sec',
+                  value: state.synFloodPerSec,
+                  onSubmitted: (v) =>
+                      context.read<SettingsCubit>().setSynFloodPerSec(v),
+                ),
+              const _Divider(),
               _SectionHeader(label: 'Log Settings'),
               _NumberField(
                 label: 'Max Log Entries',

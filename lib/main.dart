@@ -47,6 +47,8 @@ import 'features/firewall_logs/data/repositories/firewall_log_repository_impl.da
 import 'features/firewall_logs/domain/usecases/get_firewall_logs_usecase.dart';
 import 'features/firewall_logs/domain/usecases/post_firewall_log_usecase.dart';
 import 'features/firewall_logs/presentation/bloc/firewall_logs_cubit.dart';
+import 'features/settings/data/datasources/settings_remote_datasource.dart';
+import 'features/settings/data/repositories/settings_repository_impl.dart';
 import 'features/settings/presentation/bloc/settings_cubit.dart';
 import 'features/traffic/data/datasources/ml_datasource.dart';
 import 'features/traffic/data/repositories/traffic_repository_impl.dart';
@@ -192,7 +194,11 @@ void main() async {
 
   // Settings drive the live pipeline: keep the traffic repo's system-traffic
   // scanning and enabled-model set in sync with the user's choices.
-  final settingsCubit = SettingsCubit(prefs);
+  final settingsRepo = SettingsRepositoryImpl(
+    SettingsRemoteDataSource(apiConsumer),
+    authLocal,
+  );
+  final settingsCubit = SettingsCubit(prefs, settingsRepo);
   Set<String> enabledModelIds(SettingsState s) =>
       s.models.entries.where((e) => e.value).map((e) => e.key).toSet();
   // Seed from the cubit's initial (already-loaded) state.
@@ -234,7 +240,15 @@ void main() async {
             BlocProvider.value(value: settingsCubit),
             BlocProvider.value(value: chatCubit),
           ],
-          child: const SentriApp(),
+          // Re-pull server settings each time the user becomes authenticated
+          // (e.g. a fresh sign-in), so they aren't stuck with local defaults.
+          child: BlocListener<AuthCubit, AuthState>(
+            listenWhen: (prev, curr) =>
+                prev.status != curr.status &&
+                curr.status == AuthStatus.authenticated,
+            listener: (context, state) => settingsCubit.syncFromServer(),
+            child: const SentriApp(),
+          ),
         );
       },
     ),
