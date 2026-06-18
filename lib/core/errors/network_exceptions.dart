@@ -79,7 +79,8 @@ abstract class NetworkExceptions with _$NetworkExceptions implements Exception {
         // Non-JSON body — fall through to the fallback.
       }
     }
-    final message = json?['error'] ?? json?['message'];
+    // `error`/`message` are app-level; `msg` is what flask-jwt-extended emits.
+    final message = json?['error'] ?? json?['message'] ?? json?['msg'];
     return message is String && message.isNotEmpty ? message : fallback;
   }
 

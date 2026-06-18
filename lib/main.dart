@@ -9,6 +9,7 @@ import 'core/constants/api_constants.dart';
 import 'core/constants/app_constants.dart';
 import 'core/interceptors/error_interceptor.dart';
 import 'core/interceptors/logging_interceptor.dart';
+import 'core/interceptors/refresh_token_interceptor.dart';
 import 'core/widgets/navigation_bar/app.dart';
 import 'features/hardware_metrics/data/datasources/hardware_local_datasource.dart';
 import 'features/hardware_metrics/data/datasources/hardware_remote_datasource.dart';
@@ -63,6 +64,14 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
 
+  // Encrypted session store, shared by the auth repository and the refresh
+  // interceptor so they read/write the same tokens.
+  final authLocal = AuthLocalDataSource(
+    const FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    ),
+  );
+
   // Shared API client used across features (auth, hardware, firewall logs).
   final apiDio = Dio(
     BaseOptions(
@@ -76,6 +85,12 @@ void main() async {
     apiDio,
     ErrorInterceptor(),
     LoggingInterceptor(),
+    // Transparently refreshes expired access tokens and replays the request,
+    // so every authenticated endpoint survives token expiry.
+    refreshTokenInterceptor: RefreshTokenInterceptor(
+      dio: apiDio,
+      local: authLocal,
+    ),
   );
 
   // ── Data sources ────────────────────────────────────────────────────────────
@@ -95,11 +110,7 @@ void main() async {
   final vpnRepo = VpnRepositoryImpl(vpnDs);
   final authRepo = AuthRepositoryImpl(
     AuthRemoteDataSource(apiConsumer),
-    AuthLocalDataSource(
-      const FlutterSecureStorage(
-        aOptions: AndroidOptions(encryptedSharedPreferences: true),
-      ),
-    ),
+    authLocal,
   );
 
   // ── Use cases ───────────────────────────────────────────────────────────────

@@ -107,6 +107,7 @@ class AuthRepositoryImpl implements AuthRepository {
     if (accessToken == null) {
       throw const NetworkExceptions.unauthorizedRequest('Not signed in');
     }
+    // Expired-token refresh is handled centrally by RefreshTokenInterceptor.
     await _remote.updateProfile(
       accessToken: accessToken,
       username: username,

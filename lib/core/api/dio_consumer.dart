@@ -7,6 +7,7 @@ import 'package:Sentri/core/constants/app_constants.dart';
 import 'package:Sentri/core/errors/network_exceptions.dart';
 import 'package:Sentri/core/interceptors/error_interceptor.dart';
 import 'package:Sentri/core/interceptors/logging_interceptor.dart';
+import 'package:Sentri/core/interceptors/refresh_token_interceptor.dart';
 import 'package:Sentri/core/resources/strings_manager.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
@@ -17,11 +18,10 @@ import 'package:injectable/injectable.dart';
 class DioConsumer implements ApiConsumer {
   DioConsumer(
     this._client,
-    // this._authInterceptor,
-    // this._refreshTokenInterceptor,
     this._errorInterceptor,
-    this._loggingInterceptor,
-  ) {
+    this._loggingInterceptor, {
+    RefreshTokenInterceptor? refreshTokenInterceptor,
+  }) {
     _client.options
       ..sendTimeout = AppConstants.sendTimeout
       ..connectTimeout = AppConstants.connectTimeout
@@ -35,11 +35,11 @@ class DioConsumer implements ApiConsumer {
       };
 
 
-    // Add auth interceptor first (adds Bearer token to requests)
-    // _client.interceptors.add(_authInterceptor);
-
-    // Add refresh token interceptor (handles 401 errors and token refresh)
-    // _client.interceptors.add(_refreshTokenInterceptor);
+    // Refresh interceptor runs first so an expired-token 401 is transparently
+    // retried before the error interceptor turns it into a NetworkException.
+    if (refreshTokenInterceptor != null) {
+      _client.interceptors.add(refreshTokenInterceptor);
+    }
 
     // Add error interceptor (transforms errors to NetworkExceptions)
     _client.interceptors.add(_errorInterceptor);
@@ -61,8 +61,6 @@ class DioConsumer implements ApiConsumer {
   }
 
   final Dio _client;
-  // final AuthInterceptor _authInterceptor;
-  // final RefreshTokenInterceptor _refreshTokenInterceptor;
   final ErrorInterceptor _errorInterceptor;
   final LoggingInterceptor _loggingInterceptor;
 
