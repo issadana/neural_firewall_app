@@ -184,7 +184,9 @@ class DioConsumer implements ApiConsumer {
   }
 
   dynamic _handleOnlineResponseAsJson(Response response) {
-    final responseJson = jsonDecode(response.data.toString());
-    return responseJson;
+    // Empty body (e.g. 204 No Content from logout) — nothing to decode.
+    final raw = response.data?.toString() ?? '';
+    if (raw.isEmpty) return null;
+    return jsonDecode(raw);
   }
 }
