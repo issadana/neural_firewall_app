@@ -1,64 +1,58 @@
 import 'dart:convert';
 
-import 'package:crypto/crypto.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../models/user_model.dart';
+
+/// Persists the auth session — token pair + cached user — in encrypted,
+/// platform-backed secure storage (iOS Keychain / Android EncryptedSharedPrefs).
+/// A session is considered active whenever an access token is present.
+///
+/// Every accessor is async because secure storage I/O is async on all platforms.
 class AuthLocalDataSource {
-  static const _keyEmail = 'auth_email';
-  static const _keyUsername = 'auth_username';
-  static const _keyPasswordHash = 'auth_password_hash';
-  static const _keySessionActive = 'auth_session_active';
+  static const _keyAccessToken = 'auth_access_token';
+  static const _keyRefreshToken = 'auth_refresh_token';
+  static const _keyUser = 'auth_user';
 
-  final SharedPreferences _prefs;
-  AuthLocalDataSource(this._prefs);
+  final FlutterSecureStorage _storage;
+  AuthLocalDataSource(this._storage);
 
-  bool isSessionActive() => _prefs.getBool(_keySessionActive) ?? false;
+  Future<bool> isSessionActive() async => (await getAccessToken()) != null;
 
-  String? getSessionEmail() => _prefs.getString(_keyEmail);
+  Future<String?> getAccessToken() => _storage.read(key: _keyAccessToken);
 
-  String? getSessionUsername() => _prefs.getString(_keyUsername);
+  Future<String?> getRefreshToken() => _storage.read(key: _keyRefreshToken);
 
-  Future<void> signIn(String email, String password) async {
-    final storedEmail = _prefs.getString(_keyEmail);
-    final storedHash = _prefs.getString(_keyPasswordHash);
-
-    if (storedEmail == null || storedHash == null) {
-      throw Exception('No account found. Please sign up first.');
-    }
-    if (storedEmail != email.trim().toLowerCase()) {
-      throw Exception('Incorrect email or password.');
-    }
-    if (storedHash != _hash(password)) {
-      throw Exception('Incorrect email or password.');
-    }
-    await _prefs.setBool(_keySessionActive, true);
+  Future<UserModel?> getCachedUser() async {
+    final raw = await _storage.read(key: _keyUser);
+    if (raw == null) return null;
+    return UserModel.fromJson(jsonDecode(raw) as Map<String, dynamic>);
   }
 
-  Future<void> signUp(String email, String username, String password) async {
-    final trimmed = email.trim().toLowerCase();
-    await _prefs.setString(_keyEmail, trimmed);
-    await _prefs.setString(_keyUsername, username.trim());
-    await _prefs.setString(_keyPasswordHash, _hash(password));
-    await _prefs.setBool(_keySessionActive, true);
+  /// Persists a complete session after a successful login/register.
+  Future<void> saveSession({
+    required String accessToken,
+    required String? refreshToken,
+    required UserModel user,
+  }) async {
+    await _storage.write(key: _keyAccessToken, value: accessToken);
+    if (refreshToken != null) {
+      await _storage.write(key: _keyRefreshToken, value: refreshToken);
+    }
+    await cacheUser(user);
   }
 
-  Future<void> signOut() => _prefs.setBool(_keySessionActive, false);
+  /// Updates just the access token (e.g. after a refresh).
+  Future<void> saveAccessToken(String accessToken) =>
+      _storage.write(key: _keyAccessToken, value: accessToken);
 
-  Future<void> updateProfile({String? username, String? newPassword, String? currentPassword}) async {
-    if (newPassword != null) {
-      final storedHash = _prefs.getString(_keyPasswordHash);
-      if (currentPassword == null || _hash(currentPassword) != storedHash) {
-        throw Exception('Current password is incorrect.');
-      }
-      await _prefs.setString(_keyPasswordHash, _hash(newPassword));
-    }
-    if (username != null) {
-      await _prefs.setString(_keyUsername, username.trim());
-    }
-  }
+  Future<void> cacheUser(UserModel user) =>
+      _storage.write(key: _keyUser, value: jsonEncode(user.toJson()));
 
-  String _hash(String input) {
-    final bytes = utf8.encode(input);
-    return sha256.convert(bytes).toString();
+  /// Wipes every trace of the session.
+  Future<void> clear() async {
+    await _storage.delete(key: _keyAccessToken);
+    await _storage.delete(key: _keyRefreshToken);
+    await _storage.delete(key: _keyUser);
   }
 }

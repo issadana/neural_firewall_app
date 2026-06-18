@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,6 +24,7 @@ import 'features/chatbot/domain/usecases/get_session_messages_usecase.dart';
 import 'features/chatbot/domain/usecases/send_message_usecase.dart';
 import 'features/chatbot/presentation/bloc/chat_cubit.dart';
 import 'features/auth/data/datasources/auth_local_datasource.dart';
+import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/usecases/check_auth_status_usecase.dart';
 import 'features/auth/domain/usecases/sign_in_usecase.dart';
@@ -61,41 +63,62 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
 
+  // Shared API client used across features (auth, hardware, firewall logs).
+  final apiDio = Dio(
+    BaseOptions(
+      baseUrl: ApiConstants.baseUrl,
+      connectTimeout: AppConstants.connectTimeout,
+      receiveTimeout: AppConstants.receiveTimeout,
+      sendTimeout: AppConstants.sendTimeout,
+    ),
+  );
+  final apiConsumer = DioConsumer(
+    apiDio,
+    ErrorInterceptor(),
+    LoggingInterceptor(),
+  );
+
   // ── Data sources ────────────────────────────────────────────────────────────
-  final blacklistDs  = BlacklistLocalDataSource();
-  final mlDs         = MlDataSource();
+  final blacklistDs = BlacklistLocalDataSource();
+  final mlDs = MlDataSource();
   await mlDs.init();
   final vpnDs = VpnNativeDataSource();
 
   // ── Repositories ────────────────────────────────────────────────────────────
   final blacklistRepo = BlacklistRepositoryImpl(blacklistDs, vpnDs);
-  final trafficRepo   = TrafficRepositoryImpl(
+  final trafficRepo = TrafficRepositoryImpl(
     blacklistRepository: blacklistRepo,
     mlDataSource: mlDs,
     vpnDataSource: vpnDs,
     scanSystemTraffic: prefs.getBool('scanSystemTraffic') ?? false,
   );
   final vpnRepo = VpnRepositoryImpl(vpnDs);
-  final authDs  = AuthLocalDataSource(prefs);
-  final authRepo = AuthRepositoryImpl(authDs);
+  final authRepo = AuthRepositoryImpl(
+    AuthRemoteDataSource(apiConsumer),
+    AuthLocalDataSource(
+      const FlutterSecureStorage(
+        aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      ),
+    ),
+  );
 
   // ── Use cases ───────────────────────────────────────────────────────────────
-  final checkAuth      = CheckAuthStatusUseCase(authRepo);
-  final signIn         = SignInUseCase(authRepo);
-  final signUp         = SignUpUseCase(authRepo);
-  final signOut        = SignOutUseCase(authRepo);
-  final updateProfile  = UpdateProfileUseCase(authRepo);
+  final checkAuth = CheckAuthStatusUseCase(authRepo);
+  final signIn = SignInUseCase(authRepo);
+  final signUp = SignUpUseCase(authRepo);
+  final signOut = SignOutUseCase(authRepo);
+  final updateProfile = UpdateProfileUseCase(authRepo);
 
-  final getBlacklist    = GetBlacklistUseCase(blacklistRepo);
-  final addBlacklist    = AddToBlacklistUseCase(blacklistRepo);
+  final getBlacklist = GetBlacklistUseCase(blacklistRepo);
+  final addBlacklist = AddToBlacklistUseCase(blacklistRepo);
   final removeBlacklist = RemoveFromBlacklistUseCase(blacklistRepo);
-  final clearBlacklist  = ClearBlacklistUseCase(blacklistRepo);
-  final watchBlacklist  = WatchBlacklistUseCase(blacklistRepo);
+  final clearBlacklist = ClearBlacklistUseCase(blacklistRepo);
+  final watchBlacklist = WatchBlacklistUseCase(blacklistRepo);
 
-  final processPacket   = ProcessPacketUseCase(trafficRepo);
+  final processPacket = ProcessPacketUseCase(trafficRepo);
   final getPacketStream = GetPacketStreamUseCase(vpnRepo);
-  final startVpn        = StartVpnUseCase(vpnRepo);
-  final stopVpn         = StopVpnUseCase(vpnRepo);
+  final startVpn = StartVpnUseCase(vpnRepo);
+  final stopVpn = StopVpnUseCase(vpnRepo);
 
   // ── Cubits / Blocs ──────────────────────────────────────────────────────────
   final blacklistCubit = BlacklistCubit(
@@ -119,17 +142,7 @@ void main() async {
   );
 
   // ── Hardware metrics ─────────────────────────────────────────────────────────
-  // Shared API client used to POST snapshots to the backend.
-  final apiDio = Dio(
-    BaseOptions(
-      baseUrl: ApiConstants.baseUrl,
-      connectTimeout: AppConstants.connectTimeout,
-      receiveTimeout: AppConstants.receiveTimeout,
-      sendTimeout: AppConstants.sendTimeout,
-    ),
-  );
-  final apiConsumer = DioConsumer(apiDio, ErrorInterceptor(), LoggingInterceptor());
-
+  // Reuses the shared API client created above to POST snapshots to the backend.
   final hardwareRepo = HardwareMetricsRepositoryImpl(
     local: HardwareLocalDataSource(),
     remote: HardwareRemoteDataSource(apiConsumer),

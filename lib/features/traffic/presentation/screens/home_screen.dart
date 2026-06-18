@@ -11,9 +11,9 @@ import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/core/widgets/pressable_buttons/app_pressable.dart';
 import 'package:Sentri/features/analytics/presentation/screens/analytics_screen.dart';
+import 'package:Sentri/features/auth/presentation/bloc/auth_cubit.dart';
 import '../bloc/traffic_bloc.dart';
 import '../widgets/control_bar.dart';
-import '../widgets/stats_row.dart';
 import '../widgets/traffic_table.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -33,7 +33,7 @@ class HomeScreen extends StatelessWidget {
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
-                    const StatsRow(),
+                    const _WelcomeHeader(),
                     const _AnalyticsCard(),
                     const _TrafficHeader(),
                     const TrafficTable(),
@@ -44,6 +44,81 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Greets the signed-in user by name. The username is read from [AuthCubit],
+/// which restores it from secure storage on launch, so it survives app kills.
+class _WelcomeHeader extends StatelessWidget {
+  const _WelcomeHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final username = context.select<AuthCubit, String?>(
+      (cubit) => cubit.state.username,
+    );
+    final name = (username == null || username.isEmpty) ? 'there' : username;
+
+    return Padding(
+      padding: PaddingManager.paddingLTRB16_16_16_8,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: DecorationManager.tinted(
+              AppColors.primary,
+              BorderRadiusManager.radiusAll14,
+              alpha: 0.14,
+            ),
+            child: Text(
+              name.characters.first.toUpperCase(),
+              style: getBoldTextStyle(
+                fontSize: FontSizesManager.s18,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+          SpacesManager.w12,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text.rich(
+                  TextSpan(
+                    text: 'Good day, ',
+                    style: getRegularTextStyle(
+                      fontSize: FontSizesManager.s13,
+                      color: colors.textMuted,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: name.toUpperCase(),
+                        style: getBoldTextStyle(
+                          fontSize: FontSizesManager.s15,
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                      TextSpan(
+                        text: '!\nHere\'s your latest traffic',
+                        style: getRegularTextStyle(
+                          fontSize: FontSizesManager.s13,
+                          color: colors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

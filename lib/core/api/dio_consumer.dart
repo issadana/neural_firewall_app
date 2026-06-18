@@ -71,12 +71,14 @@ class DioConsumer implements ApiConsumer {
     String path, {
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
+    String? token,
   }) async {
     try {
       final Response response = await _client.get(
         path,
         queryParameters: queryParameters,
         cancelToken: cancelToken,
+        options: _authOptions(token),
       );
       return _handleOnlineResponseAsJson(response);
     } catch (error) {
@@ -98,6 +100,7 @@ class DioConsumer implements ApiConsumer {
         queryParameters: queryParameters,
         options: Options(
           contentType: formData == null ? StringsManager.jsonContentType : null,
+          headers: _authHeaders(token),
         ),
         data: formData ?? body,
       );
@@ -112,13 +115,17 @@ class DioConsumer implements ApiConsumer {
     String path, {
     Map<String, dynamic>? body,
     Map<String, dynamic>? queryParameters,
+    String? token,
   }) async {
     try {
       final Response response = await _client.put(
         path,
         queryParameters: queryParameters,
         data: body,
-        options: Options(contentType: StringsManager.jsonContentType),
+        options: Options(
+          contentType: StringsManager.jsonContentType,
+          headers: _authHeaders(token),
+        ),
       );
       return _handleOnlineResponseAsJson(response);
     } catch (error) {
@@ -161,6 +168,19 @@ class DioConsumer implements ApiConsumer {
     } catch (error) {
       throw NetworkExceptions.getException(error);
     }
+  }
+
+  /// Builds an Authorization header map for the given bearer [token], or null
+  /// when no token is supplied (so non-authenticated requests are untouched).
+  Map<String, dynamic>? _authHeaders(String? token) => token == null
+      ? null
+      : {StringsManager.authorization: '${StringsManager.bearer}$token'};
+
+  /// Convenience wrapper that returns request [Options] carrying the bearer
+  /// token, or null when there is no token to attach.
+  Options? _authOptions(String? token) {
+    final headers = _authHeaders(token);
+    return headers == null ? null : Options(headers: headers);
   }
 
   dynamic _handleOnlineResponseAsJson(Response response) {

@@ -5,6 +5,7 @@ abstract class ApiConsumer {
     String path, {
     Map<String, dynamic> queryParameters,
     CancelToken? cancelToken,
+    String? token,
   });
 
   Future<dynamic> post(
@@ -14,7 +15,7 @@ abstract class ApiConsumer {
     String? token,
     Map<String, dynamic>? queryParameters,
   });
-  Future<dynamic> put(String path, {Map<String, dynamic>? body});
+  Future<dynamic> put(String path, {Map<String, dynamic>? body, String? token});
   Future<dynamic> patch(
     String path, {
     Map<String, dynamic>? body,
