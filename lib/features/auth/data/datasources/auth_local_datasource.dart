@@ -46,6 +46,10 @@ class AuthLocalDataSource {
   Future<void> saveAccessToken(String accessToken) =>
       _storage.write(key: _keyAccessToken, value: accessToken);
 
+  /// Updates just the refresh token (e.g. when the backend rotates it on refresh).
+  Future<void> saveRefreshToken(String refreshToken) =>
+      _storage.write(key: _keyRefreshToken, value: refreshToken);
+
   Future<void> cacheUser(UserModel user) =>
       _storage.write(key: _keyUser, value: jsonEncode(user.toJson()));
 

@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 
+import 'package:Sentri/core/interceptors/logging_interceptor.dart';
 import 'package:Sentri/core/resources/strings_manager.dart';
 import 'package:Sentri/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:Sentri/features/auth/data/endpoints/auth_endpoints.dart';
@@ -47,6 +48,12 @@ class RefreshTokenInterceptor extends Interceptor {
             return client;
           };
     }
+    // Log the refresh round-trip too — otherwise an expired-token refresh is
+    // invisible in the console (it doesn't go through the main client's
+    // interceptors), making it look like no refresh was ever attempted.
+    if (kDebugMode) {
+      _tokenDio.interceptors.add(LoggingInterceptor());
+    }
   }
 
   final Dio _dio;
@@ -78,7 +85,9 @@ class RefreshTokenInterceptor extends Interceptor {
 
     final newAccessToken = await _refreshAccessToken();
     if (newAccessToken == null) {
-      // Refresh impossible/failed → session is dead; let the 401 propagate.
+      // Refresh didn't yield a token. Either the refresh token is dead (session
+      // already cleared) or it was a transient failure (session left intact) —
+      // let the original 401 propagate; callers decide based on session state.
       return handler.next(err);
     }
 
@@ -123,10 +132,25 @@ class RefreshTokenInterceptor extends Interceptor {
           : data as Map<String, dynamic>;
       final newAccess = map['access_token'] as String;
       await _local.saveAccessToken(newAccess);
+      // Some backends rotate the refresh token on every use; persist the new one
+      // so the next expiry doesn't fail against a now-invalidated token.
+      final newRefresh = map['refresh_token'];
+      if (newRefresh is String) {
+        await _local.saveRefreshToken(newRefresh);
+      }
       return newAccess;
+    } on DioException catch (e) {
+      // Only a genuine rejection (the server answered with an auth error) means
+      // the refresh token is dead — wipe the session so the app re-logs in.
+      // Transient/network failures (timeout, no response) must NOT log the user
+      // out: leave the session intact and just fail this refresh round.
+      final status = e.response?.statusCode;
+      if (status == 401 || status == 403 || status == 422) {
+        await _local.clear();
+      }
+      return null;
     } catch (_) {
-      // Refresh token rejected/expired → wipe the session.
-      await _local.clear();
+      // Unexpected (e.g. a malformed body) — fail safe without nuking the session.
       return null;
     }
   }

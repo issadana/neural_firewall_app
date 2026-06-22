@@ -9,7 +9,5 @@ class ApiConstants {
   // The local Flask dev server runs over HTTPS (adhoc/self-signed cert), so the
   // scheme must be `https`. The self-signed certificate is accepted in debug
   // mode via badCertificateCallback in DioConsumer.
-  static const String baseUrl = 'https://192.168.0.193:8000/';
-
-  static const String metricsEndpoint = '/api/metrics/device';
+  static const String baseUrl = 'https://192.168.10.92:8000/';
 }

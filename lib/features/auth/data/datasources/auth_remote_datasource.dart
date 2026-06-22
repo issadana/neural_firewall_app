@@ -43,7 +43,10 @@ class AuthRemoteDataSource {
 
   /// POST /auth/refresh — needs the refresh token, returns a new access token.
   Future<String> refreshToken(String refreshToken) async {
-    final response = await _api.post(AuthEndpoints.refresh, token: refreshToken);
+    final response = await _api.post(
+      AuthEndpoints.refresh,
+      token: refreshToken,
+    );
     return (response as Map<String, dynamic>)['access_token'] as String;
   }
 

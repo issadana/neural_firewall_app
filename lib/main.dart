@@ -163,7 +163,7 @@ void main() async {
   // Reuses the shared API client created above to POST snapshots to the backend.
   final hardwareRepo = HardwareMetricsRepositoryImpl(
     local: HardwareLocalDataSource(),
-    remote: HardwareRemoteDataSource(apiConsumer),
+    remote: HardwareRemoteDataSource(apiConsumer, authLocal),
   );
   final hardwareMetricsCubit = HardwareMetricsCubit(
     collect: CollectSnapshotUseCase(hardwareRepo),

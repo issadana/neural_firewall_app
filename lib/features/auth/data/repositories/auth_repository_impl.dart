@@ -43,43 +43,21 @@ class AuthRepositoryImpl implements AuthRepository {
     if (accessToken == null) return null;
 
     try {
+      // RefreshTokenInterceptor transparently refreshes an expired access token
+      // and replays this call, so reaching here means the session is valid
+      // (possibly after a silent refresh).
       final user = await _remote.getCurrentUser(accessToken);
       await _local.cacheUser(user);
       return user;
-    } on NetworkExceptions catch (e) {
-      // Access token rejected → try a one-shot refresh, then retry /auth/me.
-      if (e is UnauthorizedRequest) {
-        final newToken = await _refresh();
-        if (newToken == null) return null;
-        try {
-          final user = await _remote.getCurrentUser(newToken);
-          await _local.cacheUser(user);
-          return user;
-        } on NetworkExceptions {
-          await _local.clear();
-          return null;
-        }
-      }
-      // Offline / server hiccup → keep the user signed in with cached data.
-      return await _local.getCachedUser();
-    }
-  }
-
-  /// Mints a fresh access token from the stored refresh token. Clears the
-  /// session and returns null when the refresh token is missing or rejected.
-  Future<String?> _refresh() async {
-    final refreshToken = await _local.getRefreshToken();
-    if (refreshToken == null) {
-      await _local.clear();
-      return null;
-    }
-    try {
-      final newAccess = await _remote.refreshToken(refreshToken);
-      await _local.saveAccessToken(newAccess);
-      return newAccess;
     } on NetworkExceptions {
-      await _local.clear();
-      return null;
+      // The interceptor already had its chance to refresh. If it wiped the
+      // session, the refresh token itself is dead → force re-login. Otherwise
+      // the failure was transient/offline → stay signed in with cached data.
+      if (await _local.getRefreshToken() == null) {
+        await _local.clear();
+        return null;
+      }
+      return await _local.getCachedUser();
     }
   }
 
