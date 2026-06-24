@@ -12,6 +12,7 @@ import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/features/auth/presentation/bloc/auth_cubit.dart';
+import 'package:Sentri/features/auth/presentation/screens/edit_profile_screen.dart';
 import 'package:Sentri/features/settings/presentation/bloc/settings_cubit.dart';
 import 'package:Sentri/features/settings/presentation/models/ai_model_catalog.dart';
 
@@ -30,6 +31,15 @@ class SettingsScreen extends StatelessWidget {
             elevation: 0,
             centerTitle: false,
             title: const Text('Settings'),
+            actions: [
+              IconButton(
+                tooltip: 'Edit profile',
+                icon: Icon(Icons.edit_outlined, color: colors.textSecondary),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                ),
+              ),
+            ],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(0.5),
               child: Container(height: 0.5, color: colors.borderColor),
@@ -70,8 +80,9 @@ class SettingsScreen extends StatelessWidget {
               ),
               const _Divider(),
               _AiProtectionHeader(
-                activeCount:
-                    state.activeModelCount(kAiModelCatalog.map((m) => m.id)),
+                activeCount: state.activeModelCount(
+                  kAiModelCatalog.map((m) => m.id),
+                ),
                 total: kAiModelCatalog.length,
               ),
               for (final model in kAiModelCatalog)
@@ -92,6 +103,40 @@ class SettingsScreen extends StatelessWidget {
                 onChanged: (v) =>
                     context.read<SettingsCubit>().toggleScanSystemTraffic(v),
               ),
+              const _Divider(),
+              _SectionHeader(label: 'Flood Protection'),
+              _ToggleTile(
+                icon: Icons.water_drop_rounded,
+                label: 'Flood Detection',
+                subtitle:
+                    'Flag sources sending more than the allowed packets per second.',
+                value: state.floodDetection,
+                onChanged: (v) =>
+                    context.read<SettingsCubit>().toggleFloodDetection(v),
+              ),
+              if (state.floodDetection)
+                _NumberField(
+                  label: 'Flood packets / sec',
+                  value: state.floodPktPerSec,
+                  onSubmitted: (v) =>
+                      context.read<SettingsCubit>().setFloodPktPerSec(v),
+                ),
+              _ToggleTile(
+                icon: Icons.swap_vert_rounded,
+                label: 'SYN Flood Detection',
+                subtitle:
+                    'Detect half-open SYN-flood attacks by their SYN packet rate.',
+                value: state.synFloodDetection,
+                onChanged: (v) =>
+                    context.read<SettingsCubit>().toggleSynFloodDetection(v),
+              ),
+              if (state.synFloodDetection)
+                _NumberField(
+                  label: 'SYN packets / sec',
+                  value: state.synFloodPerSec,
+                  onSubmitted: (v) =>
+                      context.read<SettingsCubit>().setSynFloodPerSec(v),
+                ),
               const _Divider(),
               _SectionHeader(label: 'Log Settings'),
               _NumberField(
@@ -615,7 +660,6 @@ class _AiModelDetailSheet extends StatelessWidget {
                         value: '${model.features}',
                         color: accent,
                       ),
-                   
                     ],
                   ),
                   SpacesManager.h20,
@@ -665,9 +709,10 @@ class _AiModelDetailSheet extends StatelessWidget {
                   _SheetToggleButton(
                     enabled: enabled,
                     accent: accent,
-                    onTap: () => context
-                        .read<SettingsCubit>()
-                        .toggleModel(model.id, !enabled),
+                    onTap: () => context.read<SettingsCubit>().toggleModel(
+                      model.id,
+                      !enabled,
+                    ),
                   ),
                   SpacesManager.h8,
                   Center(
@@ -765,9 +810,7 @@ class _SheetToggleButton extends StatelessWidget {
         width: double.infinity,
         padding: PaddingManager.paddingVertical16,
         decoration: BoxDecoration(
-          color: enabled
-              ? accent.withValues(alpha: 0.15)
-              : colors.surfaceDark,
+          color: enabled ? accent.withValues(alpha: 0.15) : colors.surfaceDark,
           borderRadius: BorderRadiusManager.radiusAll16,
           border: Border.all(
             color: enabled ? accent : colors.borderColor,
@@ -778,15 +821,15 @@ class _SheetToggleButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              enabled
-                  ? Icons.shield_rounded
-                  : Icons.shield_outlined,
+              enabled ? Icons.shield_rounded : Icons.shield_outlined,
               size: 18,
               color: enabled ? accent : colors.textSecondary,
             ),
             SpacesManager.w8,
             Text(
-              enabled ? 'Protection on · Tap to turn off' : 'Turn on protection',
+              enabled
+                  ? 'Protection on · Tap to turn off'
+                  : 'Turn on protection',
               style: getSemiBoldTextStyle(
                 fontSize: FontSizesManager.s14,
                 color: enabled ? accent : colors.textSecondary,
@@ -902,8 +945,9 @@ class _AboutTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final activeModels =
-        state.activeModelCount(kAiModelCatalog.map((m) => m.id));
+    final activeModels = state.activeModelCount(
+      kAiModelCatalog.map((m) => m.id),
+    );
     return Container(
       margin: PaddingManager.paddingH16V5,
       padding: PaddingManager.paddingAll16,

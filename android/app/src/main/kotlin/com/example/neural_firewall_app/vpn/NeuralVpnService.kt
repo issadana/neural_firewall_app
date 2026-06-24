@@ -94,10 +94,10 @@ class NeuralVpnService : VpnService() {
         // When false, the service still tracks the block list (blockIp/unblockIp
         // keep working and the set is persisted) but NEVER actually drops or tears
         // down traffic — it only observes, labels, and streams metadata to the AI.
-        // Set back to true to restore real network-level blocking. Disabled for
-        // now: the AI scoring pipeline still runs end-to-end, it just can't sever
-        // connections yet.
-        private val ENFORCE_BLOCKING = false
+        // Set to false to fall back to detection-only (observe + label) mode.
+        // Enabled: blacklisted IPs are dropped at the network level (Step 1) and
+        // live connections to a freshly-flagged IP are severed (Step 5).
+        private val ENFORCE_BLOCKING = true
 
         // appContext is the APPLICATION context, captured in onStartCommand().
         // The block API below is static yet needs a Context to reach SharedPreferences.
@@ -108,6 +108,14 @@ class NeuralVpnService : VpnService() {
         // SharedPreferences coordinates for the persisted blocklist.
         private const val PREFS_NAME = "neural_fw_prefs"
         private const val KEY_BLOCKED_IPS = "blocked_ips"
+
+        // The TUN interface's own address (see startCapture's addAddress).
+        // Every OUTBOUND packet carries this as its source IP, so it must NEVER
+        // land on the blocklist: doing so would make the read-loop drop check
+        // (which tests srcIp too) black-hole all of the device's own traffic —
+        // and persist that blackout across restarts. The threat is always the
+        // REMOTE endpoint, never the device. blockIp() enforces this.
+        private const val TUN_ADDRESS = "10.0.0.2"
 
         // instance is a reference to the currently-running service.
         // The block API below is static (called from MainActivity), but enforcing a
@@ -149,9 +157,14 @@ class NeuralVpnService : VpnService() {
         // so we must also tear those down right now — otherwise an in-flight attack
         // would keep flowing until it finished on its own.
         fun blockIp(ip: String) {
+            // Never blacklist our own TUN address — it is the source of every
+            // outbound packet, so blocking it would drop ALL device traffic and
+            // persist that blackout. The caller should pass the remote endpoint.
+            if (ip == TUN_ADDRESS) return
             blockedIps.add(ip)
             persistBlockedIps()               // survive a process / START_STICKY restart
-            // Real enforcement (closing live connections) is gated off for now.
+            // With enforcement on, also sever any connection already in flight to
+            // this IP (Step 5) — future packets are caught by the read-loop drop.
             if (ENFORCE_BLOCKING) instance?.tearDownConnectionsTo(ip)
         }
 
@@ -429,14 +442,10 @@ class NeuralVpnService : VpnService() {
                         "isBlocked"    to false                // not blocked at network level
                     ) + flowFeatures(flowStats)                // ML flow features
 
-                    // eventSink must be called on the MAIN thread (Android UI thread)
-                    // because Flutter's event channel is not thread-safe.
-                    // withContext(Dispatchers.Main) temporarily switches the coroutine to the main thread.
-                    withContext(Dispatchers.Main) { eventSink?.invoke(enriched) }
-
-                    // Forward the packet to the real internet so the device stays online.
-                    // We launch each handler as a separate child coroutine so the read
-                    // loop is never blocked waiting for a network response.
+                    // FAST PATH FIRST: forward the (clean) packet to the real
+                    // internet immediately, before anything AI-related. Each
+                    // handler runs as its own child coroutine so the read loop
+                    // never waits on a network response. "Do not wait for the AI."
                     when (parsed.protocol) {
                         6  -> scope.launch { handleTcp(parsed, rawBytes, output) } // TCP
                         17 -> scope.launch { handleUdp(parsed, rawBytes, output) } // UDP
@@ -444,6 +453,14 @@ class NeuralVpnService : VpnService() {
                         // a userspace VPN proxy without raw socket privileges.  Dropping ICMP
                         // has no effect on internet connectivity.
                     }
+
+                    // AI PATH (background): push a copy of the metadata to Flutter
+                    // for scoring. This happens AFTER the packet is already on its
+                    // way, so analysis latency never delays traffic. eventSink must
+                    // run on the MAIN thread (Flutter's event channel is not
+                    // thread-safe); we launch it instead of withContext-suspending
+                    // so the read loop returns to reading the next packet at once.
+                    scope.launch(Dispatchers.Main) { eventSink?.invoke(enriched) }
                 }
             } catch (e: Exception) {
                 if (isRunning) e.printStackTrace()

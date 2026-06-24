@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 part 'network_exceptions.freezed.dart';
@@ -38,25 +40,48 @@ abstract class NetworkExceptions with _$NetworkExceptions implements Exception {
 
   static NetworkExceptions handleResponse(Response? response) {
     int statusCode = response?.statusCode ?? 0;
-    
+
     switch (statusCode) {
       case 400:
-        return NetworkExceptions.badRequest(response?.data['message'] ?? 'Bad request');
+        return NetworkExceptions.badRequest(_serverMessage(response, 'Bad request'));
       case 401:
-        return NetworkExceptions.unauthorizedRequest(response?.data['message'] ?? 'Unauthorized');
+        return NetworkExceptions.unauthorizedRequest(_serverMessage(response, 'Unauthorized'));
       case 404:
-        return NetworkExceptions.notFound(response?.data['message'] ?? 'Not found');
+        return NetworkExceptions.notFound(_serverMessage(response, 'Not found'));
       case 408:
         return const NetworkExceptions.requestTimeout();
       case 409:
-        return const NetworkExceptions.conflict();
+        return NetworkExceptions.defaultError(_serverMessage(response, 'Conflict occurred'));
       case 500:
         return const NetworkExceptions.internalServerError();
       case 503:
         return const NetworkExceptions.serviceUnavailable();
       default:
-        return NetworkExceptions.defaultError('Received invalid status code: $statusCode');
+        return NetworkExceptions.defaultError(
+          _serverMessage(response, 'Received invalid status code: $statusCode'),
+        );
     }
+  }
+
+  /// Pulls a human-readable message out of an error response body, falling back
+  /// to [fallback]. The body arrives as a raw String (ResponseType.plain), so it
+  /// is decoded here; backends use either an `error` or a `message` key.
+  static String _serverMessage(Response? response, String fallback) {
+    final data = response?.data;
+    Map<String, dynamic>? json;
+    if (data is Map<String, dynamic>) {
+      json = data;
+    } else if (data is String && data.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(data);
+        if (decoded is Map<String, dynamic>) json = decoded;
+      } catch (_) {
+        // Non-JSON body — fall through to the fallback.
+      }
+    }
+    // `error`/`message` are app-level; `msg` is what flask-jwt-extended emits.
+    final message = json?['error'] ?? json?['message'] ?? json?['msg'];
+    return message is String && message.isNotEmpty ? message : fallback;
   }
 
   static NetworkExceptions getException(Object error) {

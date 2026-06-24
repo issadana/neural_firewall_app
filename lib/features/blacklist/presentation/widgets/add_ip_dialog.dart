@@ -112,6 +112,13 @@ class _AddIpDialogState extends State<AddIpDialog> {
               SpacesManager.h12,
               TextField(
                 controller: _notesController,
+                // Backend caps notes at 255 chars — enforce it client-side.
+                maxLength: 255,
+                buildCounter: (_,
+                        {required currentLength,
+                        required isFocused,
+                        maxLength}) =>
+                    null,
                 style: getRegularTextStyle(fontSize: FontSizesManager.s14, color: colors.textPrimary),
                 decoration: DecorationManager.inputField(
                   colors,

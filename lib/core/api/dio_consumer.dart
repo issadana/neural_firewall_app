@@ -7,6 +7,7 @@ import 'package:Sentri/core/constants/app_constants.dart';
 import 'package:Sentri/core/errors/network_exceptions.dart';
 import 'package:Sentri/core/interceptors/error_interceptor.dart';
 import 'package:Sentri/core/interceptors/logging_interceptor.dart';
+import 'package:Sentri/core/interceptors/refresh_token_interceptor.dart';
 import 'package:Sentri/core/resources/strings_manager.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
@@ -17,11 +18,10 @@ import 'package:injectable/injectable.dart';
 class DioConsumer implements ApiConsumer {
   DioConsumer(
     this._client,
-    // this._authInterceptor,
-    // this._refreshTokenInterceptor,
     this._errorInterceptor,
-    this._loggingInterceptor,
-  ) {
+    this._loggingInterceptor, {
+    RefreshTokenInterceptor? refreshTokenInterceptor,
+  }) {
     _client.options
       ..sendTimeout = AppConstants.sendTimeout
       ..connectTimeout = AppConstants.connectTimeout
@@ -35,11 +35,11 @@ class DioConsumer implements ApiConsumer {
       };
 
 
-    // Add auth interceptor first (adds Bearer token to requests)
-    // _client.interceptors.add(_authInterceptor);
-
-    // Add refresh token interceptor (handles 401 errors and token refresh)
-    // _client.interceptors.add(_refreshTokenInterceptor);
+    // Refresh interceptor runs first so an expired-token 401 is transparently
+    // retried before the error interceptor turns it into a NetworkException.
+    if (refreshTokenInterceptor != null) {
+      _client.interceptors.add(refreshTokenInterceptor);
+    }
 
     // Add error interceptor (transforms errors to NetworkExceptions)
     _client.interceptors.add(_errorInterceptor);
@@ -61,8 +61,6 @@ class DioConsumer implements ApiConsumer {
   }
 
   final Dio _client;
-  // final AuthInterceptor _authInterceptor;
-  // final RefreshTokenInterceptor _refreshTokenInterceptor;
   final ErrorInterceptor _errorInterceptor;
   final LoggingInterceptor _loggingInterceptor;
 
@@ -71,12 +69,14 @@ class DioConsumer implements ApiConsumer {
     String path, {
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
+    String? token,
   }) async {
     try {
       final Response response = await _client.get(
         path,
         queryParameters: queryParameters,
         cancelToken: cancelToken,
+        options: _authOptions(token),
       );
       return _handleOnlineResponseAsJson(response);
     } catch (error) {
@@ -98,6 +98,7 @@ class DioConsumer implements ApiConsumer {
         queryParameters: queryParameters,
         options: Options(
           contentType: formData == null ? StringsManager.jsonContentType : null,
+          headers: _authHeaders(token),
         ),
         data: formData ?? body,
       );
@@ -112,13 +113,17 @@ class DioConsumer implements ApiConsumer {
     String path, {
     Map<String, dynamic>? body,
     Map<String, dynamic>? queryParameters,
+    String? token,
   }) async {
     try {
       final Response response = await _client.put(
         path,
         queryParameters: queryParameters,
         data: body,
-        options: Options(contentType: StringsManager.jsonContentType),
+        options: Options(
+          contentType: StringsManager.jsonContentType,
+          headers: _authHeaders(token),
+        ),
       );
       return _handleOnlineResponseAsJson(response);
     } catch (error) {
@@ -149,10 +154,12 @@ class DioConsumer implements ApiConsumer {
   }
 
   @override
-  Future delete(String path) async {
+  Future delete(String path, {String? token}) async {
     try {
-      // Use standard delete method - AuthInterceptor will remove Content-Type header
-      final Response response = await _client.delete(path);
+      final Response response = await _client.delete(
+        path,
+        options: _authOptions(token),
+      );
       // Handle empty response body (204 No Content or empty 200 OK)
       if (response.data == null || response.data.toString().isEmpty) {
         return null;
@@ -163,8 +170,23 @@ class DioConsumer implements ApiConsumer {
     }
   }
 
+  /// Builds an Authorization header map for the given bearer [token], or null
+  /// when no token is supplied (so non-authenticated requests are untouched).
+  Map<String, dynamic>? _authHeaders(String? token) => token == null
+      ? null
+      : {StringsManager.authorization: '${StringsManager.bearer}$token'};
+
+  /// Convenience wrapper that returns request [Options] carrying the bearer
+  /// token, or null when there is no token to attach.
+  Options? _authOptions(String? token) {
+    final headers = _authHeaders(token);
+    return headers == null ? null : Options(headers: headers);
+  }
+
   dynamic _handleOnlineResponseAsJson(Response response) {
-    final responseJson = jsonDecode(response.data.toString());
-    return responseJson;
+    // Empty body (e.g. 204 No Content from logout) — nothing to decode.
+    final raw = response.data?.toString() ?? '';
+    if (raw.isEmpty) return null;
+    return jsonDecode(raw);
   }
 }

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,6 +9,7 @@ import 'core/constants/api_constants.dart';
 import 'core/constants/app_constants.dart';
 import 'core/interceptors/error_interceptor.dart';
 import 'core/interceptors/logging_interceptor.dart';
+import 'core/interceptors/refresh_token_interceptor.dart';
 import 'core/widgets/navigation_bar/app.dart';
 import 'features/hardware_metrics/data/datasources/hardware_local_datasource.dart';
 import 'features/hardware_metrics/data/datasources/hardware_remote_datasource.dart';
@@ -23,6 +25,7 @@ import 'features/chatbot/domain/usecases/get_session_messages_usecase.dart';
 import 'features/chatbot/domain/usecases/send_message_usecase.dart';
 import 'features/chatbot/presentation/bloc/chat_cubit.dart';
 import 'features/auth/data/datasources/auth_local_datasource.dart';
+import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/usecases/check_auth_status_usecase.dart';
 import 'features/auth/domain/usecases/sign_in_usecase.dart';
@@ -31,6 +34,7 @@ import 'features/auth/domain/usecases/sign_up_usecase.dart';
 import 'features/auth/domain/usecases/update_profile_usecase.dart';
 import 'features/auth/presentation/bloc/auth_cubit.dart';
 import 'features/blacklist/data/datasources/blacklist_local_datasource.dart';
+import 'features/blacklist/data/datasources/blacklist_remote_datasource.dart';
 import 'features/blacklist/data/repositories/blacklist_repository_impl.dart';
 import 'features/blacklist/domain/usecases/add_to_blacklist_usecase.dart';
 import 'features/blacklist/domain/usecases/clear_blacklist_usecase.dart';
@@ -44,6 +48,8 @@ import 'features/firewall_logs/data/repositories/firewall_log_repository_impl.da
 import 'features/firewall_logs/domain/usecases/get_firewall_logs_usecase.dart';
 import 'features/firewall_logs/domain/usecases/post_firewall_log_usecase.dart';
 import 'features/firewall_logs/presentation/bloc/firewall_logs_cubit.dart';
+import 'features/settings/data/datasources/settings_remote_datasource.dart';
+import 'features/settings/data/repositories/settings_repository_impl.dart';
 import 'features/settings/presentation/bloc/settings_cubit.dart';
 import 'features/traffic/data/datasources/ml_datasource.dart';
 import 'features/traffic/data/repositories/traffic_repository_impl.dart';
@@ -61,41 +67,76 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
 
+  // Encrypted session store, shared by the auth repository and the refresh
+  // interceptor so they read/write the same tokens.
+  final authLocal = AuthLocalDataSource(
+    const FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    ),
+  );
+
+  // Shared API client used across features (auth, hardware, firewall logs).
+  final apiDio = Dio(
+    BaseOptions(
+      baseUrl: ApiConstants.baseUrl,
+      connectTimeout: AppConstants.connectTimeout,
+      receiveTimeout: AppConstants.receiveTimeout,
+      sendTimeout: AppConstants.sendTimeout,
+    ),
+  );
+  final apiConsumer = DioConsumer(
+    apiDio,
+    ErrorInterceptor(),
+    LoggingInterceptor(),
+    // Transparently refreshes expired access tokens and replays the request,
+    // so every authenticated endpoint survives token expiry.
+    refreshTokenInterceptor: RefreshTokenInterceptor(
+      dio: apiDio,
+      local: authLocal,
+    ),
+  );
+
   // ── Data sources ────────────────────────────────────────────────────────────
-  final blacklistDs  = BlacklistLocalDataSource();
-  final mlDs         = MlDataSource();
+  final blacklistDs = BlacklistLocalDataSource();
+  final mlDs = MlDataSource();
   await mlDs.init();
   final vpnDs = VpnNativeDataSource();
 
   // ── Repositories ────────────────────────────────────────────────────────────
-  final blacklistRepo = BlacklistRepositoryImpl(blacklistDs, vpnDs);
-  final trafficRepo   = TrafficRepositoryImpl(
+  final blacklistRepo = BlacklistRepositoryImpl(
+    blacklistDs,
+    vpnDs,
+    BlacklistRemoteDataSource(apiConsumer, authLocal),
+  );
+  final trafficRepo = TrafficRepositoryImpl(
     blacklistRepository: blacklistRepo,
     mlDataSource: mlDs,
     vpnDataSource: vpnDs,
     scanSystemTraffic: prefs.getBool('scanSystemTraffic') ?? false,
   );
   final vpnRepo = VpnRepositoryImpl(vpnDs);
-  final authDs  = AuthLocalDataSource(prefs);
-  final authRepo = AuthRepositoryImpl(authDs);
+  final authRepo = AuthRepositoryImpl(
+    AuthRemoteDataSource(apiConsumer),
+    authLocal,
+  );
 
   // ── Use cases ───────────────────────────────────────────────────────────────
-  final checkAuth      = CheckAuthStatusUseCase(authRepo);
-  final signIn         = SignInUseCase(authRepo);
-  final signUp         = SignUpUseCase(authRepo);
-  final signOut        = SignOutUseCase(authRepo);
-  final updateProfile  = UpdateProfileUseCase(authRepo);
+  final checkAuth = CheckAuthStatusUseCase(authRepo);
+  final signIn = SignInUseCase(authRepo);
+  final signUp = SignUpUseCase(authRepo);
+  final signOut = SignOutUseCase(authRepo);
+  final updateProfile = UpdateProfileUseCase(authRepo);
 
-  final getBlacklist    = GetBlacklistUseCase(blacklistRepo);
-  final addBlacklist    = AddToBlacklistUseCase(blacklistRepo);
+  final getBlacklist = GetBlacklistUseCase(blacklistRepo);
+  final addBlacklist = AddToBlacklistUseCase(blacklistRepo);
   final removeBlacklist = RemoveFromBlacklistUseCase(blacklistRepo);
-  final clearBlacklist  = ClearBlacklistUseCase(blacklistRepo);
-  final watchBlacklist  = WatchBlacklistUseCase(blacklistRepo);
+  final clearBlacklist = ClearBlacklistUseCase(blacklistRepo);
+  final watchBlacklist = WatchBlacklistUseCase(blacklistRepo);
 
-  final processPacket   = ProcessPacketUseCase(trafficRepo);
+  final processPacket = ProcessPacketUseCase(trafficRepo);
   final getPacketStream = GetPacketStreamUseCase(vpnRepo);
-  final startVpn        = StartVpnUseCase(vpnRepo);
-  final stopVpn         = StopVpnUseCase(vpnRepo);
+  final startVpn = StartVpnUseCase(vpnRepo);
+  final stopVpn = StopVpnUseCase(vpnRepo);
 
   // ── Cubits / Blocs ──────────────────────────────────────────────────────────
   final blacklistCubit = BlacklistCubit(
@@ -119,20 +160,10 @@ void main() async {
   );
 
   // ── Hardware metrics ─────────────────────────────────────────────────────────
-  // Shared API client used to POST snapshots to the backend.
-  final apiDio = Dio(
-    BaseOptions(
-      baseUrl: ApiConstants.baseUrl,
-      connectTimeout: AppConstants.connectTimeout,
-      receiveTimeout: AppConstants.receiveTimeout,
-      sendTimeout: AppConstants.sendTimeout,
-    ),
-  );
-  final apiConsumer = DioConsumer(apiDio, ErrorInterceptor(), LoggingInterceptor());
-
+  // Reuses the shared API client created above to POST snapshots to the backend.
   final hardwareRepo = HardwareMetricsRepositoryImpl(
     local: HardwareLocalDataSource(),
-    remote: HardwareRemoteDataSource(apiConsumer),
+    remote: HardwareRemoteDataSource(apiConsumer, authLocal),
   );
   final hardwareMetricsCubit = HardwareMetricsCubit(
     collect: CollectSnapshotUseCase(hardwareRepo),
@@ -168,7 +199,11 @@ void main() async {
 
   // Settings drive the live pipeline: keep the traffic repo's system-traffic
   // scanning and enabled-model set in sync with the user's choices.
-  final settingsCubit = SettingsCubit(prefs);
+  final settingsRepo = SettingsRepositoryImpl(
+    SettingsRemoteDataSource(apiConsumer),
+    authLocal,
+  );
+  final settingsCubit = SettingsCubit(prefs, settingsRepo);
   Set<String> enabledModelIds(SettingsState s) =>
       s.models.entries.where((e) => e.value).map((e) => e.key).toSet();
   // Seed from the cubit's initial (already-loaded) state.
@@ -210,7 +245,18 @@ void main() async {
             BlocProvider.value(value: settingsCubit),
             BlocProvider.value(value: chatCubit),
           ],
-          child: const SentriApp(),
+          // Re-pull server settings each time the user becomes authenticated
+          // (e.g. a fresh sign-in), so they aren't stuck with local defaults.
+          child: BlocListener<AuthCubit, AuthState>(
+            listenWhen: (prev, curr) =>
+                prev.status != curr.status &&
+                curr.status == AuthStatus.authenticated,
+            listener: (context, state) {
+              settingsCubit.syncFromServer();
+              blacklistRepo.syncFromServer();
+            },
+            child: const SentriApp(),
+          ),
         );
       },
     ),

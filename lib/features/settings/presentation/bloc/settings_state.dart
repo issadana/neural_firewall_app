@@ -18,6 +18,12 @@ class SettingsState extends Equatable {
   final int maxLogEntries;
   final bool darkMode;
 
+  /// Rate-based flood/SYN-flood detection (synced with the backend `/settings`).
+  final bool floodDetection;
+  final bool synFloodDetection;
+  final int floodPktPerSec;
+  final int synFloodPerSec;
+
   const SettingsState({
     this.blockThreshold = AppConstants.defaultBlockThreshold,
     this.warnThreshold = AppConstants.defaultWarnThreshold,
@@ -25,6 +31,10 @@ class SettingsState extends Equatable {
     this.scanSystemTraffic = false,
     this.maxLogEntries = 200,
     this.darkMode = false,
+    this.floodDetection = true,
+    this.synFloodDetection = true,
+    this.floodPktPerSec = AppConstants.defaultFloodPktPerSec,
+    this.synFloodPerSec = AppConstants.defaultSynFloodPerSec,
   });
 
   /// Whether a given model is switched on. Defaults to `true` when unknown so
@@ -42,6 +52,10 @@ class SettingsState extends Equatable {
     bool? scanSystemTraffic,
     int? maxLogEntries,
     bool? darkMode,
+    bool? floodDetection,
+    bool? synFloodDetection,
+    int? floodPktPerSec,
+    int? synFloodPerSec,
   }) {
     return SettingsState(
       blockThreshold: blockThreshold ?? this.blockThreshold,
@@ -50,6 +64,10 @@ class SettingsState extends Equatable {
       scanSystemTraffic: scanSystemTraffic ?? this.scanSystemTraffic,
       maxLogEntries: maxLogEntries ?? this.maxLogEntries,
       darkMode: darkMode ?? this.darkMode,
+      floodDetection: floodDetection ?? this.floodDetection,
+      synFloodDetection: synFloodDetection ?? this.synFloodDetection,
+      floodPktPerSec: floodPktPerSec ?? this.floodPktPerSec,
+      synFloodPerSec: synFloodPerSec ?? this.synFloodPerSec,
     );
   }
 
@@ -61,5 +79,9 @@ class SettingsState extends Equatable {
         scanSystemTraffic,
         maxLogEntries,
         darkMode,
+        floodDetection,
+        synFloodDetection,
+        floodPktPerSec,
+        synFloodPerSec,
       ];
 }
