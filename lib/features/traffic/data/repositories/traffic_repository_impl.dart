@@ -20,6 +20,11 @@ class TrafficRepositoryImpl implements TrafficRepository {
   bool _scanSystemTraffic;
   int _packetCounter = 0;
 
+  /// The VPN's TUN interface address (NeuralVpnService `addAddress`). It is the
+  /// source IP on every outbound packet, so it identifies "the device" — never
+  /// a threat. Kept in sync with the native [TUN_ADDRESS] constant.
+  static const String _deviceTunIp = '10.0.0.2';
+
   /// Catalog ids of the models that score each packet. Defaults to all shipped
   /// models; kept in sync with the user's settings via [setEnabledModels].
   Set<String> _enabledModels = AiModels.all.map((m) => m.id).toSet();
@@ -92,7 +97,12 @@ class TrafficRepositoryImpl implements TrafficRepository {
 
       final protocol = ProtocolHelper.parseProtocol(protocolNum);
 
-      final isBlacklisted = await _blacklistRepository.isBlocked(srcIp);
+      // The threat is always the REMOTE endpoint. On an outbound packet srcIp is
+      // the device's own TUN address, so blacklisting srcIp blindly would block
+      // the device itself; pick whichever endpoint isn't the device.
+      final remoteIp = srcIp == _deviceTunIp ? dstIp : srcIp;
+
+      final isBlacklisted = await _blacklistRepository.isBlocked(remoteIp);
       if (isBlacklisted) {
         return PacketRecord(
           id: id,
@@ -240,18 +250,18 @@ class TrafficRepositoryImpl implements TrafficRepository {
         // DoS-family model (dos, HULK, LOIC, HOIC) maps to dos_score.
         final isBruteForce = selectedModel == 'bruteForce';
         await _blacklistRepository.add(
-          srcIp,
+          remoteIp,
           'AI flagged by "$selectedModel" (score: ${selectedScore.toStringAsFixed(2)})',
           bfScore: isBruteForce ? selectedScore : null,
           dosScore: isBruteForce ? null : selectedScore,
         );
         autoBlacklisted = true;
 
-        // Push the block to the Kotlin VPN service so it drops packets from
+        // Push the block to the Kotlin VPN service so it drops packets to/from
         // this IP at the network level — they never reach the internet.
-        await _vpnDataSource.blockIp(srcIp);
+        await _vpnDataSource.blockIp(remoteIp);
 
-        _log.w('Auto-blocked $srcIp — $selectedModel=$selectedScore — $modelScores');
+        _log.w('Auto-blocked $remoteIp — $selectedModel=$selectedScore — $modelScores');
       } else if (selectedScore >= _warnThreshold) {
         status = PacketStatus.warn;
       } else {
