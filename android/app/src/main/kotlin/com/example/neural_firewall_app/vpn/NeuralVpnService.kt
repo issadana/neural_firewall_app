@@ -720,6 +720,11 @@ class NeuralVpnService : VpnService() {
             // Blocking receive: waits up to soTimeout milliseconds for a response
             sock.receive(resp)
 
+            // Block check after receive: the IP may have been flagged while this
+            // request was in-flight (up to 3s soTimeout). Drop the response so
+            // no data from a blocked IP ever reaches the device, even via UDP.
+            if (isIpBlocked(parsed.dstIp)) return
+
             // respPayload: trim the response to exactly the bytes received
             val respPayload = resp.data.copyOf(resp.length)
 
