@@ -68,7 +68,11 @@ class TrafficBloc extends Bloc<TrafficEvent, TrafficState> {
       newQueue.addFirst(record);
       if (newQueue.length > _maxEntries) newQueue.removeLast();
 
-      final maxThreat = max(record.bruteForceScore, record.dosScore);
+      // Plot the strongest signal across all enabled models for this packet.
+      final maxThreat = max(
+        record.selectedScore,
+        max(record.bruteForceScore, record.dosScore),
+      );
       final newSparkline = [...state.sparklineData, maxThreat * 100];
       if (newSparkline.length > _sparklineLength) newSparkline.removeAt(0);
 

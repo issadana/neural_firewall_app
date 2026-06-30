@@ -90,6 +90,15 @@ class NeuralVpnService : VpnService() {
         // reconnected to push them again.
         private val blockedIps = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
+        // ENFORCEMENT KILL-SWITCH.
+        // When false, the service still tracks the block list (blockIp/unblockIp
+        // keep working and the set is persisted) but NEVER actually drops or tears
+        // down traffic — it only observes, labels, and streams metadata to the AI.
+        // Set back to true to restore real network-level blocking. Disabled for
+        // now: the AI scoring pipeline still runs end-to-end, it just can't sever
+        // connections yet.
+        private val ENFORCE_BLOCKING = false
+
         // appContext is the APPLICATION context, captured in onStartCommand().
         // The block API below is static yet needs a Context to reach SharedPreferences.
         // We deliberately hold the application context (a process-lifetime singleton),
@@ -142,7 +151,8 @@ class NeuralVpnService : VpnService() {
         fun blockIp(ip: String) {
             blockedIps.add(ip)
             persistBlockedIps()               // survive a process / START_STICKY restart
-            instance?.tearDownConnectionsTo(ip)
+            // Real enforcement (closing live connections) is gated off for now.
+            if (ENFORCE_BLOCKING) instance?.tearDownConnectionsTo(ip)
         }
 
         // unblockIp() removes an IP (and persists the removal) so it can talk again.
@@ -160,6 +170,19 @@ class NeuralVpnService : VpnService() {
         // malicious IP never silently becomes allowed again just because the VPN was
         // toggled off and on.  (To actually forget threats, call unblockIp per IP.)
         fun clearBlockedIps() { blockedIps.clear() }
+
+        // clearAllBlockedIps() wipes BOTH the in-memory set and the persisted
+        // copy on disk.  Unlike clearBlockedIps() this is a permanent "forget
+        // every block" — used as a recovery action when the block list needs a
+        // full reset (e.g. a bad batch of auto-blocks took the device offline).
+        // Once the set is empty, future packets simply flow again.
+        fun clearAllBlockedIps() {
+            blockedIps.clear()
+            appContext?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                ?.edit()
+                ?.remove(KEY_BLOCKED_IPS)
+                ?.apply()
+        }
     }
 
     // vpnInterface holds the file descriptor of the TUN interface.
@@ -369,7 +392,8 @@ class NeuralVpnService : VpnService() {
                     // own TUN address (10.0.0.2) and the flagged threat is the dstIp.
                     // Checking only srcIp would mean the block never matched anything.
                     // We check both so the rule also holds if directions are ever mixed.
-                    if (isIpBlocked(parsed.srcIp) || isIpBlocked(parsed.dstIp)) continue
+                    if (ENFORCE_BLOCKING &&
+                        (isIpBlocked(parsed.srcIp) || isIpBlocked(parsed.dstIp))) continue
 
                     // Update the flow tracker with this packet's timestamp.
                     // flowTracker.update() returns fresh IAT statistics for this flow.
@@ -398,15 +422,12 @@ class NeuralVpnService : VpnService() {
                         "sizeBytes"    to parsed.sizeBytes,
                         "flags"        to parsed.flags,
                         "timestamp"    to parsed.timestamp,
-                        "flowIatMean"  to flowStats.iatMean,   // ML feature: mean inter-arrival time
-                        "flowIatStd"   to flowStats.iatStd,    // ML feature: IAT standard deviation
-                        "flowDuration" to flowStats.duration,  // how long this flow has been alive
                         "label"        to dnsCache.serviceLabel(parsed.dstIp), // e.g. "YouTube"
                         "appName"      to owner.appName,       // owning app label, e.g. "Chrome"
                         "appPackage"   to owner.appPackage,    // owning package, e.g. "com.android.chrome"
                         "isSystem"     to owner.isSystem,      // true for OS/system-owned traffic
                         "isBlocked"    to false                // not blocked at network level
-                    )
+                    ) + flowFeatures(flowStats)                // ML flow features
 
                     // eventSink must be called on the MAIN thread (Android UI thread)
                     // because Flutter's event channel is not thread-safe.
@@ -430,6 +451,22 @@ class NeuralVpnService : VpnService() {
             }
         }
     }
+
+    // flowFeatures() serialises a FlowStats into the map keys the Flutter ML
+    // pipeline reads.  Shared by the outbound read loop and both inbound
+    // (TCP relay / UDP) emit paths so every event carries the same feature set.
+    private fun flowFeatures(stats: FlowStats): Map<String, Any> = mapOf(
+        "flowIatMean"    to stats.iatMean,
+        "flowIatStd"     to stats.iatStd,
+        "flowDuration"   to stats.duration,
+        "flowFwdPkts"    to stats.fwdPkts,
+        "flowBwdPkts"    to stats.bwdPkts,
+        "flowFwdMax"     to stats.fwdMax,
+        "flowFwdMean"    to stats.fwdMean,
+        "flowFwdRate"    to stats.fwdRate,
+        "flowIdleMean"   to stats.idleMean,
+        "flowPktSizeAvg" to stats.pktSizeAvg,
+    )
 
     // ── TCP: Connection-Tracked Relay ─────────────────────────────────────────
     //
@@ -543,7 +580,7 @@ class NeuralVpnService : VpnService() {
                                 // data immediately.  tearDownConnectionsTo() also cancels this
                                 // job, but this guard guarantees we never inject one more
                                 // attacker packet even in a race.
-                                if (isIpBlocked(parsed.dstIp)) break
+                                if (ENFORCE_BLOCKING && isIpBlocked(parsed.dstIp)) break
 
                                 // Blocking read from the real server's socket.
                                 // Returns the number of bytes read, or -1 on EOF (server closed).
@@ -574,6 +611,13 @@ class NeuralVpnService : VpnService() {
                                 val owner = appResolver.resolve(
                                     6, parsed.srcIp, parsed.srcPort, parsed.dstIp, parsed.dstPort,
                                 )
+                                // Record this as a BACKWARD packet on the same flow (the
+                                // 4-tuple is passed in forward orientation so it folds into
+                                // the flow the read loop already created for this request).
+                                val backStats = flowTracker.update(
+                                    parsed.srcIp, parsed.srcPort, parsed.dstIp, parsed.dstPort,
+                                    n, System.currentTimeMillis(), isForward = false,
+                                )
                                 val inboundEvent = mapOf(
                                     "id"           to "in_${System.nanoTime()}",
                                     "srcIp"        to parsed.dstIp,   // server is the source
@@ -584,14 +628,11 @@ class NeuralVpnService : VpnService() {
                                     "sizeBytes"    to n,
                                     "flags"        to 0x18,           // PSH | ACK
                                     "timestamp"    to System.currentTimeMillis(),
-                                    "flowIatMean"  to 0.0,
-                                    "flowIatStd"   to 0.0,
-                                    "flowDuration" to 0L,
                                     "label"        to dnsCache.serviceLabel(parsed.dstIp),
                                     "appName"      to owner.appName,
                                     "appPackage"   to owner.appPackage,
                                     "isSystem"     to owner.isSystem
-                                )
+                                ) + flowFeatures(backStats)
                                 withContext(Dispatchers.Main) { eventSink?.invoke(inboundEvent) }
                             }
                         } catch (_: Exception) {
@@ -747,6 +788,11 @@ class NeuralVpnService : VpnService() {
             val owner = appResolver.resolve(
                 17, parsed.srcIp, parsed.srcPort, parsed.dstIp, parsed.dstPort,
             )
+            // Record the response as a BACKWARD packet on the request's flow.
+            val backStats = flowTracker.update(
+                parsed.srcIp, parsed.srcPort, parsed.dstIp, parsed.dstPort,
+                resp.length, System.currentTimeMillis(), isForward = false,
+            )
             val inboundEvent = mapOf(
                 "id"           to "in_${System.nanoTime()}",
                 "srcIp"        to parsed.dstIp,   // server is the source
@@ -757,14 +803,11 @@ class NeuralVpnService : VpnService() {
                 "sizeBytes"    to resp.length,
                 "flags"        to 0,              // UDP has no flags
                 "timestamp"    to System.currentTimeMillis(),
-                "flowIatMean"  to 0.0,
-                "flowIatStd"   to 0.0,
-                "flowDuration" to 0L,
                 "label"        to dnsCache.serviceLabel(parsed.dstIp),
                 "appName"      to owner.appName,
                 "appPackage"   to owner.appPackage,
                 "isSystem"     to owner.isSystem
-            )
+            ) + flowFeatures(backStats)
             withContext(Dispatchers.Main) { eventSink?.invoke(inboundEvent) }
 
         } catch (_: Exception) {

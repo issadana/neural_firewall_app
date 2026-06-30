@@ -83,7 +83,7 @@ class _BlacklistScreenState extends State<BlacklistScreen> {
                                 itemCount: filtered.length,
                                 itemBuilder: (context, i) {
                                   final entry = filtered[i];
-                                  return BlacklistTile(
+                                  final tile = BlacklistTile(
                                         entry: entry,
                                         onDelete: () => context
                                             .read<BlacklistCubit>()
@@ -101,6 +101,12 @@ class _BlacklistScreenState extends State<BlacklistScreen> {
                                         end: 0,
                                         duration: 250.ms,
                                       );
+                                  if (i == filtered.length - 1) {
+                                    return Column(
+                                      children: [tile, SpacesManager.h40],
+                                    );
+                                  }
+                                  return tile;
                                 },
                               ),
                       ),

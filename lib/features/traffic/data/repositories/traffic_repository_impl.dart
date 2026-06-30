@@ -1,4 +1,5 @@
 import 'package:logger/logger.dart';
+import 'package:Sentri/core/constants/ai_models.dart';
 import 'package:Sentri/core/enums.dart';
 import 'package:Sentri/core/utils/network_utils.dart';
 import 'package:Sentri/features/blacklist/domain/repositories/blacklist_repository.dart';
@@ -18,6 +19,30 @@ class TrafficRepositoryImpl implements TrafficRepository {
   double _warnThreshold;
   bool _scanSystemTraffic;
   int _packetCounter = 0;
+
+  /// Catalog ids of the models that score each packet. Defaults to all shipped
+  /// models; kept in sync with the user's settings via [setEnabledModels].
+  Set<String> _enabledModels = AiModels.all.map((m) => m.id).toSet();
+
+  /// Feature names the live packet pipeline can actually supply with real data.
+  /// A model that needs anything outside this set would be scored on
+  /// mean-defaults (out-of-distribution noise), so it is allowed to *display* a
+  /// score but NOT to drive a block — otherwise normal traffic gets blocked.
+  /// FlowTracker now computes the full CIC-style set, so all five models are
+  /// covered (HULK/LOIC/HOIC need bwd_pkts/fwd_rate/fwd_max/idle_mean/fwd_mean).
+  static const Set<String> _providedFeatures = {
+    'protocol',
+    'iat_mean',
+    'iat_std',
+    'duration',
+    'fwd_pkts',
+    'bwd_pkts',
+    'fwd_max',
+    'fwd_mean',
+    'fwd_rate',
+    'idle_mean',
+    'pkt_size_avg',
+  };
 
   /// Cheap safety net for the system-traffic bypass: counts packets per
   /// destination within a 1-second window. If a "trusted" system source starts
@@ -150,27 +175,71 @@ class TrafficRepositoryImpl implements TrafficRepository {
         );
       }
 
+      // Feature map shared by every model. Each model picks the features it was
+      // trained on (by name) and defaults any it can't find to its own mean, so
+      // we can supply a superset here regardless of which models are enabled.
+      // The flow* values are computed natively by FlowTracker (CIC-IDS style).
       final features = {
-        'proto': protocolNum,
+        'protocol': protocolNum,
         'iat_mean': rawPacket['flowIatMean'] ?? 0.0,
-        'fwd_pkts': 1,
-        'pkt_size_avg': sizeBytes.toDouble(),
+        'iat_std': rawPacket['flowIatStd'] ?? 0.0,
+        'duration': rawPacket['flowDuration'] ?? 0.0,
+        'fwd_pkts': rawPacket['flowFwdPkts'] ?? 1,
+        'bwd_pkts': rawPacket['flowBwdPkts'] ?? 0,
+        'fwd_max': rawPacket['flowFwdMax'] ?? 0,
+        'fwd_mean': rawPacket['flowFwdMean'] ?? 0.0,
+        'fwd_rate': rawPacket['flowFwdRate'] ?? 0.0,
+        'idle_mean': rawPacket['flowIdleMean'] ?? 0.0,
+        'pkt_size_avg': rawPacket['flowPktSizeAvg'] ?? sizeBytes.toDouble(),
       };
 
-      final bfScore = await _mlDataSource.predict(features);
+      // Pass the packet through every enabled model — all five by default — and
+      // let the single strongest signal decide the verdict:
+      //   • safe  — every model scored below the warn threshold
+      //   • warn  — the highest-scoring model is in [warn, block)
+      //   • block — the highest-scoring model is at or above block
+      // So a packet is "safe" only when it is safe across all five models, and
+      // the chosen ("used") model is always the highest-probability one — the
+      // same rule for the safe, warn and block cases alike.
+      final modelScores = await _mlDataSource.predictAll(features, _enabledModels);
+
+      // Argmax over the models allowed to drive the decision. Only models whose
+      // features the pipeline actually supplies may set the verdict; any model
+      // scored on mean-defaults still appears in [modelScores] for display but
+      // must not be able to block normal traffic. (All five ship fully
+      // supported today, so all five take part in the vote.)
+      //
+      // Start below zero and use a strict `>` so the result is a true argmax:
+      // when every model agrees the packet is safe (scores tie, often 0.0) we
+      // still report the genuine top model in catalog order, not whichever one
+      // happened to be iterated last.
+      var selectedModel = '';
+      var selectedScore = -1.0;
+      modelScores.forEach((modelId, score) {
+        if (!_mlDataSource.hasFullFeatureSupport(modelId, _providedFeatures)) {
+          return;
+        }
+        if (score > selectedScore) {
+          selectedScore = score;
+          selectedModel = modelId;
+        }
+      });
+      // No model could score the packet (none enabled / all errored): treat as
+      // safe with a zero score rather than carrying the -1.0 sentinel forward.
+      if (selectedScore < 0.0) selectedScore = 0.0;
 
       final PacketStatus status;
       bool autoBlacklisted = false;
 
-      if (bfScore >= _blockThreshold) {
+      if (selectedScore >= _blockThreshold) {
         status = PacketStatus.aiBlock;
 
         // Auto-block: persist to blacklist so future packets from this IP
-        // are caught before the ML model even runs.
+        // are caught before the ML models even run.
         await _blacklistRepository.add(
           srcIp,
-          'AI detected brute-force (score: ${bfScore.toStringAsFixed(2)})',
-          bfScore: bfScore,
+          'AI flagged by "$selectedModel" (score: ${selectedScore.toStringAsFixed(2)})',
+          bfScore: selectedScore,
         );
         autoBlacklisted = true;
 
@@ -178,8 +247,8 @@ class TrafficRepositoryImpl implements TrafficRepository {
         // this IP at the network level — they never reach the internet.
         await _vpnDataSource.blockIp(srcIp);
 
-        _log.w('Auto-blocked $srcIp — bfScore=$bfScore');
-      } else if (bfScore >= _warnThreshold) {
+        _log.w('Auto-blocked $srcIp — $selectedModel=$selectedScore — $modelScores');
+      } else if (selectedScore >= _warnThreshold) {
         status = PacketStatus.warn;
       } else {
         status = PacketStatus.safe;
@@ -194,8 +263,11 @@ class TrafficRepositoryImpl implements TrafficRepository {
         protocol: protocol,
         status: status,
         sizeBytes: sizeBytes,
-        bruteForceScore: bfScore,
-        dosScore: 0.0,
+        bruteForceScore: modelScores['bruteForce'] ?? 0.0,
+        dosScore: modelScores['dos'] ?? 0.0,
+        modelScores: modelScores,
+        selectedModel: selectedModel,
+        selectedScore: selectedScore,
         timestamp: DateTime.now(),
         isBlacklisted: autoBlacklisted,
         label: label,
@@ -219,6 +291,11 @@ class TrafficRepositoryImpl implements TrafficRepository {
   @override
   void setScanSystemTraffic(bool enabled) {
     _scanSystemTraffic = enabled;
+  }
+
+  @override
+  void setEnabledModels(Set<String> modelIds) {
+    _enabledModels = modelIds;
   }
 
   PacketStatus? _checkSpecialPackets(Protocol protocol, int flags, int dstPort) {

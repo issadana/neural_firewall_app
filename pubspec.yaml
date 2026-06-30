@@ -127,6 +127,10 @@ flutter:
    - assets/icon/
    - assets/ai_models/
    - assets/ai_models/bruteforce/
+   - assets/ai_models/dos_specialist/
+   - assets/ai_models/dos_specialist_hulk/
+   - assets/ai_models/loic/
+   - assets/ai_models/hoic/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

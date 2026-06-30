@@ -29,7 +29,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       models: models,
       scanSystemTraffic: _prefs.getBool('scanSystemTraffic') ?? false,
       maxLogEntries: _prefs.getInt('maxLogEntries') ?? 200,
-      darkMode: _prefs.getBool('darkMode') ?? true,
+      darkMode: _prefs.getBool('darkMode') ?? false,
     ));
   }
 

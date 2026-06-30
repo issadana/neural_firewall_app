@@ -111,6 +111,18 @@ class VpnNativeDataSource {
     }
   }
 
+  /// Forgets every blocked IP — clears the in-memory set AND the persisted
+  /// copy on disk. Recovery action for when a bad batch of auto-blocks has
+  /// taken connectivity offline.
+  Future<void> clearAllBlockedIps() async {
+    try {
+      await _vpnMethodChannel.invokeMethod('clearAllBlockedIps');
+      _log.i('Cleared all blocked IPs (memory + disk)');
+    } catch (e) {
+      _log.e('Failed to clear blocked IPs: $e');
+    }
+  }
+
   /// Returns true if [ip] is currently blocked at the network level.
   Future<bool> isIpBlocked(String ip) async {
     try {

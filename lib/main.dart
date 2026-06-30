@@ -68,7 +68,7 @@ void main() async {
   final vpnDs = VpnNativeDataSource();
 
   // ── Repositories ────────────────────────────────────────────────────────────
-  final blacklistRepo = BlacklistRepositoryImpl(blacklistDs);
+  final blacklistRepo = BlacklistRepositoryImpl(blacklistDs, vpnDs);
   final trafficRepo   = TrafficRepositoryImpl(
     blacklistRepository: blacklistRepo,
     mlDataSource: mlDs,
@@ -167,11 +167,22 @@ void main() async {
   );
 
   // Settings drive the live pipeline: keep the traffic repo's system-traffic
-  // scanning in sync with the user's choice (initial value read above).
+  // scanning and enabled-model set in sync with the user's choices.
   final settingsCubit = SettingsCubit(prefs);
-  settingsCubit.stream.listen(
-    (s) => trafficRepo.setScanSystemTraffic(s.scanSystemTraffic),
+  Set<String> enabledModelIds(SettingsState s) =>
+      s.models.entries.where((e) => e.value).map((e) => e.key).toSet();
+  // Seed from the cubit's initial (already-loaded) state.
+  trafficRepo.setScanSystemTraffic(settingsCubit.state.scanSystemTraffic);
+  trafficRepo.setEnabledModels(enabledModelIds(settingsCubit.state));
+  trafficRepo.updateThresholds(
+    settingsCubit.state.blockThreshold,
+    settingsCubit.state.warnThreshold,
   );
+  settingsCubit.stream.listen((s) {
+    trafficRepo.setScanSystemTraffic(s.scanSystemTraffic);
+    trafficRepo.setEnabledModels(enabledModelIds(s));
+    trafficRepo.updateThresholds(s.blockThreshold, s.warnThreshold);
+  });
 
   runApp(
     ScreenUtilInit(
