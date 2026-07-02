@@ -83,6 +83,14 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthState(status: AuthStatus.unauthenticated));
   }
 
+  /// The refresh token is dead and the interceptor already wiped the session —
+  /// drop to unauthenticated so the navigation gate routes back to sign-in.
+  /// Idempotent: safe to call for each in-flight request that 401s at once.
+  void onSessionExpired() {
+    if (state.status == AuthStatus.unauthenticated) return;
+    emit(const AuthState(status: AuthStatus.unauthenticated));
+  }
+
   AuthState _authenticated(User user) => AuthState(
     status: AuthStatus.authenticated,
     userId: user.id,

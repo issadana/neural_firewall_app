@@ -28,8 +28,10 @@ class RefreshTokenInterceptor extends Interceptor {
   RefreshTokenInterceptor({
     required Dio dio,
     required AuthLocalDataSource local,
+    Future<void> Function()? onSessionExpired,
   }) : _dio = dio,
-       _local = local {
+       _local = local,
+       _onSessionExpired = onSessionExpired {
     _tokenDio = Dio(
       BaseOptions(
         baseUrl: dio.options.baseUrl,
@@ -59,6 +61,10 @@ class RefreshTokenInterceptor extends Interceptor {
   final Dio _dio;
   final AuthLocalDataSource _local;
   late final Dio _tokenDio;
+
+  /// Invoked right after the session is wiped because the refresh token is dead.
+  /// Lets the app drive the UI back to sign-in and tear down authed connections.
+  final Future<void> Function()? _onSessionExpired;
 
   /// Shared across concurrent 401s so only one refresh runs at a time.
   Future<String?>? _inFlightRefresh;
@@ -110,10 +116,17 @@ class RefreshTokenInterceptor extends Interceptor {
     );
   }
 
+  /// Wipes the session and notifies the app that it's dead, so the UI can drop
+  /// back to sign-in instead of looping on 401s with tokens already gone.
+  Future<void> _clearSession() async {
+    await _local.clear();
+    await _onSessionExpired?.call();
+  }
+
   Future<String?> _performRefresh() async {
     final refreshToken = await _local.getRefreshToken();
     if (refreshToken == null) {
-      await _local.clear();
+      await _clearSession();
       return null;
     }
     try {
@@ -146,7 +159,7 @@ class RefreshTokenInterceptor extends Interceptor {
       // out: leave the session intact and just fail this refresh round.
       final status = e.response?.statusCode;
       if (status == 401 || status == 403 || status == 422) {
-        await _local.clear();
+        await _clearSession();
       }
       return null;
     } catch (_) {

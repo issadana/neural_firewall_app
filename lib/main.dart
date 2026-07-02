@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/api/dio_consumer.dart';
 import 'core/constants/api_constants.dart';
 import 'core/constants/app_constants.dart';
+import 'core/websocket/firewall_log_ws_service.dart';
+import 'core/websocket/ws_server_message.dart';
 import 'core/interceptors/error_interceptor.dart';
 import 'core/interceptors/logging_interceptor.dart';
 import 'core/interceptors/refresh_token_interceptor.dart';
@@ -84,6 +86,20 @@ void main() async {
       sendTimeout: AppConstants.sendTimeout,
     ),
   );
+
+  // Real-time write path: streams every processed firewall log to the backend
+  // over a single WebSocket. Reads the current access token from secure
+  // storage on each (re)connect, so a refreshed token is picked up
+  // automatically. Started once the user is authenticated (see listener below).
+  final firewallLogWs = FirewallLogWsService(
+    baseHttpUrl: ApiConstants.baseUrl,
+    tokenProvider: authLocal.getAccessToken,
+  );
+
+  // Bound below once its dependencies exist. The interceptor's onSessionExpired
+  // callback only fires at request time (well after startup), by which point
+  // this holds the live cubit.
+  AuthCubit? authCubit;
   final apiConsumer = DioConsumer(
     apiDio,
     ErrorInterceptor(),
@@ -93,6 +109,12 @@ void main() async {
     refreshTokenInterceptor: RefreshTokenInterceptor(
       dio: apiDio,
       local: authLocal,
+      // Refresh token is dead and the session is already wiped: tear down the
+      // authed socket and drop the UI back to sign-in.
+      onSessionExpired: () async {
+        await firewallLogWs.stop();
+        authCubit?.onSessionExpired();
+      },
     ),
   );
 
@@ -127,6 +149,16 @@ void main() async {
   final signOut = SignOutUseCase(authRepo);
   final updateProfile = UpdateProfileUseCase(authRepo);
 
+  // Built eagerly (not in the BlocProvider factory) so the refresh interceptor's
+  // onSessionExpired callback can drive it back to unauthenticated mid-session.
+  authCubit = AuthCubit(
+    checkAuthStatusUseCase: checkAuth,
+    signInUseCase: signIn,
+    signUpUseCase: signUp,
+    signOutUseCase: signOut,
+    updateProfileUseCase: updateProfile,
+  );
+
   final getBlacklist = GetBlacklistUseCase(blacklistRepo);
   final addBlacklist = AddToBlacklistUseCase(blacklistRepo);
   final removeBlacklist = RemoveFromBlacklistUseCase(blacklistRepo);
@@ -150,6 +182,7 @@ void main() async {
   final trafficBloc = TrafficBloc(
     getPacketStream: getPacketStream,
     processPacket: processPacket,
+    logWs: firewallLogWs,
   );
 
   final vpnCubit = VpnCubit(startVpn: startVpn, stopVpn: stopVpn);
@@ -173,7 +206,7 @@ void main() async {
   // ── Firewall logs ────────────────────────────────────────────────────────────
   // Reuses the shared API client; powers the Dashboard tab (overview + logs).
   final firewallLogRepo = FirewallLogRepositoryImpl(
-    FirewallLogRemoteDataSource(apiConsumer),
+    FirewallLogRemoteDataSource(apiConsumer, authLocal),
   );
   final firewallLogsCubit = FirewallLogsCubit(
     getLogs: GetFirewallLogsUseCase(firewallLogRepo),
@@ -219,6 +252,25 @@ void main() async {
     trafficRepo.updateThresholds(s.blockThreshold, s.warnThreshold);
   });
 
+  // React to messages the backend pushes down the log WebSocket:
+  //  • blacklist_update → the server auto-blocked an IP; refresh local cache.
+  //  • settings_update  → admin changed thresholds; apply to the live pipeline.
+  firewallLogWs.pushStream.listen((msg) {
+    switch (msg) {
+      case WsBlacklistUpdate():
+        blacklistRepo.syncFromServer();
+      case WsSettingsUpdate(
+        blockThreshold: final block,
+        warnThreshold: final warn,
+      ):
+        if (block != null && warn != null) {
+          trafficRepo.updateThresholds(block, warn);
+        }
+      default:
+        break; // ack / pong / error — nothing to apply here
+    }
+  });
+
   runApp(
     ScreenUtilInit(
       designSize: const Size(375, 812),
@@ -227,15 +279,7 @@ void main() async {
       builder: (context, child) {
         return MultiBlocProvider(
           providers: [
-            BlocProvider(
-              create: (_) => AuthCubit(
-                checkAuthStatusUseCase: checkAuth,
-                signInUseCase: signIn,
-                signUpUseCase: signUp,
-                signOutUseCase: signOut,
-                updateProfileUseCase: updateProfile,
-              ),
-            ),
+            BlocProvider.value(value: authCubit!),
             BlocProvider.value(value: vpnCubit),
             BlocProvider.value(value: trafficBloc),
             BlocProvider.value(value: dashboardCubit),
@@ -254,6 +298,8 @@ void main() async {
             listener: (context, state) {
               settingsCubit.syncFromServer();
               blacklistRepo.syncFromServer();
+              // Open the log WebSocket now that a valid token exists.
+              firewallLogWs.start();
             },
             child: const SentriApp(),
           ),
