@@ -54,12 +54,14 @@ import 'features/settings/data/datasources/settings_remote_datasource.dart';
 import 'features/settings/data/repositories/settings_repository_impl.dart';
 import 'features/settings/presentation/bloc/settings_cubit.dart';
 import 'features/traffic/data/datasources/ml_datasource.dart';
+import 'features/traffic/data/datasources/traffic_local_datasource.dart';
 import 'features/traffic/data/repositories/traffic_repository_impl.dart';
 import 'features/traffic/domain/usecases/process_packet_usecase.dart';
 import 'features/traffic/presentation/bloc/traffic_bloc.dart';
 import 'features/vpn/data/datasources/vpn_native_datasource.dart';
 import 'features/vpn/data/repositories/vpn_repository_impl.dart';
 import 'features/vpn/domain/usecases/get_packet_stream_usecase.dart';
+import 'features/vpn/domain/usecases/is_vpn_running_usecase.dart';
 import 'features/vpn/domain/usecases/start_vpn_usecase.dart';
 import 'features/vpn/domain/usecases/stop_vpn_usecase.dart';
 import 'features/vpn/presentation/bloc/vpn_cubit.dart';
@@ -169,6 +171,7 @@ void main() async {
   final getPacketStream = GetPacketStreamUseCase(vpnRepo);
   final startVpn = StartVpnUseCase(vpnRepo);
   final stopVpn = StopVpnUseCase(vpnRepo);
+  final isVpnRunning = IsVpnRunningUseCase(vpnRepo);
 
   // ── Cubits / Blocs ──────────────────────────────────────────────────────────
   final blacklistCubit = BlacklistCubit(
@@ -183,9 +186,22 @@ void main() async {
     getPacketStream: getPacketStream,
     processPacket: processPacket,
     logWs: firewallLogWs,
+    local: TrafficLocalDataSource(),
   );
 
-  final vpnCubit = VpnCubit(startVpn: startVpn, stopVpn: stopVpn);
+  final vpnCubit = VpnCubit(
+    startVpn: startVpn,
+    stopVpn: stopVpn,
+    isVpnRunning: isVpnRunning,
+  );
+
+  // The native VPN service is START_STICKY + foreground, so it can already be
+  // running from a previous session (after a swipe-away, process kill, or app
+  // restart). Re-sync the UI to that live session and resume packet listening
+  // so detection continues right where it left off.
+  vpnCubit.restore().then((wasRunning) {
+    if (wasRunning) trafficBloc.add(const StartListeningEvent());
+  });
 
   final dashboardCubit = DashboardCubit(
     trafficBloc: trafficBloc,

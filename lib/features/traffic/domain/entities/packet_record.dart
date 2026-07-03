@@ -53,4 +53,65 @@ class PacketRecord {
     this.appPackage = '',
     this.isSystem = false,
   });
+
+  /// Serialises the record for local persistence (SharedPreferences JSON).
+  /// Enums are stored by name and the timestamp as ISO-8601 so the format is
+  /// stable across app versions.
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'srcIp': srcIp,
+    'srcPort': srcPort,
+    'dstIp': dstIp,
+    'dstPort': dstPort,
+    'protocol': protocol.name,
+    'status': status.name,
+    'sizeBytes': sizeBytes,
+    'bruteForceScore': bruteForceScore,
+    'dosScore': dosScore,
+    'modelScores': modelScores,
+    'selectedModel': selectedModel,
+    'selectedScore': selectedScore,
+    'timestamp': timestamp.toIso8601String(),
+    'isBlacklisted': isBlacklisted,
+    'label': label,
+    'serviceName': serviceName,
+    'appName': appName,
+    'appPackage': appPackage,
+    'isSystem': isSystem,
+  };
+
+  factory PacketRecord.fromJson(Map<String, dynamic> json) => PacketRecord(
+    id: json['id'] as String? ?? '',
+    srcIp: json['srcIp'] as String? ?? 'unknown',
+    srcPort: json['srcPort'] as int? ?? 0,
+    dstIp: json['dstIp'] as String? ?? 'unknown',
+    dstPort: json['dstPort'] as int? ?? 0,
+    protocol: Protocol.values.firstWhere(
+      (p) => p.name == json['protocol'],
+      orElse: () => Protocol.unknown,
+    ),
+    status: PacketStatus.values.firstWhere(
+      (s) => s.name == json['status'],
+      orElse: () => PacketStatus.err,
+    ),
+    sizeBytes: json['sizeBytes'] as int? ?? 0,
+    bruteForceScore: (json['bruteForceScore'] as num?)?.toDouble() ?? 0.0,
+    dosScore: (json['dosScore'] as num?)?.toDouble() ?? 0.0,
+    modelScores:
+        (json['modelScores'] as Map<String, dynamic>?)?.map(
+          (k, v) => MapEntry(k, (v as num).toDouble()),
+        ) ??
+        const {},
+    selectedModel: json['selectedModel'] as String? ?? '',
+    selectedScore: (json['selectedScore'] as num?)?.toDouble() ?? 0.0,
+    timestamp:
+        DateTime.tryParse(json['timestamp'] as String? ?? '') ??
+        DateTime.now(),
+    isBlacklisted: json['isBlacklisted'] as bool? ?? false,
+    label: json['label'] as String? ?? '',
+    serviceName: json['serviceName'] as String? ?? '',
+    appName: json['appName'] as String? ?? '',
+    appPackage: json['appPackage'] as String? ?? '',
+    isSystem: json['isSystem'] as bool? ?? false,
+  );
 }
