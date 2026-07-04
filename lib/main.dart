@@ -21,9 +21,6 @@ import 'features/hardware_metrics/domain/usecases/sync_snapshot_usecase.dart';
 import 'features/hardware_metrics/presentation/bloc/hardware_metrics_cubit.dart';
 import 'features/chatbot/data/datasources/chatbot_remote_datasource.dart';
 import 'features/chatbot/data/repositories/chatbot_repository_impl.dart';
-import 'features/chatbot/domain/usecases/delete_session_usecase.dart';
-import 'features/chatbot/domain/usecases/get_digest_usecase.dart';
-import 'features/chatbot/domain/usecases/get_session_messages_usecase.dart';
 import 'features/chatbot/domain/usecases/send_message_usecase.dart';
 import 'features/chatbot/presentation/bloc/chat_cubit.dart';
 import 'features/auth/data/datasources/auth_local_datasource.dart';
@@ -238,12 +235,10 @@ void main() async {
       sendTimeout: AppConstants.sendTimeout,
     ),
   );
-  final chatbotRepo = ChatbotRepositoryImpl(ChatbotRemoteDataSource(chatDio));
+  final chatbotRepo =
+      ChatbotRepositoryImpl(ChatbotRemoteDataSource(chatDio, authLocal));
   final chatCubit = ChatCubit(
     sendMessage: SendMessageUseCase(chatbotRepo),
-    getDigest: GetDigestUseCase(chatbotRepo),
-    getSessionMessages: GetSessionMessagesUseCase(chatbotRepo),
-    deleteSession: DeleteSessionUseCase(chatbotRepo),
   );
 
   // Settings drive the live pipeline: keep the traffic repo's system-traffic
