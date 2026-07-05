@@ -4,9 +4,11 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
+import 'package:injectable/injectable.dart';
 
 import 'package:Sentri/core/interceptors/logging_interceptor.dart';
 import 'package:Sentri/core/resources/strings_manager.dart';
+import 'package:Sentri/core/session/session_event_bus.dart';
 import 'package:Sentri/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:Sentri/features/auth/data/endpoints/auth_endpoints.dart';
 
@@ -24,14 +26,15 @@ import 'package:Sentri/features/auth/data/endpoints/auth_endpoints.dart';
 ///   the replayed request also 401s.
 /// - Auth-flow endpoints (login/register/refresh/logout) are skipped: a 401
 ///   there is a real credential/token error, not an expiry to paper over.
+@lazySingleton
 class RefreshTokenInterceptor extends Interceptor {
   RefreshTokenInterceptor({
-    required Dio dio,
+    @Named('apiDio') required Dio dio,
     required AuthLocalDataSource local,
-    Future<void> Function()? onSessionExpired,
+    required SessionEventBus bus,
   }) : _dio = dio,
        _local = local,
-       _onSessionExpired = onSessionExpired {
+       _bus = bus {
     _tokenDio = Dio(
       BaseOptions(
         baseUrl: dio.options.baseUrl,
@@ -62,9 +65,11 @@ class RefreshTokenInterceptor extends Interceptor {
   final AuthLocalDataSource _local;
   late final Dio _tokenDio;
 
-  /// Invoked right after the session is wiped because the refresh token is dead.
-  /// Lets the app drive the UI back to sign-in and tear down authed connections.
-  final Future<void> Function()? _onSessionExpired;
+  /// Notified right after the session is wiped because the refresh token is
+  /// dead. Listeners (the AuthCubit, the log WebSocket) drive the UI back to
+  /// sign-in and tear down authed connections — without this interceptor ever
+  /// holding a direct reference to them.
+  final SessionEventBus _bus;
 
   /// Shared across concurrent 401s so only one refresh runs at a time.
   Future<String?>? _inFlightRefresh;
@@ -120,7 +125,7 @@ class RefreshTokenInterceptor extends Interceptor {
   /// back to sign-in instead of looping on 401s with tokens already gone.
   Future<void> _clearSession() async {
     await _local.clear();
-    await _onSessionExpired?.call();
+    _bus.notifyExpired();
   }
 
   Future<String?> _performRefresh() async {

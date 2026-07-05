@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,6 +10,7 @@ final _log = Logger();
 
 /// Persists the most recent traffic log locally so it survives app restarts.
 /// Mirrors the SharedPreferences + JSON approach used by the blacklist cache.
+@lazySingleton
 class TrafficLocalDataSource {
   static const String _key = 'traffic_log_records';
 

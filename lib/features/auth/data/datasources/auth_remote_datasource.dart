@@ -1,4 +1,5 @@
 import 'package:Sentri/core/api/api_consumer.dart';
+import 'package:injectable/injectable.dart';
 
 import '../endpoints/auth_endpoints.dart';
 import '../models/auth_response_model.dart';
@@ -6,6 +7,7 @@ import '../models/user_model.dart';
 
 /// Thin wrapper over the auth HTTP endpoints. Every method speaks raw JSON in
 /// and typed models out; token storage and orchestration live in the repository.
+@lazySingleton
 class AuthRemoteDataSource {
   final ApiConsumer _api;
   AuthRemoteDataSource(this._api);

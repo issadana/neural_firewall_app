@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:Sentri/core/constants/app_constants.dart';
@@ -10,6 +11,7 @@ import 'settings_state.dart';
 
 export 'settings_state.dart';
 
+@lazySingleton
 class SettingsCubit extends Cubit<SettingsState> {
   final SharedPreferences _prefs;
   final SettingsRepositoryImpl _repository;

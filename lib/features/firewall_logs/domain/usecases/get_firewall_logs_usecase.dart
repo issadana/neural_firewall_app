@@ -1,6 +1,8 @@
+import 'package:injectable/injectable.dart';
 import '../entities/firewall_log.dart';
 import '../repositories/firewall_log_repository.dart';
 
+@injectable
 class GetFirewallLogsUseCase {
   final FirewallLogRepository _repository;
   GetFirewallLogsUseCase(this._repository);

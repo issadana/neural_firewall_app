@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:Sentri/core/api/api_consumer.dart';
 import 'package:Sentri/features/auth/data/datasources/auth_local_datasource.dart';
 import '../../domain/entities/firewall_log.dart';
@@ -5,6 +6,7 @@ import '../../domain/entities/firewall_log.dart';
 /// Talks to the authenticated `/firewall-logs` REST endpoints. Pulls the access
 /// token from the auth session and attaches it to every request — the backend
 /// rejects missing/absent JWTs with 401.
+@lazySingleton
 class FirewallLogRemoteDataSource {
   final ApiConsumer _api;
   final AuthLocalDataSource _auth;

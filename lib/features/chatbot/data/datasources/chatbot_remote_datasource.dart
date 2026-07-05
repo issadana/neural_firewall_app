@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import '../../../auth/data/datasources/auth_local_datasource.dart';
 
@@ -24,11 +25,12 @@ class ChatStreamException implements Exception {
 /// `init` → `message`* → `end` events. Each `message` event carries a token of
 /// the answer; `end` closes the stream. The endpoint is stateless — every
 /// request is answered on its own, with no conversation memory or history.
+@lazySingleton
 class ChatbotRemoteDataSource {
   final Dio _dio;
   final AuthLocalDataSource _authLocal;
 
-  ChatbotRemoteDataSource(this._dio, this._authLocal);
+  ChatbotRemoteDataSource(@Named('chatDio') this._dio, this._authLocal);
 
   /// Streams the assistant's reply to [message] token-by-token.
   ///

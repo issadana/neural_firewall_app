@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import '../../domain/usecases/get_firewall_logs_usecase.dart';
 import '../../domain/usecases/post_firewall_log_usecase.dart';
 import '../../domain/entities/firewall_log.dart';
@@ -6,6 +7,7 @@ import 'firewall_logs_state.dart';
 
 export 'firewall_logs_state.dart';
 
+@lazySingleton
 class FirewallLogsCubit extends Cubit<FirewallLogsState> {
   final GetFirewallLogsUseCase _getLogs;
   final PostFirewallLogUseCase _postLog;

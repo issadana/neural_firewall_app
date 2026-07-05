@@ -1,5 +1,6 @@
 import 'package:Sentri/core/api/api_consumer.dart';
 import 'package:Sentri/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:injectable/injectable.dart';
 
 import '../../domain/entities/blacklist_entry.dart';
 import '../endpoints/blacklist_endpoints.dart';
@@ -7,6 +8,7 @@ import '../endpoints/blacklist_endpoints.dart';
 /// Talks to the authenticated `/blacklist` endpoints. Pulls the access token
 /// from the auth session itself; every method returns null / no-ops when the
 /// user is signed out, so callers can treat the backend as best-effort.
+@lazySingleton
 class BlacklistRemoteDataSource {
   final ApiConsumer _api;
   final AuthLocalDataSource _auth;

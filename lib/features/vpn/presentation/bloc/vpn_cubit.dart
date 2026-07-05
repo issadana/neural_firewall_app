@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 
 import 'package:Sentri/core/enums.dart';
 import '../../domain/usecases/is_vpn_running_usecase.dart';
@@ -8,6 +9,7 @@ import 'vpn_state.dart';
 
 export 'vpn_state.dart';
 
+@lazySingleton
 class VpnCubit extends Cubit<VpnState> {
   final StartVpnUseCase _startVpn;
   final StopVpnUseCase _stopVpn;

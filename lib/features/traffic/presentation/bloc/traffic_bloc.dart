@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 
 import 'package:Sentri/core/constants/app_constants.dart';
@@ -21,6 +22,7 @@ export 'traffic_state.dart';
 
 final _log = Logger();
 
+@lazySingleton
 class TrafficBloc extends Bloc<TrafficEvent, TrafficState> {
   final GetPacketStreamUseCase _getPacketStream;
   final ProcessPacketUseCase _processPacket;

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../domain/usecases/send_message_usecase.dart';
 import 'chat_state.dart';
@@ -7,6 +8,7 @@ export 'chat_state.dart';
 
 /// Drives the instant Nova chat. Stateless: no history, no sessions — the
 /// conversation lives only in memory for the lifetime of the screen.
+@lazySingleton
 class ChatCubit extends Cubit<ChatState> {
   final SendMessageUseCase _sendMessage;
 

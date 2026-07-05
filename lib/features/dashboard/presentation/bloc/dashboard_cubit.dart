@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 
 import 'package:Sentri/core/enums.dart';
 import 'package:Sentri/features/blacklist/presentation/bloc/blacklist_cubit.dart';
@@ -10,6 +11,7 @@ import 'dashboard_state.dart';
 
 export 'dashboard_state.dart';
 
+@lazySingleton
 class DashboardCubit extends Cubit<DashboardState> {
   final TrafficBloc _trafficBloc;
   final BlacklistCubit _blacklistCubit;

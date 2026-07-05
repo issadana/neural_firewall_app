@@ -1,7 +1,9 @@
+import 'package:injectable/injectable.dart';
 import '../../domain/entities/firewall_log.dart';
 import '../../domain/repositories/firewall_log_repository.dart';
 import '../datasources/firewall_log_remote_datasource.dart';
 
+@LazySingleton(as: FirewallLogRepository)
 class FirewallLogRepositoryImpl implements FirewallLogRepository {
   final FirewallLogRemoteDataSource _dataSource;
   FirewallLogRepositoryImpl(this._dataSource);

@@ -1,6 +1,9 @@
+import 'package:injectable/injectable.dart';
+
 import '../../domain/repositories/vpn_repository.dart';
 import '../datasources/vpn_native_datasource.dart';
 
+@LazySingleton(as: VpnRepository)
 class VpnRepositoryImpl implements VpnRepository {
   final VpnNativeDataSource _dataSource;
   VpnRepositoryImpl(this._dataSource);

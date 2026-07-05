@@ -14,10 +14,15 @@ import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
-@Singleton(as: ApiConsumer)
+// Lazy (not eager) on purpose: an eager singleton is built *during*
+// configureDependencies(), but its RefreshTokenInterceptor comes through an
+// optional named param that injectable doesn't order as a hard dependency — so
+// eager construction can run before the interceptor is registered. Lazy defers
+// construction to first use, by which point the whole container is ready.
+@LazySingleton(as: ApiConsumer)
 class DioConsumer implements ApiConsumer {
   DioConsumer(
-    this._client,
+    @Named('apiDio') this._client,
     this._errorInterceptor,
     this._loggingInterceptor, {
     RefreshTokenInterceptor? refreshTokenInterceptor,
@@ -33,7 +38,6 @@ class DioConsumer implements ApiConsumer {
         StringsManager.accept: StringsManager.applicationJson,
         StringsManager.contentType: StringsManager.applicationJson,
       };
-
 
     // Refresh interceptor runs first so an expired-token 401 is transparently
     // retried before the error interceptor turns it into a NetworkException.
