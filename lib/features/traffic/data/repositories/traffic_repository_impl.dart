@@ -95,6 +95,13 @@ class TrafficRepositoryImpl implements TrafficRepository {
       final appPackage = rawPacket['appPackage'] as String? ?? '';
       final isSystem = rawPacket['isSystem'] as bool? ?? false;
 
+      // CIC-style flow features from FlowTracker. Carried on every record so the
+      // firewall log persisted by the backend includes them.
+      final duration = (rawPacket['flowDuration'] as num?)?.toDouble() ?? 0.0;
+      final fwdPkts = rawPacket['flowFwdPkts'] as int? ?? 0;
+      final bwdPkts = rawPacket['flowBwdPkts'] as int? ?? 0;
+      final fwdRate = (rawPacket['flowFwdRate'] as num?)?.toDouble() ?? 0.0;
+
       final protocol = ProtocolHelper.parseProtocol(protocolNum);
 
       // The threat is always the REMOTE endpoint. On an outbound packet srcIp is
@@ -115,6 +122,10 @@ class TrafficRepositoryImpl implements TrafficRepository {
           sizeBytes: sizeBytes,
           bruteForceScore: 0.5,
           dosScore: 0.0,
+          duration: duration,
+          fwdPkts: fwdPkts,
+          bwdPkts: bwdPkts,
+          fwdRate: fwdRate,
           timestamp: DateTime.now(),
           isBlacklisted: true,
           label: label,
@@ -138,6 +149,10 @@ class TrafficRepositoryImpl implements TrafficRepository {
           sizeBytes: sizeBytes,
           bruteForceScore: 0.0,
           dosScore: 0.0,
+          duration: duration,
+          fwdPkts: fwdPkts,
+          bwdPkts: bwdPkts,
+          fwdRate: fwdRate,
           timestamp: DateTime.now(),
           isBlacklisted: false,
           label: label,
@@ -171,6 +186,10 @@ class TrafficRepositoryImpl implements TrafficRepository {
             sizeBytes: sizeBytes,
             bruteForceScore: 0.0,
             dosScore: 0.0,
+            duration: duration,
+            fwdPkts: fwdPkts,
+            bwdPkts: bwdPkts,
+            fwdRate: fwdRate,
             timestamp: DateTime.now(),
             isBlacklisted: false,
             label: label,
@@ -279,6 +298,10 @@ class TrafficRepositoryImpl implements TrafficRepository {
         sizeBytes: sizeBytes,
         bruteForceScore: modelScores['bruteForce'] ?? 0.0,
         dosScore: modelScores['dos'] ?? 0.0,
+        duration: duration,
+        fwdPkts: fwdPkts,
+        bwdPkts: bwdPkts,
+        fwdRate: fwdRate,
         modelScores: modelScores,
         selectedModel: selectedModel,
         selectedScore: selectedScore,

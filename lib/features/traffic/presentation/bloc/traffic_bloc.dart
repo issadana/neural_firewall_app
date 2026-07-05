@@ -134,10 +134,15 @@ class TrafficBloc extends Bloc<TrafficEvent, TrafficState> {
   /// (snake_case). `created_at` is added by the WS service on enqueue.
   Map<String, dynamic> _toLogJson(PacketRecord r) => {
     'src_ip': r.srcIp,
+    'dst_ip': r.dstIp,
     'src_port': r.srcPort,
     'dst_port': r.dstPort,
     'protocol': ProtocolHelper.toInt(r.protocol),
     'size_bytes': r.sizeBytes,
+    'duration': r.duration,
+    'fwd_pkts': r.fwdPkts,
+    'bwd_pkts': r.bwdPkts,
+    'fwd_rate': r.fwdRate,
     'selected_model': r.selectedModel,
     'selected_score': r.selectedScore,
     'all_model_scores': r.modelScores,
