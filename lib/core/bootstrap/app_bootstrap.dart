@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:injectable/injectable.dart';
 
 import 'package:Sentri/core/session/session_event_bus.dart';
@@ -39,10 +41,28 @@ class AppBootstrap {
   final HardwareMetricsCubit _hardware;
   final SessionEventBus _sessionBus;
 
+  Timer? _backendIpRefresh;
+
   Set<String> _enabledModelIds(SettingsState s) =>
       s.models.entries.where((e) => e.value).map((e) => e.key).toSet();
 
+  void _applyFloodSettings(SettingsState s) => _trafficRepo.updateFloodSettings(
+        floodDetection: s.floodDetection,
+        floodPktPerSec: s.floodPktPerSec,
+        synFloodDetection: s.synFloodDetection,
+        synFloodPerSec: s.synFloodPerSec,
+      );
+
   void start() {
+    // Resolve our own backend to its live IP(s) and keep it trusted so the
+    // firewall never blocks the app's control channel. Refresh periodically
+    // because the host's IPs can rotate (load balancer / CDN / DNS TTL).
+    _trafficRepo.refreshTrustedBackendIps();
+    _backendIpRefresh = Timer.periodic(
+      const Duration(minutes: 30),
+      (_) => _trafficRepo.refreshTrustedBackendIps(),
+    );
+
     // Seed the live pipeline from the settings cubit's already-loaded state,
     // then keep the traffic repo in sync with the user's choices.
     _trafficRepo.setScanSystemTraffic(_settings.state.scanSystemTraffic);
@@ -51,10 +71,12 @@ class AppBootstrap {
       _settings.state.blockThreshold,
       _settings.state.warnThreshold,
     );
+    _applyFloodSettings(_settings.state);
     _settings.stream.listen((s) {
       _trafficRepo.setScanSystemTraffic(s.scanSystemTraffic);
       _trafficRepo.setEnabledModels(_enabledModelIds(s));
       _trafficRepo.updateThresholds(s.blockThreshold, s.warnThreshold);
+      _applyFloodSettings(s);
     });
 
     // React to messages the backend pushes down the log WebSocket:
@@ -91,5 +113,11 @@ class AppBootstrap {
 
     // Begin periodic hardware-metric snapshots to the backend.
     _hardware.startPeriodicSync();
+  }
+
+  /// Cancels the periodic backend-IP refresh. AppBootstrap is an app-lifetime
+  /// singleton, so this is here for completeness / test teardown.
+  void dispose() {
+    _backendIpRefresh?.cancel();
   }
 }

@@ -99,7 +99,7 @@ class _WelcomeHeader extends StatelessWidget {
                     ),
                     children: [
                       TextSpan(
-                        text: name.toUpperCase(),
+                        text: name,
                         style: getBoldTextStyle(
                           fontSize: FontSizesManager.s15,
                           color: colors.textPrimary,
