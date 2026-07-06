@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:Sentri/features/blacklist/domain/entities/blacklist_entry.dart';
 import 'package:Sentri/features/blacklist/domain/repositories/blacklist_repository.dart';
 import 'package:Sentri/features/vpn/data/datasources/vpn_native_datasource.dart';
+import 'package:injectable/injectable.dart';
 import '../datasources/blacklist_local_datasource.dart';
 import '../datasources/blacklist_remote_datasource.dart';
 
@@ -12,6 +13,7 @@ import '../datasources/blacklist_remote_datasource.dart';
 ///
 /// Every mutation updates local state first (and emits [changes] immediately),
 /// then mirrors to the server. Remote failures never break the local operation.
+@LazySingleton(as: BlacklistRepository)
 class BlacklistRepositoryImpl implements BlacklistRepository {
   final BlacklistLocalDataSource _dataSource;
   final VpnNativeDataSource _vpnDataSource;

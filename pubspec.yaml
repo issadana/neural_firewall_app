@@ -47,6 +47,9 @@ dependencies:
   # Network
   dio: ^5.4.0
 
+  # Real-time firewall-log streaming to the backend (write path).
+  web_socket_channel: ^3.0.1
+
   # ── State Management ──────────────────────────────────────────────
   flutter_bloc: ^8.1.4
   bloc: ^8.1.4

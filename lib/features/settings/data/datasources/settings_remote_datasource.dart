@@ -1,9 +1,11 @@
+import 'package:injectable/injectable.dart';
 import 'package:Sentri/core/api/api_consumer.dart';
 
 import '../endpoints/settings_endpoints.dart';
 
 /// Thin wrapper over the `/settings` endpoints. Both calls are authenticated;
 /// the access token is supplied by the repository.
+@lazySingleton
 class SettingsRemoteDataSource {
   final ApiConsumer _api;
   SettingsRemoteDataSource(this._api);

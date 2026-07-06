@@ -24,62 +24,67 @@ class PacketDetailSheet extends StatelessWidget {
     final colors = context.appColors;
     return SingleChildScrollView(
       padding: PaddingManager.paddingLTRB20_12_20_32,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: DecorationManager.sheetHandle(colors),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.sizeOf(context).height * 0.5,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: DecorationManager.sheetHandle(colors),
+              ),
             ),
-          ),
-          SpacesManager.h20,
-          Row(
-            children: [
-              StatusBadge(record.status),
-              const Spacer(),
-              Text(
-                _timeFmtMs.format(record.timestamp),
-                style: getRegularTextStyle(
-                  fontSize: FontSizesManager.s12,
-                  color: colors.textDisabled,
-                  family: 'monospace',
+            SpacesManager.h20,
+            Row(
+              children: [
+                StatusBadge(record.status),
+                const Spacer(),
+                Text(
+                  _timeFmtMs.format(record.timestamp),
+                  style: getRegularTextStyle(
+                    fontSize: FontSizesManager.s12,
+                    color: colors.textDisabled,
+                    family: 'monospace',
+                  ),
                 ),
-              ),
-            ],
-          ),
-          SpacesManager.h20,
-          _DetailSection('CONNECTION', [
-            _DetailRow('Source', '${record.srcIp}:${record.srcPort}'),
-            _DetailRow('Destination', '${record.dstIp}:${record.dstPort}'),
-            if (record.label.isNotEmpty)
-              _DetailRow(
-                'Service',
-                record.label,
-                valueColor: ColorManager.serviceCyan,
-              ),
-          ], colors),
-          SpacesManager.h12,
-          _DetailSection('PACKET INFO', [
-            _DetailRow('Protocol', _protocolName(record.protocol)),
-            _DetailRow('Size', _formatSize(record.sizeBytes)),
-          ], colors),
-          SpacesManager.h12,
-          _DetailSection('THREAT SCORES', _scoreRows(colors), colors),
-          if (record.isBlacklisted) ...[
-            SpacesManager.h12,
-            _DetailSection('BLOCKS', [
-              _DetailRow(
-                'Blacklisted',
-                'Yes',
-                valueColor: AppColors.statusDanger,
-              ),
+              ],
+            ),
+            SpacesManager.h20,
+            _DetailSection('CONNECTION', [
+              _DetailRow('Source', '${record.srcIp}:${record.srcPort}'),
+              _DetailRow('Destination', '${record.dstIp}:${record.dstPort}'),
+              if (record.label.isNotEmpty)
+                _DetailRow(
+                  'Service',
+                  record.label,
+                  valueColor: ColorManager.serviceCyan,
+                ),
             ], colors),
+            SpacesManager.h12,
+            _DetailSection('PACKET INFO', [
+              _DetailRow('Protocol', _protocolName(record.protocol)),
+              _DetailRow('Size', _formatSize(record.sizeBytes)),
+            ], colors),
+            SpacesManager.h12,
+            _DetailSection('THREAT SCORES', _scoreRows(colors), colors),
+            if (record.isBlacklisted) ...[
+              SpacesManager.h12,
+              _DetailSection('BLOCKS', [
+                _DetailRow(
+                  'Blacklisted',
+                  'Yes',
+                  valueColor: AppColors.statusDanger,
+                ),
+              ], colors),
+            ],
+            SpacesManager.h30,
           ],
-          SpacesManager.h30,
-        ],
+        ),
       ),
     );
   }

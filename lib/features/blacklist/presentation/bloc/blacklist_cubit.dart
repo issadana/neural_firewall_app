@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 
 import 'package:Sentri/core/enums.dart';
@@ -15,6 +16,7 @@ export 'blacklist_state.dart';
 
 final _log = Logger();
 
+@lazySingleton
 class BlacklistCubit extends Cubit<BlacklistState> {
   final GetBlacklistUseCase _getBlacklist;
   final AddToBlacklistUseCase _addToBlacklist;

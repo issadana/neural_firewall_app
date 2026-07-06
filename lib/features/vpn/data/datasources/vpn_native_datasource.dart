@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 
 const _vpnMethodChannel = MethodChannel('com.neuralfw/vpn');
@@ -6,6 +7,7 @@ const _packetEventChannel = EventChannel('com.neuralfw/packets');
 
 final _log = Logger();
 
+@lazySingleton
 class VpnNativeDataSource {
   static final VpnNativeDataSource _instance = VpnNativeDataSource._internal();
 

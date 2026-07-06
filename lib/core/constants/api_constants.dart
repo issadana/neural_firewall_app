@@ -1,13 +1,13 @@
 class ApiConstants {
-  // Replace with your actual backend URL before deploying.
+  // Deployed backend. REST calls hit `${baseUrl}<path>`; the firewall-log
+  // WebSocket derives `wss://api.sentri-security.cloud/ws/logs?token=` from
+  // this (see FirewallLogWsService._wsUri). Note the WS path is `/ws/logs`
+  // (registered globally via flask-sock `@sock.route`), NOT under the
+  // `/firewall-logs` REST blueprint prefix.
   //
-  // Running on a PHYSICAL device: it must reach the dev machine over the LAN by
-  // IP — `localhost`/`10.0.2.2` won't work. `192.168.0.193` is this machine's
-  // current LAN IP; update it if the network changes (run `ipconfig getifaddr
-  // en0`). The Flask server must also be bound to 0.0.0.0, not 127.0.0.1.
-  //
-  // The local Flask dev server runs over HTTPS (adhoc/self-signed cert), so the
-  // scheme must be `https`. The self-signed certificate is accepted in debug
-  // mode via badCertificateCallback in DioConsumer.
-  static const String baseUrl = 'https://192.168.10.92:8000/';
+  // For local development against the Flask dev server, swap this for the LAN
+  // IP of the dev machine, e.g. `https://192.168.10.92:8000/` (must be reachable
+  // from the device; the self-signed cert is accepted in debug via
+  // badCertificateCallback in DioConsumer / the WS service).
+  static const String baseUrl = 'https://api.sentri-security.cloud/';
 }

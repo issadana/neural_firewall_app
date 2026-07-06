@@ -27,5 +27,9 @@ final getIt = GetIt.instance;
   asExtension: true, // Create as extension method
 )
 Future<void> configureDependencies() async {
-  getIt.init(); // ← Calls auto-generated registration code
+  // MUST be awaited: init() is async because of the @preResolve dependencies
+  // (SharedPreferences, the ML models). Without the await, this returns while
+  // the container is only half-built and later getIt<T>() lookups (AppBootstrap,
+  // the cubits) throw "not registered".
+  await getIt.init(); // ← Calls auto-generated registration code
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:injectable/injectable.dart';
 
 import '../models/user_model.dart';
 
@@ -9,6 +10,7 @@ import '../models/user_model.dart';
 /// A session is considered active whenever an access token is present.
 ///
 /// Every accessor is async because secure storage I/O is async on all platforms.
+@lazySingleton
 class AuthLocalDataSource {
   static const _keyAccessToken = 'auth_access_token';
   static const _keyRefreshToken = 'auth_refresh_token';

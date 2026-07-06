@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -7,6 +8,7 @@ import 'package:Sentri/features/blacklist/domain/entities/blacklist_entry.dart';
 
 final _log = Logger();
 
+@lazySingleton
 class BlacklistLocalDataSource {
   static const String _key = 'blacklist_entries';
 

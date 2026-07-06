@@ -82,7 +82,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     _buildCard(context, isLoading, colors),
                     SpacesManager.h28,
                     _buildSignInLink(context, colors),
-                    SpacesManager.h32,
+                    // SpacesManager.h32,
                   ],
                 ),
               ),

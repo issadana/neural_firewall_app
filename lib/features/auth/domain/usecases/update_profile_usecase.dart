@@ -1,6 +1,9 @@
+import 'package:injectable/injectable.dart';
+
 import '../entities/user.dart';
 import '../repositories/auth_repository.dart';
 
+@injectable
 class UpdateProfileUseCase {
   final AuthRepository _repository;
   UpdateProfileUseCase(this._repository);

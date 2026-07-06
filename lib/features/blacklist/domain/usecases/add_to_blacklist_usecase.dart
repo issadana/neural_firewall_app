@@ -1,5 +1,8 @@
+import 'package:injectable/injectable.dart';
+
 import '../repositories/blacklist_repository.dart';
 
+@injectable
 class AddToBlacklistUseCase {
   final BlacklistRepository _repository;
   const AddToBlacklistUseCase(this._repository);

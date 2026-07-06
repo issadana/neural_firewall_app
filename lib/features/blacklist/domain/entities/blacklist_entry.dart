@@ -19,6 +19,31 @@ class BlacklistEntry {
     this.notes,
   });
 
+  /// Manual entries carry the literal reason `manual`; everything else is an
+  /// AI auto-block (the reason is a sentence locally, or `auto-ml` after it has
+  /// mirrored to the backend).
+  bool get isAiBlock => reason != 'manual';
+
+  /// Matches the auto-block reason produced by the traffic pipeline:
+  /// `AI flagged by "<modelId>" (score: 0.87)`.
+  static final RegExp _flaggedByRe = RegExp(r'flagged by "([^"]+)"');
+
+  /// Catalog id of the model whose score triggered this block — the max scorer.
+  /// Parsed from [reason] (fresh local entries) or [notes] (where the backend
+  /// round-trip relocates the descriptive text). Null for manual entries.
+  String? get flaggedModelId {
+    for (final source in [reason, notes]) {
+      if (source == null) continue;
+      final match = _flaggedByRe.firstMatch(source);
+      if (match != null) return match.group(1);
+    }
+    return null;
+  }
+
+  /// The winning model's score. Auto-block stores it in [bruteForceScore] for
+  /// the brute-force model, otherwise in [dosScore].
+  double? get flaggedScore => bruteForceScore ?? dosScore;
+
   BlacklistEntry copyWith({
     int? id,
     String? ip,
@@ -27,53 +52,52 @@ class BlacklistEntry {
     double? bruteForceScore,
     double? dosScore,
     String? notes,
-  }) =>
-      BlacklistEntry(
-        id: id ?? this.id,
-        ip: ip ?? this.ip,
-        addedAt: addedAt ?? this.addedAt,
-        reason: reason ?? this.reason,
-        bruteForceScore: bruteForceScore ?? this.bruteForceScore,
-        dosScore: dosScore ?? this.dosScore,
-        notes: notes ?? this.notes,
-      );
+  }) => BlacklistEntry(
+    id: id ?? this.id,
+    ip: ip ?? this.ip,
+    addedAt: addedAt ?? this.addedAt,
+    reason: reason ?? this.reason,
+    bruteForceScore: bruteForceScore ?? this.bruteForceScore,
+    dosScore: dosScore ?? this.dosScore,
+    notes: notes ?? this.notes,
+  );
 
   // ── Local persistence (SharedPreferences) — camelCase keys ──────────────────
 
   Map<String, dynamic> toJson() => {
-        if (id != null) 'id': id,
-        'ip': ip,
-        'addedAt': addedAt.toIso8601String(),
-        'reason': reason,
-        if (bruteForceScore != null) 'bruteForceScore': bruteForceScore,
-        if (dosScore != null) 'dosScore': dosScore,
-        if (notes != null) 'notes': notes,
-      };
+    if (id != null) 'id': id,
+    'ip': ip,
+    'addedAt': addedAt.toIso8601String(),
+    'reason': reason,
+    if (bruteForceScore != null) 'bruteForceScore': bruteForceScore,
+    if (dosScore != null) 'dosScore': dosScore,
+    if (notes != null) 'notes': notes,
+  };
 
   factory BlacklistEntry.fromJson(Map<String, dynamic> json) => BlacklistEntry(
-        id: (json['id'] as num?)?.toInt(),
-        ip: json['ip'] as String,
-        addedAt: DateTime.parse(json['addedAt'] as String),
-        reason: json['reason'] as String,
-        bruteForceScore: (json['bruteForceScore'] as num?)?.toDouble(),
-        dosScore: (json['dosScore'] as num?)?.toDouble(),
-        notes: json['notes'] as String?,
-      );
+    id: (json['id'] as num?)?.toInt(),
+    ip: json['ip'] as String,
+    addedAt: DateTime.parse(json['addedAt'] as String),
+    reason: json['reason'] as String,
+    bruteForceScore: (json['bruteForceScore'] as num?)?.toDouble(),
+    dosScore: (json['dosScore'] as num?)?.toDouble(),
+    notes: json['notes'] as String?,
+  );
 
   // ── Backend API — snake_case keys ───────────────────────────────────────────
 
   /// Parses a `/blacklist` entry from the server. Tolerant of int-or-double
   /// scores and a missing/invalid timestamp.
   factory BlacklistEntry.fromApi(Map<String, dynamic> json) => BlacklistEntry(
-        id: (json['id'] as num?)?.toInt(),
-        ip: json['ip'] as String,
-        addedAt: DateTime.tryParse(json['added_at'] as String? ?? '') ??
-            DateTime.now(),
-        reason: json['reason'] as String? ?? 'manual',
-        bruteForceScore: (json['bf_score'] as num?)?.toDouble(),
-        dosScore: (json['dos_score'] as num?)?.toDouble(),
-        notes: json['notes'] as String?,
-      );
+    id: (json['id'] as num?)?.toInt(),
+    ip: json['ip'] as String,
+    addedAt:
+        DateTime.tryParse(json['added_at'] as String? ?? '') ?? DateTime.now(),
+    reason: json['reason'] as String? ?? 'manual',
+    bruteForceScore: (json['bf_score'] as num?)?.toDouble(),
+    dosScore: (json['dos_score'] as num?)?.toDouble(),
+    notes: json['notes'] as String?,
+  );
 
   /// The request body for POST /blacklist (server generates id + added_at).
   ///

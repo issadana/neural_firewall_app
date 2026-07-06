@@ -33,8 +33,8 @@ class HomeScreen extends StatelessWidget {
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
-                    const _WelcomeHeader(),
                     const _AnalyticsCard(),
+                    const _WelcomeHeader(),
                     const _TrafficHeader(),
                     const TrafficTable(),
                     SpacesManager.h150,
@@ -99,7 +99,7 @@ class _WelcomeHeader extends StatelessWidget {
                     ),
                     children: [
                       TextSpan(
-                        text: name.toUpperCase(),
+                        text: name,
                         style: getBoldTextStyle(
                           fontSize: FontSizesManager.s15,
                           color: colors.textPrimary,

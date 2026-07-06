@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:Sentri/core/errors/network_exceptions.dart';
 import 'package:Sentri/features/auth/data/datasources/auth_local_datasource.dart';
 
@@ -7,6 +8,7 @@ import '../datasources/settings_remote_datasource.dart';
 /// access token from the auth session. All methods degrade gracefully: when the
 /// user is signed out or the server is unreachable they no-op (push) or return
 /// null (fetch), so settings keep working from the local cache.
+@lazySingleton
 class SettingsRepositoryImpl {
   final SettingsRemoteDataSource _remote;
   final AuthLocalDataSource _auth;
