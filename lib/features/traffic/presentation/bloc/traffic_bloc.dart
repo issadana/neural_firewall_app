@@ -72,8 +72,7 @@ class TrafficBloc extends Bloc<TrafficEvent, TrafficState> {
 
     // Merge the restored log under anything already captured this session so a
     // packet that arrives before the load completes isn't dropped.
-    final queue = ListQueue<PacketRecord>.from(state.records)
-      ..addAll(stored);
+    final queue = ListQueue<PacketRecord>.from(state.records)..addAll(stored);
     while (queue.length > _maxEntries) {
       queue.removeLast();
     }
@@ -102,7 +101,12 @@ class TrafficBloc extends Bloc<TrafficEvent, TrafficState> {
     Emitter<TrafficState> emit,
   ) async {
     try {
-      if (event.rawPacket['srcIp'] == AppConstants.tunAddress) return;
+      // Each exchange arrives twice: an OUTBOUND event (device 10.0.0.2 → server)
+      // and an INBOUND copy (server → device 10.0.0.2). Keep the outbound one —
+      // its dstIp is the real remote endpoint, which is what the log should show
+      // and what blockIp() acts on. Dropping the inbound copy (dstIp == TUN)
+      // avoids showing the device's own address as every row's destination.
+      if (event.rawPacket['dstIp'] == AppConstants.tunAddress) return;
 
       final record = await _processPacket(event.rawPacket);
 
