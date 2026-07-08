@@ -28,6 +28,8 @@ import android.net.VpnService
 import android.os.Build
 // ParcelFileDescriptor: wraps the file descriptor of the TUN interface
 import android.os.ParcelFileDescriptor
+// Log: used to surface ACL decisions (deny/warn) in logcat
+import android.util.Log
 // Coroutine support: lets us run blocking I/O (reading packets) on background threads
 import kotlinx.coroutines.*
 // File streams for reading from / writing to the TUN file descriptor
@@ -71,6 +73,9 @@ class NeuralVpnService : VpnService() {
 
         // The notification ID — any non-zero integer; used to update or cancel the notification later.
         private const val NOTIF_ID = 1
+
+        // Logcat tag for ACL (Access Control List) rule decisions.
+        private const val TAG = "NeuralVpnAcl"
 
         // isRunning is the main loop flag.
         // @Volatile ensures that when one thread writes to it (e.g. onDestroy sets it false),
@@ -408,6 +413,22 @@ class NeuralVpnService : VpnService() {
                     if (ENFORCE_BLOCKING &&
                         (isIpBlocked(parsed.srcIp) || isIpBlocked(parsed.dstIp))) continue
 
+                    // ── ACL rule evaluation ──────────────────────────────────────
+                    // Deterministic, rule-based filtering that runs IN FRONT of the
+                    // AI.  Packets read from TUN are OUTBOUND (device → internet), so
+                    // we evaluate with that direction.  First-match-wins over the
+                    // sorted ruleset; default policy is ALLOW so only explicit DENY
+                    // rules (known-bad ports/protocols) drop traffic.
+                    val aclDecision = AclEngine.evaluate(
+                        AclDirection.OUTBOUND,
+                        parsed.protocol,
+                        parsed.srcIp, parsed.srcPort,
+                        parsed.dstIp, parsed.dstPort,
+                    )
+                    // A DENY only actually drops when enforcement is on; with the
+                    // kill-switch off we still label it but let it through.
+                    val aclDenied = ENFORCE_BLOCKING && aclDecision.action == AclAction.DENY
+
                     // Update the flow tracker with this packet's timestamp.
                     // flowTracker.update() returns fresh IAT statistics for this flow.
                     val flowStats = flowTracker.update(parsed)
@@ -439,8 +460,27 @@ class NeuralVpnService : VpnService() {
                         "appName"      to owner.appName,       // owning app label, e.g. "Chrome"
                         "appPackage"   to owner.appPackage,    // owning package, e.g. "com.android.chrome"
                         "isSystem"     to owner.isSystem,      // true for OS/system-owned traffic
-                        "isBlocked"    to false                // not blocked at network level
+                        "isBlocked"    to aclDenied,           // dropped by an ACL deny rule?
+                        "aclReason"    to (aclDecision.rule?.label ?: "") // which rule decided (if any)
                     ) + flowFeatures(flowStats)                // ML flow features
+
+                    // ── ACL DENY: drop the packet, don't forward ─────────────────
+                    // The packet goes nowhere (its connection attempt will simply
+                    // time out).  We still surface it to Flutter with isBlocked=true
+                    // so it appears in the live traffic view as an ACL block.
+                    if (aclDenied) {
+                        Log.w(TAG, "ACL DENY ${parsed.srcIp}:${parsed.srcPort} -> " +
+                            "${parsed.dstIp}:${parsed.dstPort} proto=${parsed.protocol} " +
+                            "(${aclDecision.rule?.label})")
+                        scope.launch(Dispatchers.Main) { eventSink?.invoke(enriched) }
+                        continue
+                    }
+
+                    // ── ACL WARN: forward, but flag it ───────────────────────────
+                    if (aclDecision.action == AclAction.WARN) {
+                        Log.i(TAG, "ACL WARN ${parsed.dstIp}:${parsed.dstPort} " +
+                            "proto=${parsed.protocol} (${aclDecision.rule?.label})")
+                    }
 
                     // FAST PATH FIRST: forward the (clean) packet to the real
                     // internet immediately, before anything AI-related. Each
