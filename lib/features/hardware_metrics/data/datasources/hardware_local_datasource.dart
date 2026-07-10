@@ -1,6 +1,8 @@
 import 'package:flutter/services.dart';
+import 'package:injectable/injectable.dart';
 import '../../domain/entities/hardware_snapshot.dart';
 
+@lazySingleton
 class HardwareLocalDataSource {
   static const _channel = MethodChannel('com.sentri.app/hardware');
 

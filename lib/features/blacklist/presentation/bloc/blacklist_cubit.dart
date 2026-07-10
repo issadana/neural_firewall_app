@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 
 import 'package:Sentri/core/enums.dart';
@@ -15,6 +16,7 @@ export 'blacklist_state.dart';
 
 final _log = Logger();
 
+@lazySingleton
 class BlacklistCubit extends Cubit<BlacklistState> {
   final GetBlacklistUseCase _getBlacklist;
   final AddToBlacklistUseCase _addToBlacklist;
@@ -58,9 +60,20 @@ class BlacklistCubit extends Cubit<BlacklistState> {
     }
   }
 
-  Future<void> addAutoMl(String ip, {required double bfScore, required double dosScore}) async {
+  Future<void> addAutoMl(
+    String ip, {
+    required String selectedModel,
+    required double selectedScore,
+    required Map<String, double> allModelScores,
+  }) async {
     try {
-      await _addToBlacklist(ip, BlacklistReason.autoMl.name, bfScore: bfScore, dosScore: dosScore);
+      await _addToBlacklist(
+        ip,
+        BlacklistReason.autoMl.name,
+        selectedModel: selectedModel,
+        selectedScore: selectedScore,
+        allModelScores: allModelScores,
+      );
       await load();
     } catch (e) {
       _log.e('Error adding auto ML entry: $e');

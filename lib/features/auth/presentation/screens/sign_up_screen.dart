@@ -26,14 +26,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _fullNameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  final _confirmCtrl = TextEditingController();
 
   @override
   void dispose() {
     _fullNameCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
-    _confirmCtrl.dispose();
     super.dispose();
   }
 
@@ -84,7 +82,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     _buildCard(context, isLoading, colors),
                     SpacesManager.h28,
                     _buildSignInLink(context, colors),
-                    SpacesManager.h32,
+                    // SpacesManager.h32,
                   ],
                 ),
               ),
@@ -200,27 +198,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       label: 'Password',
                       controller: _passwordCtrl,
                       obscure: true,
-                      textInputAction: TextInputAction.next,
-                      validator: (v) {
-                        if (v == null || v.isEmpty)
-                          return 'Password is required';
-                        if (v.length < 6)
-                          return 'Password must be at least 6 characters';
-                        return null;
-                      },
-                    ),
-                    SpacesManager.h16,
-                    AuthTextField(
-                      label: 'Confirm Password',
-                      controller: _confirmCtrl,
-                      obscure: true,
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _submit(context),
                       validator: (v) {
-                        if (v == null || v.isEmpty)
-                          return 'Please confirm your password';
-                        if (v != _passwordCtrl.text)
-                          return 'Passwords do not match';
+                        if (v == null || v.isEmpty) {
+                          return 'Password is required';
+                        }
+                        if (v.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
                         return null;
                       },
                     ),

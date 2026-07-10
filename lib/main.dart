@@ -1,188 +1,35 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'core/api/dio_consumer.dart';
-import 'core/constants/api_constants.dart';
-import 'core/constants/app_constants.dart';
-import 'core/interceptors/error_interceptor.dart';
-import 'core/interceptors/logging_interceptor.dart';
+
+import 'core/bootstrap/app_bootstrap.dart';
+import 'core/injection/injection.dart';
+import 'core/websocket/firewall_log_ws_service.dart';
 import 'core/widgets/navigation_bar/app.dart';
-import 'features/hardware_metrics/data/datasources/hardware_local_datasource.dart';
-import 'features/hardware_metrics/data/datasources/hardware_remote_datasource.dart';
-import 'features/hardware_metrics/data/repositories/hardware_metrics_repository_impl.dart';
-import 'features/hardware_metrics/domain/usecases/collect_snapshot_usecase.dart';
-import 'features/hardware_metrics/domain/usecases/sync_snapshot_usecase.dart';
-import 'features/hardware_metrics/presentation/bloc/hardware_metrics_cubit.dart';
-import 'features/chatbot/data/datasources/chatbot_remote_datasource.dart';
-import 'features/chatbot/data/repositories/chatbot_repository_impl.dart';
-import 'features/chatbot/domain/usecases/delete_session_usecase.dart';
-import 'features/chatbot/domain/usecases/get_digest_usecase.dart';
-import 'features/chatbot/domain/usecases/get_session_messages_usecase.dart';
-import 'features/chatbot/domain/usecases/send_message_usecase.dart';
-import 'features/chatbot/presentation/bloc/chat_cubit.dart';
-import 'features/auth/data/datasources/auth_local_datasource.dart';
-import 'features/auth/data/repositories/auth_repository_impl.dart';
-import 'features/auth/domain/usecases/check_auth_status_usecase.dart';
-import 'features/auth/domain/usecases/sign_in_usecase.dart';
-import 'features/auth/domain/usecases/sign_out_usecase.dart';
-import 'features/auth/domain/usecases/sign_up_usecase.dart';
-import 'features/auth/domain/usecases/update_profile_usecase.dart';
 import 'features/auth/presentation/bloc/auth_cubit.dart';
-import 'features/blacklist/data/datasources/blacklist_local_datasource.dart';
-import 'features/blacklist/data/repositories/blacklist_repository_impl.dart';
-import 'features/blacklist/domain/usecases/add_to_blacklist_usecase.dart';
-import 'features/blacklist/domain/usecases/clear_blacklist_usecase.dart';
-import 'features/blacklist/domain/usecases/get_blacklist_usecase.dart';
-import 'features/blacklist/domain/usecases/remove_from_blacklist_usecase.dart';
-import 'features/blacklist/domain/usecases/watch_blacklist_usecase.dart';
+import 'features/blacklist/domain/repositories/blacklist_repository.dart';
 import 'features/blacklist/presentation/bloc/blacklist_cubit.dart';
+import 'features/chatbot/presentation/bloc/chat_cubit.dart';
 import 'features/dashboard/presentation/bloc/dashboard_cubit.dart';
-import 'features/firewall_logs/data/datasources/firewall_log_remote_datasource.dart';
-import 'features/firewall_logs/data/repositories/firewall_log_repository_impl.dart';
-import 'features/firewall_logs/domain/usecases/get_firewall_logs_usecase.dart';
-import 'features/firewall_logs/domain/usecases/post_firewall_log_usecase.dart';
 import 'features/firewall_logs/presentation/bloc/firewall_logs_cubit.dart';
+import 'features/hardware_metrics/presentation/bloc/hardware_metrics_cubit.dart';
 import 'features/settings/presentation/bloc/settings_cubit.dart';
-import 'features/traffic/data/datasources/ml_datasource.dart';
-import 'features/traffic/data/repositories/traffic_repository_impl.dart';
-import 'features/traffic/domain/usecases/process_packet_usecase.dart';
 import 'features/traffic/presentation/bloc/traffic_bloc.dart';
-import 'features/vpn/data/datasources/vpn_native_datasource.dart';
-import 'features/vpn/data/repositories/vpn_repository_impl.dart';
-import 'features/vpn/domain/usecases/get_packet_stream_usecase.dart';
-import 'features/vpn/domain/usecases/start_vpn_usecase.dart';
-import 'features/vpn/domain/usecases/stop_vpn_usecase.dart';
 import 'features/vpn/presentation/bloc/vpn_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final prefs = await SharedPreferences.getInstance();
+  // Wire the entire dependency graph. Object construction lives in injectable
+  // (annotations + register_module.dart / injection.config.dart); this single
+  // call registers all of it, awaiting the async @preResolve deps
+  // (SharedPreferences, the ML models).
+  await configureDependencies();
 
-  // ── Data sources ────────────────────────────────────────────────────────────
-  final blacklistDs  = BlacklistLocalDataSource();
-  final mlDs         = MlDataSource();
-  await mlDs.init();
-  final vpnDs = VpnNativeDataSource();
-
-  // ── Repositories ────────────────────────────────────────────────────────────
-  final blacklistRepo = BlacklistRepositoryImpl(blacklistDs, vpnDs);
-  final trafficRepo   = TrafficRepositoryImpl(
-    blacklistRepository: blacklistRepo,
-    mlDataSource: mlDs,
-    vpnDataSource: vpnDs,
-    scanSystemTraffic: prefs.getBool('scanSystemTraffic') ?? false,
-  );
-  final vpnRepo = VpnRepositoryImpl(vpnDs);
-  final authDs  = AuthLocalDataSource(prefs);
-  final authRepo = AuthRepositoryImpl(authDs);
-
-  // ── Use cases ───────────────────────────────────────────────────────────────
-  final checkAuth      = CheckAuthStatusUseCase(authRepo);
-  final signIn         = SignInUseCase(authRepo);
-  final signUp         = SignUpUseCase(authRepo);
-  final signOut        = SignOutUseCase(authRepo);
-  final updateProfile  = UpdateProfileUseCase(authRepo);
-
-  final getBlacklist    = GetBlacklistUseCase(blacklistRepo);
-  final addBlacklist    = AddToBlacklistUseCase(blacklistRepo);
-  final removeBlacklist = RemoveFromBlacklistUseCase(blacklistRepo);
-  final clearBlacklist  = ClearBlacklistUseCase(blacklistRepo);
-  final watchBlacklist  = WatchBlacklistUseCase(blacklistRepo);
-
-  final processPacket   = ProcessPacketUseCase(trafficRepo);
-  final getPacketStream = GetPacketStreamUseCase(vpnRepo);
-  final startVpn        = StartVpnUseCase(vpnRepo);
-  final stopVpn         = StopVpnUseCase(vpnRepo);
-
-  // ── Cubits / Blocs ──────────────────────────────────────────────────────────
-  final blacklistCubit = BlacklistCubit(
-    getBlacklist: getBlacklist,
-    addToBlacklist: addBlacklist,
-    removeFromBlacklist: removeBlacklist,
-    clearBlacklist: clearBlacklist,
-    watchBlacklist: watchBlacklist,
-  );
-
-  final trafficBloc = TrafficBloc(
-    getPacketStream: getPacketStream,
-    processPacket: processPacket,
-  );
-
-  final vpnCubit = VpnCubit(startVpn: startVpn, stopVpn: stopVpn);
-
-  final dashboardCubit = DashboardCubit(
-    trafficBloc: trafficBloc,
-    blacklistCubit: blacklistCubit,
-  );
-
-  // ── Hardware metrics ─────────────────────────────────────────────────────────
-  // Shared API client used to POST snapshots to the backend.
-  final apiDio = Dio(
-    BaseOptions(
-      baseUrl: ApiConstants.baseUrl,
-      connectTimeout: AppConstants.connectTimeout,
-      receiveTimeout: AppConstants.receiveTimeout,
-      sendTimeout: AppConstants.sendTimeout,
-    ),
-  );
-  final apiConsumer = DioConsumer(apiDio, ErrorInterceptor(), LoggingInterceptor());
-
-  final hardwareRepo = HardwareMetricsRepositoryImpl(
-    local: HardwareLocalDataSource(),
-    remote: HardwareRemoteDataSource(apiConsumer),
-  );
-  final hardwareMetricsCubit = HardwareMetricsCubit(
-    collect: CollectSnapshotUseCase(hardwareRepo),
-    sync: SyncSnapshotUseCase(hardwareRepo),
-  )..startPeriodicSync();
-
-  // ── Firewall logs ────────────────────────────────────────────────────────────
-  // Reuses the shared API client; powers the Dashboard tab (overview + logs).
-  final firewallLogRepo = FirewallLogRepositoryImpl(
-    FirewallLogRemoteDataSource(apiConsumer),
-  );
-  final firewallLogsCubit = FirewallLogsCubit(
-    getLogs: GetFirewallLogsUseCase(firewallLogRepo),
-    postLog: PostFirewallLogUseCase(firewallLogRepo),
-  );
-
-  // ── Nova chatbot ─────────────────────────────────────────────────────────────
-  final chatDio = Dio(
-    BaseOptions(
-      baseUrl: ApiConstants.baseUrl,
-      connectTimeout: AppConstants.connectTimeout,
-      receiveTimeout: AppConstants.receiveTimeout,
-      sendTimeout: AppConstants.sendTimeout,
-    ),
-  );
-  final chatbotRepo = ChatbotRepositoryImpl(ChatbotRemoteDataSource(chatDio));
-  final chatCubit = ChatCubit(
-    sendMessage: SendMessageUseCase(chatbotRepo),
-    getDigest: GetDigestUseCase(chatbotRepo),
-    getSessionMessages: GetSessionMessagesUseCase(chatbotRepo),
-    deleteSession: DeleteSessionUseCase(chatbotRepo),
-  );
-
-  // Settings drive the live pipeline: keep the traffic repo's system-traffic
-  // scanning and enabled-model set in sync with the user's choices.
-  final settingsCubit = SettingsCubit(prefs);
-  Set<String> enabledModelIds(SettingsState s) =>
-      s.models.entries.where((e) => e.value).map((e) => e.key).toSet();
-  // Seed from the cubit's initial (already-loaded) state.
-  trafficRepo.setScanSystemTraffic(settingsCubit.state.scanSystemTraffic);
-  trafficRepo.setEnabledModels(enabledModelIds(settingsCubit.state));
-  trafficRepo.updateThresholds(
-    settingsCubit.state.blockThreshold,
-    settingsCubit.state.warnThreshold,
-  );
-  settingsCubit.stream.listen((s) {
-    trafficRepo.setScanSystemTraffic(s.scanSystemTraffic);
-    trafficRepo.setEnabledModels(enabledModelIds(s));
-    trafficRepo.updateThresholds(s.blockThreshold, s.warnThreshold);
-  });
+  // Runtime orchestration DI can't express: cross-cubit stream wiring, seeding
+  // the traffic pipeline from settings, resuming a sticky VPN session, and
+  // tearing down the authed socket on session expiry.
+  getIt<AppBootstrap>().start();
 
   runApp(
     ScreenUtilInit(
@@ -192,25 +39,32 @@ void main() async {
       builder: (context, child) {
         return MultiBlocProvider(
           providers: [
-            BlocProvider(
-              create: (_) => AuthCubit(
-                checkAuthStatusUseCase: checkAuth,
-                signInUseCase: signIn,
-                signUpUseCase: signUp,
-                signOutUseCase: signOut,
-                updateProfileUseCase: updateProfile,
-              ),
-            ),
-            BlocProvider.value(value: vpnCubit),
-            BlocProvider.value(value: trafficBloc),
-            BlocProvider.value(value: dashboardCubit),
-            BlocProvider.value(value: hardwareMetricsCubit),
-            BlocProvider.value(value: firewallLogsCubit),
-            BlocProvider.value(value: blacklistCubit),
-            BlocProvider.value(value: settingsCubit),
-            BlocProvider.value(value: chatCubit),
+            // App-global singletons resolved from the container. `.value` so the
+            // provider never closes a shared singleton on widget disposal.
+            BlocProvider.value(value: getIt<AuthCubit>()),
+            BlocProvider.value(value: getIt<VpnCubit>()),
+            BlocProvider.value(value: getIt<TrafficBloc>()),
+            BlocProvider.value(value: getIt<DashboardCubit>()),
+            BlocProvider.value(value: getIt<HardwareMetricsCubit>()),
+            BlocProvider.value(value: getIt<FirewallLogsCubit>()),
+            BlocProvider.value(value: getIt<BlacklistCubit>()),
+            BlocProvider.value(value: getIt<SettingsCubit>()),
+            BlocProvider.value(value: getIt<ChatCubit>()),
           ],
-          child: const SentriApp(),
+          // Each time the user becomes authenticated (e.g. a fresh sign-in),
+          // re-pull server settings/blacklist and open the log WebSocket now
+          // that a valid token exists.
+          child: BlocListener<AuthCubit, AuthState>(
+            listenWhen: (prev, curr) =>
+                prev.status != curr.status &&
+                curr.status == AuthStatus.authenticated,
+            listener: (context, state) {
+              getIt<SettingsCubit>().syncFromServer();
+              getIt<BlacklistRepository>().syncFromServer();
+              getIt<FirewallLogWsService>().start();
+            },
+            child: const SentriApp(),
+          ),
         );
       },
     ),

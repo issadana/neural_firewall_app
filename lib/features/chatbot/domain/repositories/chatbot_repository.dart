@@ -1,10 +1,6 @@
-import '../entities/chat_message.dart';
-import '../entities/chat_session.dart';
-
+/// Contract for the Nova assistant. The backend is stateless — every request
+/// is answered on its own, with no history, sessions or digest.
 abstract class ChatbotRepository {
-  Stream<String> sendMessage(String message, int? sessionId);
-  Future<String> getDigest();
-  Future<List<ChatSession>> getSessions();
-  Future<List<ChatMessage>> getSessionMessages(int sessionId);
-  Future<void> deleteSession(int sessionId);
+  /// Streams the assistant's reply to [message] token-by-token.
+  Stream<String> sendMessage(String message);
 }

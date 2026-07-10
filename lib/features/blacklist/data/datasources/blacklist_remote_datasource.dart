@@ -1,27 +1,59 @@
 import 'package:Sentri/core/api/api_consumer.dart';
+import 'package:Sentri/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:injectable/injectable.dart';
 
+import '../../domain/entities/blacklist_entry.dart';
+import '../endpoints/blacklist_endpoints.dart';
+
+/// Talks to the authenticated `/blacklist` endpoints. Pulls the access token
+/// from the auth session itself; every method returns null / no-ops when the
+/// user is signed out, so callers can treat the backend as best-effort.
+@lazySingleton
 class BlacklistRemoteDataSource {
   final ApiConsumer _api;
-  BlacklistRemoteDataSource(this._api);
+  final AuthLocalDataSource _auth;
 
-  Future<List<dynamic>> getBlacklist() async {
-    final response = await _api.get('/blacklist');
-    return response as List<dynamic>;
+  BlacklistRemoteDataSource(this._api, this._auth);
+
+  Future<String?> _token() => _auth.getAccessToken();
+
+  /// GET /blacklist → all entries (newest first), or null when signed out.
+  Future<List<BlacklistEntry>?> getAll() async {
+    final token = await _token();
+    if (token == null) return null;
+    final response = await _api.get(BlacklistEndpoints.blacklist, token: token);
+    return (response as List<dynamic>)
+        .map((e) => BlacklistEntry.fromApi(e as Map<String, dynamic>))
+        .toList();
   }
 
-  Future<Map<String, dynamic>> addToBlacklist(String ip, {String? reason, String? notes}) async {
+  /// POST /blacklist → the created entry (with its server id), or null when
+  /// signed out. Throws on real errors (e.g. 409 already blacklisted).
+  Future<BlacklistEntry?> add(BlacklistEntry entry) async {
+    final token = await _token();
+    if (token == null) return null;
     final response = await _api.post(
-      '/blacklist',
-      body: {
-        'ip': ip,
-        if (reason != null) 'reason': reason,
-        if (notes != null) 'notes': notes,
-      },
+      BlacklistEndpoints.blacklist,
+      token: token,
+      body: entry.toApiJson(),
     );
-    return response as Map<String, dynamic>;
+    final created = (response as Map<String, dynamic>)['entry'];
+    return created is Map<String, dynamic>
+        ? BlacklistEntry.fromApi(created)
+        : null;
   }
 
-  Future<void> removeFromBlacklist(int id) async {
-    await _api.delete('/blacklist/$id');
+  /// DELETE /blacklist/{id}
+  Future<void> remove(int id) async {
+    final token = await _token();
+    if (token == null) return;
+    await _api.delete(BlacklistEndpoints.entry(id), token: token);
+  }
+
+  /// DELETE /blacklist — clears every entry.
+  Future<void> clear() async {
+    final token = await _token();
+    if (token == null) return;
+    await _api.delete(BlacklistEndpoints.blacklist, token: token);
   }
 }

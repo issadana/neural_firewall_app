@@ -7,6 +7,7 @@ import 'package:Sentri/core/resources/font_manager.dart';
 import 'package:Sentri/core/resources/padding_manager.dart';
 import 'package:Sentri/core/resources/spaces_manager.dart';
 import 'package:Sentri/core/resources/text_style_manager.dart';
+import 'package:Sentri/core/constants/ai_models.dart';
 import 'package:Sentri/core/theme/app_colors.dart';
 import 'package:Sentri/core/widgets/pressable_buttons/app_pressable.dart';
 import 'package:Sentri/features/blacklist/domain/entities/blacklist_entry.dart';
@@ -91,10 +92,12 @@ class BlacklistTile extends StatelessWidget {
                     SpacesManager.h5,
                     Row(
                       children: [
-                        _ReasonBadge(reason: entry.reason),
+                        _ReasonBadge(entry: entry),
                         SpacesManager.w8,
                         Text(
-                          DateFormat('MM/dd  HH:mm').format(entry.addedAt),
+                          // .toLocal(): server timestamps arrive as UTC, so
+                          // format in the device's zone, not UTC.
+                          DateFormat('MM/dd  HH:mm').format(entry.addedAt.toLocal()),
                           style: getRegularTextStyle(fontSize: FontSizesManager.s11, color: colors.textDisabled),
                         ),
                       ],
@@ -102,8 +105,8 @@ class BlacklistTile extends StatelessWidget {
                   ],
                 ),
               ),
-              if (entry.bruteForceScore != null || entry.dosScore != null) ...[
-                _ScoreBadges(bf: entry.bruteForceScore, dos: entry.dosScore),
+              if (entry.flaggedScore != null) ...[
+                _ScoreBadge(score: entry.flaggedScore!),
                 SpacesManager.w8,
               ],
               AppPressable(
@@ -132,14 +135,21 @@ class BlacklistTile extends StatelessWidget {
 }
 
 class _ReasonBadge extends StatelessWidget {
-  final String reason;
-  const _ReasonBadge({required this.reason});
+  final BlacklistEntry entry;
+  const _ReasonBadge({required this.entry});
 
   @override
   Widget build(BuildContext context) {
-    final isManual = reason == 'manual';
+    final isManual = !entry.isAiBlock;
     final color = isManual ? AppColors.primary : AppColors.statusDanger;
-    final label = isManual ? 'Manual' : 'AI Block';
+
+    // For an AI block, name the model that actually flagged the IP (the max
+    // scorer). Fall back to a generic label if the id is missing/unknown.
+    final modelId = entry.flaggedModelId;
+    final label = isManual
+        ? 'Manual'
+        : (modelId != null ? AiModels.tryById(modelId)?.label : null) ??
+            'AI Block';
 
     return Container(
       padding: PaddingManager.paddingH8V3,
@@ -156,34 +166,18 @@ class _ReasonBadge extends StatelessWidget {
   }
 }
 
-class _ScoreBadges extends StatelessWidget {
-  final double? bf;
-  final double? dos;
-  const _ScoreBadges({this.bf, this.dos});
+class _ScoreBadge extends StatelessWidget {
+  final double score;
+  const _ScoreBadge({required this.score});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (bf != null)
-          Text(
-            'BF ${(bf! * 100).toStringAsFixed(0)}%',
-            style: getBoldTextStyle(
-              fontSize: FontSizesManager.s11,
-              color: AppColors.statusWarning,
-            ),
-          ),
-        if (dos != null)
-          Text(
-            'DoS ${(dos! * 100).toStringAsFixed(0)}%',
-            style: getBoldTextStyle(
-              fontSize: FontSizesManager.s11,
-              color: AppColors.statusDanger,
-            ),
-          ),
-      ],
+    return Text(
+      '${(score * 100).toStringAsFixed(0)}%',
+      style: getBoldTextStyle(
+        fontSize: FontSizesManager.s13,
+        color: AppColors.statusDanger,
+      ),
     );
   }
 }

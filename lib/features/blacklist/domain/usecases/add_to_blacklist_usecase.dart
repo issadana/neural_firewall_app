@@ -1,5 +1,8 @@
+import 'package:injectable/injectable.dart';
+
 import '../repositories/blacklist_repository.dart';
 
+@injectable
 class AddToBlacklistUseCase {
   final BlacklistRepository _repository;
   const AddToBlacklistUseCase(this._repository);
@@ -7,9 +10,17 @@ class AddToBlacklistUseCase {
   Future<void> call(
     String ip,
     String reason, {
-    double? bfScore,
-    double? dosScore,
+    String? selectedModel,
+    double? selectedScore,
+    Map<String, double>? allModelScores,
     String? notes,
   }) =>
-      _repository.add(ip, reason, bfScore: bfScore, dosScore: dosScore, notes: notes);
+      _repository.add(
+        ip,
+        reason,
+        selectedModel: selectedModel,
+        selectedScore: selectedScore,
+        allModelScores: allModelScores,
+        notes: notes,
+      );
 }

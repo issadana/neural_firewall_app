@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import '../../domain/usecases/collect_snapshot_usecase.dart';
 import '../../domain/usecases/sync_snapshot_usecase.dart';
 import 'hardware_metrics_state.dart';
 
 export 'hardware_metrics_state.dart';
 
+@lazySingleton
 class HardwareMetricsCubit extends Cubit<HardwareMetricsState> {
   final CollectSnapshotUseCase _collect;
   final SyncSnapshotUseCase _sync;

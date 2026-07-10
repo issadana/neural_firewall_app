@@ -1,8 +1,11 @@
+import 'package:injectable/injectable.dart';
+
 import '../../domain/entities/hardware_snapshot.dart';
 import '../../domain/repositories/hardware_metrics_repository.dart';
 import '../datasources/hardware_local_datasource.dart';
 import '../datasources/hardware_remote_datasource.dart';
 
+@LazySingleton(as: HardwareMetricsRepository)
 class HardwareMetricsRepositoryImpl implements HardwareMetricsRepository {
   final HardwareLocalDataSource _local;
   final HardwareRemoteDataSource _remote;

@@ -67,7 +67,7 @@ const List<AiModelInfo> kAiModelCatalog = [
     ],
     techName: 'Brute-Force Detection model',
     features: 4,
-    accuracy: '98%',
+    accuracy: '96.61%',
   ),
   AiModelInfo(
     id: 'dos',
@@ -86,7 +86,7 @@ const List<AiModelInfo> kAiModelCatalog = [
     ],
     techName: 'DoS Specialist model',
     features: 5,
-    accuracy: '97%',
+    accuracy: '99.52%',
   ),
   AiModelInfo(
     id: 'dosHulk',
@@ -105,7 +105,7 @@ const List<AiModelInfo> kAiModelCatalog = [
     ],
     techName: 'DoS Specialist (HULK) model',
     features: 10,
-    accuracy: '96%',
+    accuracy: '99.84%',
   ),
   AiModelInfo(
     id: 'loic',
@@ -124,7 +124,7 @@ const List<AiModelInfo> kAiModelCatalog = [
     ],
     techName: 'LOIC Detection model',
     features: 10,
-    accuracy: '95%',
+    accuracy: '99.22%',
   ),
   AiModelInfo(
     id: 'hoic',
@@ -143,6 +143,6 @@ const List<AiModelInfo> kAiModelCatalog = [
     ],
     techName: 'HOIC Detection model',
     features: 12,
-    accuracy: '95%',
+    accuracy: '100%',
   ),
 ];

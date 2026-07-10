@@ -25,12 +25,6 @@ class _NovaChatScreenState extends State<NovaChatScreen> {
   final _scrollCtrl = ScrollController();
 
   @override
-  void initState() {
-    super.initState();
-    context.read<ChatCubit>().openChat();
-  }
-
-  @override
   void dispose() {
     _scrollCtrl.dispose();
     super.dispose();
