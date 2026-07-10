@@ -15,7 +15,8 @@ sealed class WsServerMessage {
       case 'ack':
         return WsAck(
           count: (json['count'] as num?)?.toInt() ?? 0,
-          ids: (json['ids'] as List?)?.map((e) => (e as num).toInt()).toList() ??
+          ids:
+              (json['ids'] as List?)?.map((e) => (e as num).toInt()).toList() ??
               const [],
         );
       case 'pong':
@@ -25,8 +26,11 @@ sealed class WsServerMessage {
           action: json['action'] as String? ?? 'added',
           ip: json['ip'] as String? ?? '',
           reason: json['reason'] as String? ?? 'blocked',
-          bfScore: (json['bf_score'] as num?)?.toDouble(),
-          dosScore: (json['dos_score'] as num?)?.toDouble(),
+          selectedModel: json['selected_model'] as String?,
+          selectedScore: (json['selected_score'] as num?)?.toDouble(),
+          allModelScores:
+              (json['all_model_scores'] as Map<String, dynamic>? ?? const {})
+                  .map((k, v) => MapEntry(k, (v as num).toDouble())),
         );
       case 'settings_update':
         return WsSettingsUpdate(
@@ -63,14 +67,16 @@ class WsBlacklistUpdate extends WsServerMessage {
   final String action; // "added" | "removed"
   final String ip;
   final String reason;
-  final double? bfScore;
-  final double? dosScore;
+  final String? selectedModel;
+  final double? selectedScore;
+  final Map<String, double> allModelScores;
   const WsBlacklistUpdate({
     required this.action,
     required this.ip,
     required this.reason,
-    this.bfScore,
-    this.dosScore,
+    this.selectedModel,
+    this.selectedScore,
+    this.allModelScores = const {},
   });
 }
 
@@ -91,7 +97,8 @@ class WsSettingsUpdate extends WsServerMessage {
 /// `token_expired` the connection was closed and the client will reconnect
 /// with a freshly-read token.
 class WsError extends WsServerMessage {
-  final String code; // batch_too_large | invalid_log | rate_limited | token_expired | server_error
+  final String
+  code; // batch_too_large | invalid_log | rate_limited | token_expired | server_error
   final String message;
   const WsError({required this.code, required this.message});
 }

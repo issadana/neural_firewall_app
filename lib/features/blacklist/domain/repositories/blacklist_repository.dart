@@ -3,7 +3,14 @@ import '../entities/blacklist_entry.dart';
 abstract class BlacklistRepository {
   Future<List<BlacklistEntry>> getAll();
   Future<bool> isBlocked(String ip);
-  Future<void> add(String ip, String reason, {double? bfScore, double? dosScore, String? notes});
+  Future<void> add(
+    String ip,
+    String reason, {
+    String? selectedModel,
+    double? selectedScore,
+    Map<String, double>? allModelScores,
+    String? notes,
+  });
   Future<void> remove(String ip);
   Future<void> clearAll();
 

@@ -5,8 +5,18 @@ class BlacklistEntry {
   final String ip;
   final DateTime addedAt;
   final String reason;
-  final double? bruteForceScore;
-  final double? dosScore;
+
+  /// Catalog id of the model that triggered the block (the max scorer), e.g.
+  /// `dosHulk`. Null for manual blocks.
+  final String? selectedModel;
+
+  /// The winning model's score (0..1). Null for manual blocks.
+  final double? selectedScore;
+
+  /// Per-model scores keyed by the 5 catalog ids (`bruteForce`, `dos`,
+  /// `dosHulk`, `loic`, `hoic`), values 0..1. Empty for manual blocks.
+  final Map<String, double> allModelScores;
+
   final String? notes;
 
   const BlacklistEntry({
@@ -14,8 +24,9 @@ class BlacklistEntry {
     required this.ip,
     required this.addedAt,
     required this.reason,
-    this.bruteForceScore,
-    this.dosScore,
+    this.selectedModel,
+    this.selectedScore,
+    this.allModelScores = const {},
     this.notes,
   });
 
@@ -29,9 +40,11 @@ class BlacklistEntry {
   static final RegExp _flaggedByRe = RegExp(r'flagged by "([^"]+)"');
 
   /// Catalog id of the model whose score triggered this block — the max scorer.
-  /// Parsed from [reason] (fresh local entries) or [notes] (where the backend
-  /// round-trip relocates the descriptive text). Null for manual entries.
+  /// Prefers the explicit [selectedModel] field; falls back to parsing the
+  /// descriptive [reason]/[notes] (older entries with no field). Null for
+  /// manual entries.
   String? get flaggedModelId {
+    if (selectedModel != null && selectedModel!.isNotEmpty) return selectedModel;
     for (final source in [reason, notes]) {
       if (source == null) continue;
       final match = _flaggedByRe.firstMatch(source);
@@ -40,27 +53,38 @@ class BlacklistEntry {
     return null;
   }
 
-  /// The winning model's score. Auto-block stores it in [bruteForceScore] for
-  /// the brute-force model, otherwise in [dosScore].
-  double? get flaggedScore => bruteForceScore ?? dosScore;
+  /// The winning model's score, if this was an AI block.
+  double? get flaggedScore => selectedScore;
 
   BlacklistEntry copyWith({
     int? id,
     String? ip,
     DateTime? addedAt,
     String? reason,
-    double? bruteForceScore,
-    double? dosScore,
+    String? selectedModel,
+    double? selectedScore,
+    Map<String, double>? allModelScores,
     String? notes,
   }) => BlacklistEntry(
     id: id ?? this.id,
     ip: ip ?? this.ip,
     addedAt: addedAt ?? this.addedAt,
     reason: reason ?? this.reason,
-    bruteForceScore: bruteForceScore ?? this.bruteForceScore,
-    dosScore: dosScore ?? this.dosScore,
+    selectedModel: selectedModel ?? this.selectedModel,
+    selectedScore: selectedScore ?? this.selectedScore,
+    allModelScores: allModelScores ?? this.allModelScores,
     notes: notes ?? this.notes,
   );
+
+  /// Tolerant parse of a per-model score map (int-or-double values).
+  static Map<String, double> _parseScores(dynamic raw) {
+    if (raw is Map) {
+      return raw.map(
+        (k, v) => MapEntry(k as String, (v as num).toDouble()),
+      );
+    }
+    return const {};
+  }
 
   // ── Local persistence (SharedPreferences) — camelCase keys ──────────────────
 
@@ -69,8 +93,9 @@ class BlacklistEntry {
     'ip': ip,
     'addedAt': addedAt.toIso8601String(),
     'reason': reason,
-    if (bruteForceScore != null) 'bruteForceScore': bruteForceScore,
-    if (dosScore != null) 'dosScore': dosScore,
+    if (selectedModel != null) 'selectedModel': selectedModel,
+    if (selectedScore != null) 'selectedScore': selectedScore,
+    if (allModelScores.isNotEmpty) 'allModelScores': allModelScores,
     if (notes != null) 'notes': notes,
   };
 
@@ -79,23 +104,26 @@ class BlacklistEntry {
     ip: json['ip'] as String,
     addedAt: DateTime.parse(json['addedAt'] as String),
     reason: json['reason'] as String,
-    bruteForceScore: (json['bruteForceScore'] as num?)?.toDouble(),
-    dosScore: (json['dosScore'] as num?)?.toDouble(),
+    selectedModel: json['selectedModel'] as String?,
+    selectedScore: (json['selectedScore'] as num?)?.toDouble(),
+    allModelScores: _parseScores(json['allModelScores']),
     notes: json['notes'] as String?,
   );
 
   // ── Backend API — snake_case keys ───────────────────────────────────────────
 
   /// Parses a `/blacklist` entry from the server. Tolerant of int-or-double
-  /// scores and a missing/invalid timestamp.
+  /// scores and a missing/invalid timestamp. Score fields are nullable — manual
+  /// blocks (and historical rows after the migration) have none.
   factory BlacklistEntry.fromApi(Map<String, dynamic> json) => BlacklistEntry(
     id: (json['id'] as num?)?.toInt(),
     ip: json['ip'] as String,
     addedAt:
         DateTime.tryParse(json['added_at'] as String? ?? '') ?? DateTime.now(),
     reason: json['reason'] as String? ?? 'manual',
-    bruteForceScore: (json['bf_score'] as num?)?.toDouble(),
-    dosScore: (json['dos_score'] as num?)?.toDouble(),
+    selectedModel: json['selected_model'] as String?,
+    selectedScore: (json['selected_score'] as num?)?.toDouble(),
+    allModelScores: _parseScores(json['all_model_scores']),
     notes: json['notes'] as String?,
   );
 
@@ -122,8 +150,9 @@ class BlacklistEntry {
     return {
       'ip': ip,
       'reason': apiReason,
-      if (bruteForceScore != null) 'bf_score': bruteForceScore,
-      if (dosScore != null) 'dos_score': dosScore,
+      if (selectedModel != null) 'selected_model': selectedModel,
+      if (selectedScore != null) 'selected_score': selectedScore,
+      if (allModelScores.isNotEmpty) 'all_model_scores': allModelScores,
       if (apiNotes != null) 'notes': apiNotes,
     };
   }

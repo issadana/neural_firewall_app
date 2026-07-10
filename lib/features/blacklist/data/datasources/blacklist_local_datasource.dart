@@ -81,8 +81,9 @@ class BlacklistLocalDataSource {
   Future<void> add(
     String ip,
     String reason, {
-    double? bfScore,
-    double? dosScore,
+    String? selectedModel,
+    double? selectedScore,
+    Map<String, double>? allModelScores,
     String? notes,
   }) async {
     await _ensureInit();
@@ -92,8 +93,9 @@ class BlacklistLocalDataSource {
         ip: ip,
         addedAt: DateTime.now(),
         reason: reason,
-        bruteForceScore: bfScore,
-        dosScore: dosScore,
+        selectedModel: selectedModel,
+        selectedScore: selectedScore,
+        allModelScores: allModelScores ?? const {},
         notes: notes,
       ),
     );

@@ -353,7 +353,14 @@ class TrafficRepositoryImpl implements TrafficRepository {
         // like an ML auto-block. Checked first so it wins if both guards trip.
         if (synHit) {
           final reason = 'SYN flood detected (> $_synFloodPerSec SYN/s)';
-          await _blacklistRepository.add(remoteIp, reason, dosScore: 1.0);
+          // Rate-based signal, not an ML verdict — attribute it to the DoS
+          // model with full confidence; no per-model score map applies.
+          await _blacklistRepository.add(
+            remoteIp,
+            reason,
+            selectedModel: 'dos',
+            selectedScore: 1.0,
+          );
           await _vpnDataSource.blockIp(remoteIp);
           _log.w('SYN-flood block of $remoteIp — $reason');
 
@@ -489,15 +496,14 @@ class TrafficRepositoryImpl implements TrafficRepository {
         status = PacketStatus.aiBlock;
 
         // Auto-block: persist to blacklist so future packets from this IP
-        // are caught before the ML models even run. The score goes to the
-        // matching field — only the brute-force model maps to bf_score; every
-        // DoS-family model (dos, HULK, LOIC, HOIC) maps to dos_score.
-        final isBruteForce = selectedModel == 'bruteForce';
+        // are caught before the ML models even run. The full per-model score
+        // map is carried through so the entry mirrors the firewall-log shape.
         await _blacklistRepository.add(
           remoteIp,
           'AI flagged by "$selectedModel" (score: ${selectedScore.toStringAsFixed(2)})',
-          bfScore: isBruteForce ? selectedScore : null,
-          dosScore: isBruteForce ? null : selectedScore,
+          selectedModel: selectedModel,
+          selectedScore: selectedScore,
+          allModelScores: modelScores,
         );
         autoBlacklisted = true;
 

@@ -37,12 +37,19 @@ class BlacklistRepositoryImpl implements BlacklistRepository {
   Future<void> add(
     String ip,
     String reason, {
-    double? bfScore,
-    double? dosScore,
+    String? selectedModel,
+    double? selectedScore,
+    Map<String, double>? allModelScores,
     String? notes,
   }) async {
-    await _dataSource.add(ip, reason,
-        bfScore: bfScore, dosScore: dosScore, notes: notes);
+    await _dataSource.add(
+      ip,
+      reason,
+      selectedModel: selectedModel,
+      selectedScore: selectedScore,
+      allModelScores: allModelScores,
+      notes: notes,
+    );
     _changes.add(null);
 
     // Mirror to the backend; capture the server id so the entry can be deleted

@@ -16,9 +16,16 @@ class SettingsCubit extends Cubit<SettingsState> {
   final SharedPreferences _prefs;
   final SettingsRepositoryImpl _repository;
 
-  /// Model ids that the backend tracks (the rest are local-only toggles).
-  static const _bfModelId = 'bruteForce';
-  static const _dosModelId = 'dos';
+  /// Maps each backend model-toggle key to its catalog model id. The two
+  /// spellings differ (e.g. `hulk_model_enabled` ↔ `dosHulk`), so keep the
+  /// mapping explicit. All five models are mirrored server-side.
+  static const _modelToggleKeys = <String, String>{
+    'bf_model_enabled': 'bruteForce',
+    'dos_model_enabled': 'dos',
+    'hulk_model_enabled': 'dosHulk',
+    'loic_model_enabled': 'loic',
+    'hoic_model_enabled': 'hoic',
+  };
 
   /// Coalesces rapid local changes (e.g. slider drags) into one PUT.
   Timer? _pushDebounce;
@@ -36,22 +43,28 @@ class SettingsCubit extends Cubit<SettingsState> {
       for (final m in kAiModelCatalog)
         m.id: _prefs.getBool(_modelKey(m.id)) ?? true,
     };
-    emit(SettingsState(
-      blockThreshold:
-          _prefs.getDouble('blockThreshold') ?? AppConstants.defaultBlockThreshold,
-      warnThreshold:
-          _prefs.getDouble('warnThreshold') ?? AppConstants.defaultWarnThreshold,
-      models: models,
-      scanSystemTraffic: _prefs.getBool('scanSystemTraffic') ?? false,
-      maxLogEntries: _prefs.getInt('maxLogEntries') ?? 200,
-      darkMode: _prefs.getBool('darkMode') ?? false,
-      floodDetection: _prefs.getBool('floodDetection') ?? true,
-      synFloodDetection: _prefs.getBool('synFloodDetection') ?? true,
-      floodPktPerSec:
-          _prefs.getInt('floodPktPerSec') ?? AppConstants.defaultFloodPktPerSec,
-      synFloodPerSec:
-          _prefs.getInt('synFloodPerSec') ?? AppConstants.defaultSynFloodPerSec,
-    ));
+    emit(
+      SettingsState(
+        blockThreshold:
+            _prefs.getDouble('blockThreshold') ??
+            AppConstants.defaultBlockThreshold,
+        warnThreshold:
+            _prefs.getDouble('warnThreshold') ??
+            AppConstants.defaultWarnThreshold,
+        models: models,
+        scanSystemTraffic: _prefs.getBool('scanSystemTraffic') ?? false,
+        maxLogEntries: _prefs.getInt('maxLogEntries') ?? 200,
+        darkMode: _prefs.getBool('darkMode') ?? false,
+        floodDetection: _prefs.getBool('floodDetection') ?? true,
+        synFloodDetection: _prefs.getBool('synFloodDetection') ?? true,
+        floodPktPerSec:
+            _prefs.getInt('floodPktPerSec') ??
+            AppConstants.defaultFloodPktPerSec,
+        synFloodPerSec:
+            _prefs.getInt('synFloodPerSec') ??
+            AppConstants.defaultSynFloodPerSec,
+      ),
+    );
   }
 
   /// Pulls the server's settings (if signed in) and overlays them on top of the
@@ -143,17 +156,16 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   /// Maps the current state to the backend's settings payload.
   Map<String, dynamic> _toServerJson(SettingsState s) => {
-        'block_threshold': s.blockThreshold,
-        'warn_threshold': s.warnThreshold,
-        'flood_detection': s.floodDetection,
-        'syn_flood_detection': s.synFloodDetection,
-        'flood_pkt_per_sec': s.floodPktPerSec,
-        'syn_flood_per_sec': s.synFloodPerSec,
-        'bf_model_enabled': s.isModelEnabled(_bfModelId),
-        'dos_model_enabled': s.isModelEnabled(_dosModelId),
-        'max_log_entries': s.maxLogEntries,
-        'log_system_traffic': s.scanSystemTraffic,
-      };
+    'block_threshold': s.blockThreshold,
+    'warn_threshold': s.warnThreshold,
+    'flood_detection': s.floodDetection,
+    'syn_flood_detection': s.synFloodDetection,
+    'flood_pkt_per_sec': s.floodPktPerSec,
+    'syn_flood_per_sec': s.synFloodPerSec,
+    for (final e in _modelToggleKeys.entries) e.key: s.isModelEnabled(e.value),
+    'max_log_entries': s.maxLogEntries,
+    'log_system_traffic': s.scanSystemTraffic,
+  };
 
   /// Applies the server payload onto local state + prefs. Only keys present in
   /// [json] are applied, so partial responses don't clobber existing values.
@@ -169,8 +181,6 @@ class SettingsCubit extends Cubit<SettingsState> {
     final synFloodDetection = asBool('syn_flood_detection');
     final floodPktPerSec = asInt('flood_pkt_per_sec');
     final synFloodPerSec = asInt('syn_flood_per_sec');
-    final bfEnabled = asBool('bf_model_enabled');
-    final dosEnabled = asBool('dos_model_enabled');
     final maxLogEntries = asInt('max_log_entries');
     final logSystemTraffic = asBool('log_system_traffic');
 
@@ -201,26 +211,27 @@ class SettingsCubit extends Cubit<SettingsState> {
     }
 
     final models = {...state.models};
-    if (bfEnabled != null) {
-      models[_bfModelId] = bfEnabled;
-      await _prefs.setBool(_modelKey(_bfModelId), bfEnabled);
-    }
-    if (dosEnabled != null) {
-      models[_dosModelId] = dosEnabled;
-      await _prefs.setBool(_modelKey(_dosModelId), dosEnabled);
+    for (final e in _modelToggleKeys.entries) {
+      final enabled = asBool(e.key);
+      if (enabled != null) {
+        models[e.value] = enabled;
+        await _prefs.setBool(_modelKey(e.value), enabled);
+      }
     }
 
-    emit(state.copyWith(
-      blockThreshold: blockThreshold,
-      warnThreshold: warnThreshold,
-      floodDetection: floodDetection,
-      synFloodDetection: synFloodDetection,
-      floodPktPerSec: floodPktPerSec,
-      synFloodPerSec: synFloodPerSec,
-      maxLogEntries: maxLogEntries,
-      scanSystemTraffic: logSystemTraffic,
-      models: models,
-    ));
+    emit(
+      state.copyWith(
+        blockThreshold: blockThreshold,
+        warnThreshold: warnThreshold,
+        floodDetection: floodDetection,
+        synFloodDetection: synFloodDetection,
+        floodPktPerSec: floodPktPerSec,
+        synFloodPerSec: synFloodPerSec,
+        maxLogEntries: maxLogEntries,
+        scanSystemTraffic: logSystemTraffic,
+        models: models,
+      ),
+    );
   }
 
   @override
